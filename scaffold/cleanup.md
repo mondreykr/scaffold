@@ -39,6 +39,23 @@ If `.scaffold/scratch/` does not exist, skip this step.
 
 ---
 
+## Step 1.6: v1 Artifact Cleanup
+
+**Check for `.scaffold/quick/`:** If it exists, these are v1 quick task records.
+- Present each directory: "Found quick task [NNN]: [description from plan.md]"
+- Propose: archive to `.scaffold/archive/quick/` to preserve history
+- Wait for user approval, then move
+
+**Check for `.scaffold/continue-here.md`:** If it exists, this is a v1 pause file.
+- Read it and present the context
+- Propose: incorporate relevant context into state.md Session Context section,
+  then delete the file
+- Wait for user approval
+
+If neither exists, skip this step.
+
+---
+
 ## Step 2: Identify Format Differences
 
 Check each file against the current format:
@@ -62,13 +79,23 @@ Check each file against the current format:
 - Old category-grouped format (## Tech, ## Architecture, etc. as organizing headers)
   - Should be flat chronological with `**Category:**` field per entry
 
+**state.md — check for v1→v2 status values:**
+- `planning` → `idle` (planning is a transient state, not persisted)
+- `executing` → `scoped` (execution scope is set, awaiting /scaffold:do)
+- Missing `scoped`, `user-pending`, `paused` as recognized values
+
 **CLAUDE.md — check for:**
+- Missing "Working" section (v2 addition — execution behavior rules)
 - Missing "Session Protocol" table
 - Missing "Command Reference" table
 - Missing "Core Principle" section
 - Missing "Key Documents" section
-- Missing `execute` and `cleanup` command references
-- Old session protocol missing "execute" row
+- Old v1 command references: `/scaffold:prime`, `/scaffold:pause`,
+  `/scaffold:resume`, `/scaffold:quick`, `/scaffold:quick-execute`,
+  `/scaffold:verify` — replace with v2 commands (`/scaffold:do`)
+- Old session protocol entries: "prime" / "execute" → "do it" / "go ahead";
+  "pause" → checkpoint mid-session; remove "resume", "quick fix" rows
+- `.scaffold/quick/` in Key Documents — remove (v2 dropped quick workflow)
 - Redundant rules that duplicate SessionStart hook and command logic:
   - "Run /scaffold:status at the start of every session..." — handled by SessionStart hook
   - "If /scaffold:status wasn't run, read ..." — handled by SessionStart hook
@@ -105,7 +132,7 @@ For each file that needs changes, build the new content by mapping old → new:
 - "What's working well" → Drop (preferences route to CLAUDE.md)
 - "Parking lot" / "Future Ideas" → move to roadmap.md Backlog
 - "Next session" → "Next Action" (rewrite as action pointer, not vague intentions)
-- Add "Status" section (infer from current state: idle / executing / blocked)
+- Add "Status" section (infer from current state: idle / scoped / blocked)
 - Add "Current Position" section (synthesize from existing content)
 
 **decisions.md migration:**
@@ -115,11 +142,13 @@ For each file that needs changes, build the new content by mapping old → new:
 - Keep `## Archived` section at bottom
 
 **CLAUDE.md migration:**
-- Add Session Protocol table if missing (with "execute" row)
-- Add Command Reference table if missing (with execute, cleanup)
+- Add "Working" section if missing (v2: execution behavior rules)
+- Add/update Session Protocol table to v2 format (do/checkpoint/pause rows)
+- Add/update Command Reference table to v2 format (status, plan, do, checkpoint,
+  cleanup, update, graduate — remove prime, pause, resume, quick, quick-execute)
 - Add Core Principle text if missing
-- Add Key Documents section if missing
-- Update existing tables to include new commands
+- Add Key Documents section if missing, remove `.scaffold/quick/` if present
+- Update existing tables to include new commands, remove old ones
 
 ---
 

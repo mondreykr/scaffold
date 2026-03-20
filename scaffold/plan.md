@@ -1,19 +1,50 @@
 ---
-description: Session planning -- triage, consult, scope, write plan
+description: Strategic consultation — discuss direction, update roadmap, scope work, produce plan doc
+argument-hint: [description]
 ---
 
 **Precondition:** Verify that all five scaffold files exist: CLAUDE.md,
 `.scaffold/project.md`, `.scaffold/state.md`, `.scaffold/roadmap.md`,
 `.scaffold/decisions.md`. If any are missing, stop and say:
-"Scaffold files missing -- run /scaffold:setup first."
+"Scaffold files missing — run /scaffold:setup first."
+
+**Boundary:** This command does NOT modify non-scaffold files. No code changes.
+No file creation outside `.scaffold/`. You will update scaffold files only.
+
+---
+
+## Precondition Guards
+
+Read `.scaffold/state.md` Status field before proceeding.
+
+**If status is `scoped`:**
+> "You have scoped work that hasn't been executed. Re-plan (replaces scope)
+> or run `/scaffold:do` first?"
+
+Wait for explicit confirmation before proceeding. If the user says to run do
+instead, stop.
+
+**If status is `user-pending`:**
+> "Unverified USER tasks from the current plan. Run `/scaffold:checkpoint`
+> first to handle them, then re-plan."
+
+Stop. Do not proceed.
+
+**If status is `blocked`:**
+> "State shows blocked: [reason from state.md]. Is this resolved?
+> If yes, we'll plan forward. If not, let's address the blocker first."
+
+Wait for confirmation. If the user says the blocker is resolved, proceed
+(it will be cleared during this plan session or at checkpoint). If not,
+help the user think through the blocker before planning.
 
 ---
 
 ## Behavioral Principle: User Comprehension
 
 User comprehension is a prerequisite for forward progress. When the user
-expresses uncertainty -- "I don't understand", "help me understand", "I'm
-not sure", "what does that mean", or any language signaling confusion --
+expresses uncertainty — "I don't understand", "help me understand", "I'm
+not sure", "what does that mean", or any language signaling confusion —
 that becomes the top priority before the planning flow continues.
 
 **How to respond to expressed uncertainty:**
@@ -21,16 +52,6 @@ that becomes the top priority before the planning flow continues.
 Use AskUserQuestion to offer 2-4 concrete aspects the user might be
 uncertain about. Let them point to what needs clarification rather than
 having to articulate it from scratch. Then address only what they selected.
-
-Example -- user says "I'm not sure about this task":
-  > "What's unclear about [task]?"
-  > - What it actually does
-  > - Why it comes before the other work
-  > - What happens if it doesn't go as expected
-  > - All of the above
-
-This reduces the cognitive load of expressing confusion. The user clicks
-instead of having to formulate the right question.
 
 **When presenting options and decisions throughout planning:**
 
@@ -40,47 +61,68 @@ means for the project in plain terms.
 
 **What this does NOT mean:**
 
-- Don't probe for hidden uncertainty -- respond to expressed uncertainty
+- Don't probe for hidden uncertainty — respond to expressed uncertainty
 - If the user says "yes", "proceed", or gives a clear affirmative, move
   forward. Don't second-guess clear signals.
-- Don't quiz after every statement -- read the room
-- Don't be patronizing -- if they clearly understand, keep moving
-- Don't hold progress hostage to perfect understanding of every detail
+- Don't quiz after every statement — read the room
+- Don't be patronizing — if they clearly understand, keep moving
+
+---
+
+## Check for Inline Description
+
+If the user provided a description with the command (e.g.,
+`/scaffold:plan fix the login redirect`), this is the **inline shortcut**.
+
+1. Treat the description as the user's stated direction — skip Phase 2
+   (consultation). The user already told you what they want.
+2. Assess complexity silently: does this need more than 3 tasks,
+   architectural decisions, or changes across multiple subsystems?
+   - If yes: switch to full consultation. Say: "This looks bigger than a
+     quick scope — [reason]. Let me walk through the full planning flow."
+     Proceed to Phase 1 and Phase 2 as normal.
+   - If no: run Phase 1 (triage) silently to read all files, then skip
+     Phase 2 (consultation), proceed directly to Phase 3 with the
+     description as direction.
 
 ---
 
 ## Phase 1: Triage (silent)
 
-Read in this order. Do not present findings yet -- just absorb context:
-1. .scaffold/state.md -- Status, Current Position, Next Action, Blockers, Open Questions
-2. .scaffold/roadmap.md -- phase structure, `[IN-PROGRESS]` phase, task states
-3. .scaffold/project.md -- scope boundaries and success criteria
-4. .scaffold/decisions.md -- recent active decisions only
-5. CLAUDE.md -- constraints and tech stack
+Read in this order. Do not present findings yet — just absorb context:
+1. .scaffold/state.md — Status, Current Position, Next Action, Blockers,
+   Open Questions, Session Context (if present)
+2. .scaffold/roadmap.md — phase structure, `[IN-PROGRESS]` phase, task states
+3. .scaffold/project.md — scope boundaries and success criteria
+4. .scaffold/decisions.md — recent active decisions only
+5. CLAUDE.md — constraints and tech stack
 
-Scan `.scaffold/investigations/` -- if the directory exists and contains files,
-note them. They may contain prior research relevant to the current planning
-session. Read any that look relevant based on filename.
+Scan `.scaffold/investigations/` — if the directory exists and contains files,
+note them. Read any that look relevant based on filename.
+
+If state.md has Session Context (resuming from a paused planning session),
+read it to pick up the thread.
 
 Assess (internally, for Phase 2):
-- Which phase is `[IN-PROGRESS]`? What tasks are `[x]`, `>> `, or `[ ]`?
+- Which phase is `[IN-PROGRESS]`? What tasks are `[x]`, `>>`, or `[ ]`?
 - Are there blockers or open questions that need resolving first?
-- Are there blockers that are stale or already resolved? (If clearly resolved,
-  flag for removal and routing to decisions.md during Phase 3.)
+- Are there blockers that are stale or already resolved?
 - Are any scaffold files stale (>7 days since last update)?
-- Is there a pending execute (state.md Next Action has a plan pointer)?
 - What kind of work is likely needed? (investigate / design / build / validate / debug)
 - Are there investigation files that inform the current phase?
 
 ---
 
-## Phase 2: Consult (interactive -- WAIT for user)
+## Phase 2: Consult (interactive — WAIT for user)
+
+**Skip this phase if inline shortcut is active.**
 
 Present a brief structured assessment:
 
 - **Where we are:** 1-2 sentences on current state (phase, recent completions)
 - **What the docs suggest:** what roadmap/state point to as next work
-- **Flags:** blockers (including stale/resolved ones), stale files, contradictions, open questions, pending execute
+- **Flags:** blockers (including stale/resolved ones), stale files,
+  contradictions, open questions
 - **Prior research:** if investigation files exist, note them briefly
 
 Then ask:
@@ -88,7 +130,7 @@ Then ask:
 > "That's what I see in the scaffold files. What are you thinking?
 > Do you have a direction in mind, concerns, or ideas?"
 
-**CRITICAL -- Do NOT skip this step. Do NOT propose tasks yet.**
+**CRITICAL — Do NOT skip this step. Do NOT propose tasks yet.**
 
 Even if the scaffold files make the next step obvious, the user may have:
 - Context that isn't captured in the files
@@ -97,38 +139,24 @@ Even if the scaffold files make the next step obvious, the user may have:
 - Questions they need answered before deciding
 
 Rationalizations that are NOT valid reasons to skip consultation:
-- "The roadmap clearly says X is next" -- the user may have changed their mind
-- "This is a continuation of previous work" -- the user may want to pivot
-- "The task is simple enough to just start" -- the user wants to understand first
-- "I already know what to do from the files" -- the files may be stale or incomplete
+- "The roadmap clearly says X is next" — the user may have changed their mind
+- "This is a continuation of previous work" — the user may want to pivot
+- "The task is simple enough to just start" — the user wants to understand first
+- "I already know what to do from the files" — the files may be stale or incomplete
 
 STOP. Wait for the user to respond before proceeding.
 
 ---
 
-## Phase 3: Propose Roadmap Changes (interactive -- user approves)
+## Phase 3: Propose Roadmap Changes (interactive — user approves)
 
-After the user shares their direction, restate it before proposing changes:
+After the user shares their direction (or from the inline description),
+restate it before proposing changes:
 
 > "So the direction is [one-sentence restatement]. That right?"
 
-Wait for confirmation. If the user corrects you, use their correction. The
-user's stated direction overrides whatever the scaffold files suggest. If
-they conflict, follow the user.
-
-**Determine the plan path:**
-
-1. **State-only session** -- brainstorming, roadmap restructuring, research that
-   doesn't produce codebase changes. No execute step needed.
-2. **Execution session** -- AI tasks to execute. Will produce a plan doc
-   for `/scaffold:prime`.
-3. **User-action session** -- all scoped tasks are `[USER]` tasks that the human
-   completes. No execute step. Plan doc is produced for `/scaffold:verify`.
-4. **Mixed session** -- AI tasks followed by `[USER]` tasks. Execute handles the
-   AI portion, then `/scaffold:verify` handles the USER portion.
-
-State the classification and the reason:
-> "This is a [state-only/execution/user-action/mixed] session because [reason]."
+Wait for confirmation. If the user corrects you, use their correction.
+The user's stated direction overrides whatever the scaffold files suggest.
 
 **Propose roadmap changes:**
 
@@ -139,21 +167,17 @@ Show proposed changes to roadmap.md:
 - New phases to create
 - Phase status changes (if applicable)
 
-Format proposals clearly so the user can review:
+Format proposals clearly:
 ```
 Proposed roadmap changes:
-- Phase 2 -- [Title]: add "Task X", add "Task Y"
+- Phase 2 — [Title]: add "Task X", add "Task Y"
 - Backlog: move "Item Z" from Phase 3
-- [etc.]
 ```
 
 For human-owned tasks, use the `[USER]` marker:
 ```
 - [ ] [USER] Task description
 ```
-A `[USER]` task is work the human must do outside of Claude -- vault configuration,
-manual testing, deploying, external system changes, etc. The marker is part of the
-task text in roadmap.md.
 
 **Wait for explicit approval before writing changes to roadmap.md.**
 
@@ -161,167 +185,118 @@ If the user modifies the proposal, incorporate their changes. Write the
 approved changes to `.scaffold/roadmap.md`. Update the `<!-- Last updated -->`
 date.
 
-**If state-only session:** Skip to Phase 5 (produce plan document, update state).
-
 ---
 
-## Phase 4: Scope Execute (interactive -- user approves, execution sessions only)
+## Phase 4: Scope Work (interactive — user approves)
 
-From the roadmap tasks in the `[IN-PROGRESS]` phase, propose which tasks are
-in scope for the next execute. This is the "what's the contract for execute?" step.
+**Determine what kind of session this is:**
+- Does the scope include AI tasks (code changes)? → execution session
+- Does the scope include only `[USER]` tasks? → user-action session
+- Is there no execution at all (just roadmap/state changes)? → state-only session
+- Both AI and USER tasks? → mixed session
 
-Present the candidate tasks and ask:
-> "Which of these should be in scope for the next execute?
+**If state-only session:** Skip to Phase 5.
+
+**If execution or mixed session:**
+
+From the roadmap tasks in the `[IN-PROGRESS]` phase, propose which tasks
+are in scope for the next execute:
+
+> "Which of these should be in scope?
 > [list tasks with brief descriptions]
 > All of them, or a subset?"
 
-The user controls ambition level -- they decide how many tasks to include.
-Default to fewer tasks. 3 well-scoped tasks > 7 ambitious ones.
+The user controls ambition level. Default to fewer tasks.
+3 well-scoped tasks > 7 ambitious ones.
 
 **Task sizing:**
-- If a task can't be stated in 1-2 sentences, it's too big -- break it down
-- If you're uncertain whether a task fits this execute, defer it
+- If a task can't be stated in 1-2 sentences, it's too big — break it down
+- If you're uncertain whether a task fits, defer it
 - Investigation tasks: cap at 2-3 focused questions per execute
 
-Wait for the user to confirm scope before proceeding.
+Wait for the user to confirm scope.
 
 **USER task boundary rule:**
-
-Execute scope stops at the first `[USER]` task. When proposing scope:
-
-- If there are AI tasks before the first `[USER]` task: scope only those AI tasks
-  for execute. The `[USER]` tasks appear in the plan doc but are marked as outside
-  execute scope.
-- If the first task(s) are `[USER]` (no AI tasks before them): no execute scope.
-  The session is user-action only.
-- AI tasks AFTER a `[USER]` task are never in scope. They belong to a future plan
-  cycle. Note them as deferred: "Subsequent AI tasks blocked on USER task completion
-  -- will be scoped in next plan cycle."
-
-State the boundary clearly to the user:
-> "Execute scope: tasks 1-N (AI). Tasks N+1 onward are [USER] -- those go in the
-> plan doc but won't be executed. After checkpoint, run `/scaffold:verify` when
-> the user tasks are done."
+Execute scope stops at the first `[USER]` task:
+- AI tasks before the first `[USER]` task: scope those for execute. USER
+  tasks appear in the plan doc but are outside execute scope.
+- First task(s) are `[USER]` (no AI tasks before): user-action session.
+- AI tasks after a `[USER]` task: deferred to next plan cycle. Note in
+  plan doc Deferred section.
 
 **First-time phase activation check:**
-
-If this is the first execute targeting this phase (just promoted from `[PLANNED]`),
-review task sequence:
-
-> "This is the first execute for Phase N. Here are the tasks in order:
-> 1. [Task A]
-> 2. [Task B]
-> ...
-> Does this sequence make sense, or should any tasks be reordered?"
-
-Wait for confirmation. If reordered, update roadmap.md. Runs once per phase.
+If this is the first execute targeting this phase (just promoted from
+`[PLANNED]`), review task sequence and ask if the order makes sense.
 
 ---
 
-## Phase 5: Produce Plan Document + Update State
+## Phase 5: Write Plan Doc + Update State
 
 **Write the plan doc** to `.scaffold/plans/YYYYMMDD-NN-phase-N-slug.md`
 (create the directory if needed).
 
 **Naming convention:**
-- `YYYYMMDD` -- date without dashes
-- `NN` -- zero-padded sequence counter. Scan `.scaffold/plans/` for existing
-  files starting with today's date to determine NN. First file of the day is 01.
-- `phase-N` -- primary phase number (use the primary phase when a plan spans phases)
-- `slug` -- brief descriptor
+- `YYYYMMDD` — date without dashes
+- `NN` — zero-padded sequence counter (scan `.scaffold/plans/` for existing
+  files starting with today's date). First file of the day is 01.
+- `phase-N` — primary phase number
+- `slug` — brief descriptor
 
-The plan doc MUST be self-contained -- after `/clear`, it will be the ONLY thing
-guiding execution. Include:
+**Plan doc format:**
 
 ```markdown
-**Root:** [absolute path to project root]
-**Name:** [from .scaffold/project.md]
+# Plan: [brief title]
+<!-- Generated: YYYY-MM-DD -->
+<!-- Plan: .scaffold/plans/YYYYMMDD-NN-phase-N-slug.md -->
 
-## Session Goal
-[what and why]
+## Goal
+[What and why — 1-3 sentences]
 
-## Context Pointers
-[which .scaffold/ files to read]
+## Tasks
+1. [Task title] — [done-when condition]
+2. [Task title] — [done-when condition]
+3. [USER] [Task title] — [done-when condition]
 
-## Key Decisions
-[from the planning discussion]
+## Approach
+[Key decisions, strategy, things to watch out for.
+For simple tasks this is 1-2 sentences. For complex tasks it's a paragraph.]
 
-## AI Tasks
+## Deferred
+[Items to route to roadmap at checkpoint. Omit section if none.]
 
-> These tasks define the scope of work for this session. Research the
-> codebase to understand how to implement them. Confirm your approach
-> with the user before executing. Do not expand scope beyond these tasks.
-
-### Task: [title]
-- **What:** one sentence
-- **Type:** build | validate | investigate | design | debug
-- **Why:** connection to goal
-- **Done when:** specific condition
-
-### Task: [title]
-...
-
-## User Tasks
-*(omit section entirely if no [USER] tasks)*
-
-### Task: [title] [USER]
-- **What:** what the user needs to do
-- **Done when:** acceptance criteria for verify to check
-- **Artifacts:** file paths the user will produce, or "none"
-
-USER tasks do NOT have Type or Why fields -- they are human instructions, not
-AI execution contracts.
-
----
-
-## Session Record
-
-### Deferred Items
-[if any -- route targets specified. Omit section if nothing deferred.]
-If AI tasks exist after a `[USER]` task in the roadmap sequence, add to Deferred Items:
-"Subsequent AI tasks blocked on USER task completion -- will be scoped in next plan cycle."
-The plan doc must NOT list AI tasks after USER tasks.
-
-### Decisions for decisions.md
-[if any -- omit if no decisions made]
-
-### Checkpoint Reminder
-When complete, run /scaffold:checkpoint.
-[If USER tasks exist:] Then complete user tasks and run /scaffold:verify.
-Checkpoint reads this plan file for deferred items and decisions.
+## Decisions
+[Decisions to log to decisions.md at checkpoint. Omit section if none.]
 ```
 
-**For investigation tasks**, additionally include in the task:
-```
-- **Output to:** `.scaffold/investigations/YYYYMMDD-NN-slug.md`
-```
-This tells execution where to write findings.
+For investigation tasks, add to the task entry:
+`Output: .scaffold/investigations/YYYYMMDD-NN-slug.md`
 
-**Tasks do NOT include key-files or verify-by fields.** Tasks contain:
-what, type, why, done-when (and output-to for investigation tasks).
-
-**For state-only sessions:** The plan doc records what was discussed/changed
-instead of tactical execution detail. It serves as a session record.
+**For state-only sessions:** Omit the Tasks section. The plan doc records
+what was discussed and changed. It serves as a session record.
 
 **Update state.md:**
-- Status -> "planning complete" (execution/mixed session), "user action pending"
-  (user-action session), or "idle" (state-only)
-- Current Position -> reflect any roadmap changes made
-- Next Action ->
-  - Execution session: "Run `/scaffold:prime` (in plan mode).
+- Clear Session Context if present (planning picked up from pause — that
+  context is now consumed)
+- Status →
+  - Execution/mixed session: `scoped`
+  - State-only session: `idle`
+  - User-action session: `user-pending`
+- Current Position → reflect any roadmap changes made
+- Next Action →
+  - Execution/mixed: "Run `/scaffold:do`.
     Plan: `.scaffold/plans/YYYYMMDD-NN-phase-N-slug.md`"
-  - Mixed session: "Run `/scaffold:prime` (in plan mode).
-    Plan: `.scaffold/plans/YYYYMMDD-NN-phase-N-slug.md`.
-    After execution: `/scaffold:checkpoint`, then `/scaffold:verify` for [N] user tasks."
-  - User-action session: "User tasks pending. Run `/scaffold:verify` when complete.
+    If mixed, append: "After execution: `/scaffold:checkpoint`, then complete
+    [N] user tasks and `/scaffold:checkpoint` again."
+  - User-action: "User tasks pending. Complete them, then `/scaffold:checkpoint`.
     Plan: `.scaffold/plans/YYYYMMDD-NN-phase-N-slug.md`"
-  - State-only session: "No execute needed -- state documents updated.
+  - State-only: "No execute needed — state documents updated.
     Run /scaffold:plan to determine next steps."
 - Update Blockers and Open Questions if they changed during planning
 - Update the `<!-- Last updated -->` date
 
-**If in plan mode:** Call ExitPlanMode after writing files. The user will review
-and can edit the plan doc directly before approving.
+**Update decisions.md** if decisions were made during planning (add entries
+at the TOP, below header, above existing entries). Update its
+`<!-- Last updated -->` date.
 
 ---
 
@@ -332,34 +307,39 @@ Present what was updated and where:
 - Plan doc location
 - State.md updates
 
-**If execution session:**
-> "Enter plan mode (shift-tab), then run `/scaffold:prime`."
-> Or: "/clear first for a fresh context window, then plan mode + `/scaffold:prime`."
+**Execution or mixed session:**
+> "Planning complete. Execution will begin when you run `/scaffold:do`.
+> Or `/clear` first for a fresh context window, then `/scaffold:status`
+> and `/scaffold:do`."
 
-**If state-only session:**
-> "State documents updated. No execution needed."
+**State-only session:**
+> "Planning complete. State documents updated. Run `/scaffold:checkpoint`."
 
-**If mixed session:**
-> "Enter plan mode (shift-tab), then run `/scaffold:prime` for the AI tasks.
-> After checkpoint, complete the user tasks, then run `/scaffold:verify`."
-
-**If user-action session:**
-> "No AI execution needed. Complete the user tasks listed in the plan doc,
-> then run `/scaffold:verify`."
+**User-action session:**
+> "Planning complete. No AI execution needed. Complete the user tasks
+> listed in the plan doc, then run `/scaffold:checkpoint`."
 
 ---
 
 ## Edge Cases
 
-- **User wants something not on the roadmap:** User's direction wins. Roadmap is
-  context, not mandate. Add to roadmap during Phase 3.
-- **User doesn't know what to work on:** Present options from roadmap and state,
-  help them choose. Stay in Phase 2 until they have direction.
-- **Files are stale:** Flag in Phase 2, suggest running checkpoint --audit first
-  or updating files during this plan session.
-- **Pending execute exists:** Flag in Phase 2. User decides: run the pending
-  execute, or re-plan (which replaces the old plan pointer).
-- **Mid-planning pivot:** If the user changes direction during planning, restart
-  from Phase 3 with the new direction. Don't carry stale proposals forward.
-- **No codebase changes needed:** State-only path. Update roadmap/state, produce
-  record document, done.
+- **User wants something not on the roadmap:** User's direction wins.
+  Add to roadmap during Phase 3.
+- **User doesn't know what to work on:** Present options from roadmap and
+  state, help them choose. Stay in Phase 2 until they have direction.
+- **Files are stale:** Flag in Phase 2, suggest running checkpoint --audit
+  first or updating files during this plan session.
+- **Mid-planning pivot:** If the user changes direction during planning,
+  restart from Phase 3 with the new direction. Don't carry stale proposals.
+- **No codebase changes needed:** State-only path. Update roadmap/state,
+  produce record document, done.
+
+---
+
+## Boundaries
+
+Plan does NOT:
+- **Modify non-scaffold files** — no code changes, no project files
+- **Execute tasks** — that is /scaffold:do
+- **Use plan mode** — all work happens in normal mode
+- **Skip user consultation** — always consult the user (inline shortcut is the only defined exception)
