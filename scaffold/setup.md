@@ -81,28 +81,30 @@ For new projects, use the placeholder text as-is.
 - If a session is getting long and available context is less than 40%, pause the work and suggest /scaffold:checkpoint for completed work before continuing
 - If we made decisions, found bugs, discussed scope changes, or planned future work and I haven't said "checkpoint" — remind me before the session ends
 
+## Working
+- Before making code changes: research the relevant code, present your approach, get approval
+- One task at a time. Verify each works before starting the next.
+- Only work on tasks in the current scope (see state.md Next Action)
+- Out-of-scope discoveries get noted for checkpoint, not acted on now
+
 ### Session Protocol
 | User says | Action |
 |-----------|--------|
-| "pause" | Run `/scaffold:pause` — capture context for later resumption |
-| "resume" / "let's pick up" | Run `/scaffold:resume` — restore context from pause |
-| "status" | Quick readout from `.scaffold/state.md` and `.scaffold/roadmap.md` |
+| "status" | Run `/scaffold:status` |
+| "plan" / "let's think" | Run `/scaffold:plan` |
+| "do it" / "go ahead" / "execute" | Run `/scaffold:do` — always invoke the command, do not begin execution without it |
+| "checkpoint" / "save" | Run `/scaffold:checkpoint` |
+| "pause" / "I need to stop" | Run `/scaffold:checkpoint` (mid-session) |
 | "decision: [X]" | Log in `.scaffold/decisions.md` |
-| "prime" / "execute" | Enter plan mode, then run `/scaffold:prime` |
-| "quick fix" | Run `/scaffold:quick` — plan a lightweight quick task |
 
 ### Command Reference
 | Command | Role |
 |---------|------|
 | `/scaffold:status` | Orient — read state, suggest next action |
 | `/scaffold:plan` | Plan — update roadmap, scope work, produce plan doc |
-| `/scaffold:prime` | Prime — load plan context into Claude's plan mode |
-| `/scaffold:checkpoint` | Close the loop — verify, mark complete, commit |
-| `/scaffold:pause` | Pause — capture full context for later resumption |
-| `/scaffold:resume` | Resume — restore context from a paused session |
-| `/scaffold:quick` | Quick fix — plan a lightweight task |
-| `/scaffold:quick-execute` | Execute a pending quick task |
-| `/scaffold:cleanup` | Migrate existing project to current scaffold format |
+| `/scaffold:do` | Execute — research, propose, get approval, build |
+| `/scaffold:checkpoint` | Save — verify, update files, commit |
+| `/scaffold:cleanup` | Migrate existing project to current format |
 | `/scaffold:update` | Update scaffold commands to latest version |
 | `/scaffold:graduate` | Exit scaffold to heavier framework |
 
@@ -118,7 +120,6 @@ Plan updates scaffold files directly — user approves roadmap changes before th
 - `.scaffold/project.md` — Project definition and scope
 - `.scaffold/plans/` — Plan documents (execution contracts)
 - `.scaffold/investigations/` — Investigation output (durable research findings)
-- `.scaffold/quick/` — Quick task plans and summaries
 
 ## Hard constraints
 - [Things that must be true. Examples:]
@@ -164,7 +165,7 @@ e.g. "Not a social network. No sharing features yet. Single user only for now."]
 # State
 
 ## Status
-[idle / planning / executing / blocked]
+[idle / scoped / user-pending / paused / blocked]
 
 ## Current Position
 [Synopsis of the active phase, recent completions, and project health.
@@ -256,11 +257,10 @@ for a solo builder. Good defaults, large community, easy Vercel deployment.
 [Reversed or superseded decisions. Kept for historical context.]
 ```
 
-6. **Verify companion commands** — confirm that `status.md`, `checkpoint.md`,
-   `plan.md`, `prime.md`, `pause.md`, `resume.md`, `cleanup.md`,
-   `graduate.md`, `quick.md`, and `quick-execute.md` exist as sibling
-   files in this same folder. If any are missing, tell me — they should have
-   been installed together.
+6. **Verify companion commands** — confirm that `status.md`, `plan.md`,
+   `do.md`, `checkpoint.md`, `cleanup.md`, `graduate.md`, and `update.md`
+   exist as sibling files in this same folder. If any are missing, tell me —
+   they should have been installed together.
 
 7. **Create or update `.claude/hooks.json`** — SessionStart hook for automatic
    scaffold context loading.

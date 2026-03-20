@@ -54,9 +54,9 @@ consolidates everything worth carrying forward:
   `.scaffold/roadmap.md`, `.scaffold/decisions.md`
   to `.scaffold/archive/`
 - Move `.scaffold/plans/` and `.scaffold/investigations/` to `.scaffold/archive/` (if they exist)
-- Move all scaffold commands (setup.md, status.md, plan.md, prep.md, execute.md,
-  checkpoint.md, cleanup.md, graduate.md) from `.claude/commands/scaffold/`
-  to `.scaffold/archive/scaffold/`
+- Move all scaffold commands (setup.md, status.md, plan.md, do.md,
+  checkpoint.md, cleanup.md, update.md, graduate.md) from
+  `.claude/commands/scaffold/` to `.scaffold/archive/scaffold/`
 
 **4. Verify the archive:**
 Before modifying CLAUDE.md, confirm all expected files landed in their archive
@@ -68,17 +68,17 @@ locations:
 - `.scaffold/archive/scaffold/setup.md`
 - `.scaffold/archive/scaffold/status.md`
 - `.scaffold/archive/scaffold/plan.md`
-- `.scaffold/archive/scaffold/prep.md`
-- `.scaffold/archive/scaffold/execute.md`
+- `.scaffold/archive/scaffold/do.md`
 - `.scaffold/archive/scaffold/checkpoint.md`
 - `.scaffold/archive/scaffold/cleanup.md`
+- `.scaffold/archive/scaffold/update.md`
 - `.scaffold/archive/scaffold/graduate.md`
 
 If anything is missing, stop and report what failed to move.
 
 **5. Update CLAUDE.md:**
-- Remove all scaffold-specific rules (the /scaffold:status and /scaffold:checkpoint references,
-  the file-reading rules, session protocol, command reference, core principle, key documents)
+- Remove all scaffold-specific sections (Rules, Working, Session Protocol,
+  Command Reference, Core Principle, Key Documents)
 - Keep "Who I am", "Hard constraints", and "Tech stack"
 - Add a pointer: "Previous scaffold context is at `.scaffold/snapshot/PROJECT-CONTEXT.md`"
 
