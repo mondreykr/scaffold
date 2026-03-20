@@ -39,61 +39,32 @@ This is safe — it only replaces the command files in `~/.claude/commands/scaff
 
 After updating from an older version, run `/scaffold:cleanup` to migrate your scaffold files to the current format.
 
-## Migration from per-project install
-
-If you previously installed scaffold commands per-project (into `.claude/commands/scaffold/`), you need to remove them — project-level commands shadow user-level ones, so the old copies would take priority over updates.
-
-1. Delete `.claude/commands/scaffold/` from each project that has it (delete `.claude/commands/` too if it's now empty)
-2. Install at user level if you haven't already: `npx degit Mondreykr/essentials-scaffold/scaffold $HOME/.claude/commands/scaffold`
-
-After that, `/scaffold:update` works normally — it will also detect and remove any remaining per-project installs.
+If you previously installed scaffold commands per-project (into `.claude/commands/scaffold/`), `/scaffold:update` detects and removes them. Or delete `.claude/commands/scaffold/` from the project manually — project-level commands shadow user-level ones.
 
 ## How it works
 
-The scaffold is a state machine. Every command leaves ALL state documents accurate and self-consistent. Any command could be the last thing that runs before a week-long gap.
-
-There are two workflows: the **main workflow** for substantial work, and a **quick workflow** for small fixes.
+The scaffold is a state machine. Every command leaves all state documents accurate and self-consistent. Any command could be the last thing that runs before a week-long gap.
 
 ### Main workflow
 
 ```
-status → plan → prime (in plan mode) → checkpoint
+status → plan → prime → execute → checkpoint
+                ╰── plan mode ──╯
 ```
 
-Each step is a separate command. Between commands, you can `/clear` to free up Claude's context window — the scaffold files carry all state, so nothing is lost.
+| Step | What happens |
+|------|--------------|
+| **Status** | `/scaffold:status` reads scaffold files and gives a session briefing. Run this at the start of every session. |
+| **Plan** | `/scaffold:plan` triages state, consults you on direction, updates the roadmap, and writes a plan doc. |
+| **Prime** | Enter plan mode (`Shift+Tab`), then run `/scaffold:prime`. It loads the plan doc into context — Claude researches the codebase and presents an approach for approval. |
+| **Execute** | After you approve, Claude executes within plan mode. This isn't a separate command — it's what plan mode does after prime loads the contract. |
+| **Checkpoint** | `/scaffold:checkpoint` verifies work, marks tasks complete, handles phase sign-off, and commits. |
 
-| Step | Command | What happens |
-|------|---------|--------------|
-| **Orient** | `/scaffold:status` | Reads scaffold files, gives a session briefing with health checks |
-| **Plan** | `/scaffold:plan` | Triages state, consults you on direction, updates roadmap, writes a plan doc |
-| **Prime** | `/scaffold:prime` | Enter plan mode (`Shift+Tab`), then run prime. Loads plan context — Claude researches approach, gets approval, clears context, and executes |
-| **Checkpoint** | `/scaffold:checkpoint` | Verifies work, marks tasks complete, handles phase sign-off, commits |
+Between any commands, you can `/clear` to free up context — the scaffold files carry all state.
 
-**Plan** has two possible outcomes:
-1. **Execution session** — codebase changes needed. Plan produces a plan doc, you enter plan mode and prime.
-2. **State-only session** — brainstorming, roadmap restructuring, no codebase changes. Plan updates files and you're done.
+Not every session needs execution. `/scaffold:plan` determines the session type: some sessions produce codebase changes (execution), some are just roadmap restructuring or brainstorming (state-only), and some scope work that only you can do like deploying or manual testing (user-action). Plan tells you what comes next.
 
-### User tasks
-
-Some tasks require human action — deploying, configuring hardware, manual testing.
-Mark these `[USER]` in the roadmap.
-
-**Flow patterns:**
-
-| Pattern | Flow | When |
-|---------|------|------|
-| AI only | plan → prime → checkpoint | All tasks are code changes |
-| AI then USER | plan → prime → checkpoint → *user works* → verify | AI work first, then user work |
-| USER only | plan → *user works* → verify | Only user tasks, no code changes |
-| USER then AI | plan → *user works* → verify → plan → prime → checkpoint | User tasks must complete before AI can proceed |
-
-When a plan contains `[USER]` tasks, checkpoint notes them as pending. After
-completing your work, run `/scaffold:verify` to walk through each task, confirm
-completion, and update the roadmap.
-
-### Interrupting and resuming
-
-Use `/scaffold:pause` when you need to stop mid-work — it captures full session context to a handoff file. Next session, `/scaffold:status` detects the pause and routes you to `/scaffold:resume`.
+**User tasks:** Mark tasks that require human action with `[USER]` in the roadmap. After completing them, run `/scaffold:verify` to walk through each one and update state.
 
 ### Quick workflow
 
@@ -101,14 +72,14 @@ Use `/scaffold:pause` when you need to stop mid-work — it captures full sessio
 quick → quick-execute
 ```
 
-For small fixes that don't warrant the full plan/execute ceremony. Quick tasks are tracked separately in `.scaffold/quick/` and don't disrupt the main workflow.
+For small fixes that don't warrant full planning. Quick tasks are tracked in `.scaffold/quick/` and don't disrupt the main workflow.
 
 ## Commands
 
 | Command | What it does | When to use it |
 |---------|-------------|----------------|
 | `/scaffold:setup` | Creates context files and a SessionStart hook. Pass `--deep` to scan the codebase (best for brownfield projects). | Once per project, at the start |
-| `/scaffold:status` | Reads scaffold files, gives a session briefing with health checks. Detects paused sessions and pending executes. | Every session start, or after `/clear` |
+| `/scaffold:status` | Reads scaffold files, gives a session briefing with health checks. Detects paused sessions and pending work. | Every session start, or after `/clear` |
 | `/scaffold:plan` | Triages state, consults you on direction, updates roadmap, scopes work, writes a plan doc. | Before substantial work sessions |
 | `/scaffold:prime` | Loads plan context into Claude's plan mode. Claude researches approach, gets approval, then executes. | After plan, in plan mode (`Shift+Tab`) |
 | `/scaffold:checkpoint` | Verifies work, updates scaffold files, handles phase sign-off, commits. Pass `--audit` to verify claims against code. | End of every work session |
@@ -170,6 +141,9 @@ Tasks are tracked in phase-grouped sections:
 - Phase sign-off requires explicit user approval during checkpoint.
 
 ## Recovery
+
+**Pausing and resuming:**
+Use `/scaffold:pause` when you need to stop mid-work — it captures full session context to a handoff file. Next session, `/scaffold:status` detects the pause and routes you to `/scaffold:resume`.
 
 **Lost context mid-session:**
 Run `/scaffold:pause` before `/clear` to save context. If you already cleared, run `/scaffold:status` — it reads from files and gets you oriented.
