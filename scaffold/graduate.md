@@ -54,7 +54,7 @@ consolidates everything worth carrying forward:
   `.scaffold/roadmap.md`, `.scaffold/decisions.md`
   to `.scaffold/archive/`
 - Move `.scaffold/plans/` and `.scaffold/investigations/` to `.scaffold/archive/` (if they exist)
-- Move all scaffold commands (setup.md, status.md, plan.md, do.md,
+- Move all scaffold commands (setup.md, status.md, plan.md, scope.md, do.md,
   checkpoint.md, cleanup.md, update.md, graduate.md) from
   `.claude/commands/scaffold/` to `.scaffold/archive/scaffold/`
 
@@ -68,6 +68,7 @@ locations:
 - `.scaffold/archive/scaffold/setup.md`
 - `.scaffold/archive/scaffold/status.md`
 - `.scaffold/archive/scaffold/plan.md`
+- `.scaffold/archive/scaffold/scope.md`
 - `.scaffold/archive/scaffold/do.md`
 - `.scaffold/archive/scaffold/checkpoint.md`
 - `.scaffold/archive/scaffold/cleanup.md`

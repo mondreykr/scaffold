@@ -28,78 +28,68 @@ a decision that needs context — it's reference material, not session briefing.
 
 Give a brief orientation:
 
-1. **Project** — What this is, in one sentence (from .scaffold/project.md)
-2. **Phase** — Which phase is `[IN-PROGRESS]`, how many tasks done vs remaining
-3. **State** — Current status and any blockers (from .scaffold/state.md)
+1. **Project** — What this is, in one sentence (from project.md)
+2. **Phase** — Which phase is `[IN-PROGRESS]`, how many deliverables done vs remaining
+3. **State** — Current status and any blockers (from state.md)
 4. **Open threads** — Open questions or things being figured out
-5. **Investigations** — If `.scaffold/investigations/` exists and contains files:
-   > **Investigations:** [N] investigation file(s).
-   > [list filenames with one-line descriptions]
-
-   Skip this section if the directory doesn't exist or is empty.
-6. **Next action** — Route based on state.md Status field (see routing table below)
-7. **Health check** — Flag any contradictions between files. Examples:
-   - State says something is blocked but roadmap shows it as complete
-   - Roadmap shows a task `>>` in progress but state's Next Action doesn't reference it
+5. **Investigations** — If `.scaffold/investigations/` exists and contains files,
+   list filenames with one-line descriptions. Skip if empty or absent.
+6. **Next action** — Route based on state.md Status (see Step 3)
+7. **Health check** — Flag contradictions between files:
+   - State says blocked but roadmap shows it as complete
+   - Roadmap shows a deliverable as in progress but state doesn't reference it
    - Project scope boundaries say "no X" but roadmap includes X
-
-   If everything is consistent, say so.
-
-8. **Staleness check** — Check the `<!-- Last updated: YYYY-MM-DD -->` date at the
-   top of each scaffold file. If any file is more than 7 days old, flag it:
-   "[filename] last updated [date] — may be stale."
+   - If consistent, say so.
+8. **Staleness check** — If any scaffold file's `<!-- Last updated -->` date is
+   more than 7 days old, flag it.
 
 ---
 
 ## Step 3: Route to Next Action
 
-Route based on the Status field in state.md:
+Present options based on state.md Status. Suggest, don't mandate.
 
 **Status is `idle`:**
-> "No active scope. Run `/scaffold:plan` to scope work."
+> "No active scope. What would you like to work on?
+> `/scaffold:plan` to discuss direction, or just tell me what you need."
 
 **Status is `scoped`:**
-Read the plan doc referenced in state.md. Present the scoped tasks.
-> "Scoped work ready: [task list from plan doc].
-> Run `/scaffold:do` to execute."
+Read the plan doc. Present the scoped deliverables.
+> "Plan doc ready: [deliverable list].
+> Say 'go ahead', run `/scaffold:do` for formal execution, or keep working."
 
 **Status is `paused`:**
 Read Session Context from state.md. Present it.
-- If state.md references a plan doc:
-  > "Paused session from [date].
-  > [Session Context summary]
-  > Run `/scaffold:do` to continue, or `/scaffold:plan` to re-scope."
-- If state.md does NOT reference a plan doc (paused mid-planning):
-  > "Paused mid-planning from [date].
-  > [Session Context summary]
-  > Run `/scaffold:plan` to continue."
+- If plan doc exists:
+  > "Paused from [date]. [Session Context summary].
+  > Continue working, `/scaffold:do`, or `/scaffold:plan` to re-scope."
+- If no plan doc:
+  > "Paused mid-work from [date]. [Session Context summary].
+  > Continue or `/scaffold:plan` to figure out next steps."
 
 **Status is `user-pending`:**
-Scan roadmap for unchecked `[USER]` tasks in the `[IN-PROGRESS]` phase.
+Scan roadmap for unchecked `[USER]` deliverables in the `[IN-PROGRESS]` phase.
 > "AI work done. USER tasks pending:
-> - [task description]
-> Complete them, then run `/scaffold:checkpoint`."
+> - [deliverable description]
+> Complete them, then `/scaffold:checkpoint`."
 
 **Status is `blocked`:**
-> "Blocked: [reason from state.md].
-> Resolve the blocker. If the current scope is still valid, run `/scaffold:do`.
-> Otherwise run `/scaffold:plan` to re-scope."
+> "Blocked: [reason].
+> If resolved, continue working or `/scaffold:plan` to discuss direction."
 
-**USER tasks in roadmap (regardless of state):**
-Scan the `[IN-PROGRESS]` phase for unchecked `[USER]` tasks. If any exist and
-status is NOT `user-pending` (which already handles this), surface them:
-> "**User tasks pending:** [N] task(s) require your action:
-> - [task description]
-> Run `/scaffold:checkpoint` when complete."
+**USER deliverables in roadmap (regardless of state):**
+If unchecked `[USER]` deliverables exist and status is NOT `user-pending`,
+surface them as a note:
+> "**Reminder:** [N] USER task(s) pending in Phase [N]."
 
 ---
 
 ## Boundaries
 
 Status does NOT:
-- **Write any files** — status is read-only
-- **Make decisions** — it presents state and routes, nothing else
-- **Run other commands** — it tells you what to run next
+- **Write any files** — read-only
+- **Make decisions** — presents state and options
+- **Run other commands** — tells you what's available
 
 Keep it short. This is a briefing, not a report. If everything is early/empty,
 just say so and ask what the user wants to work on.

@@ -75,34 +75,35 @@ For new projects, use the placeholder text as-is.
 - Communication: [e.g. "Explain the why, skip the how unless I ask"]
 
 ## Rules
-- Consult .scaffold/decisions.md when making or revisiting technology/architecture/design choices
+- Ask before making code changes — present your approach and get approval
+- Consult .scaffold/decisions.md when making or revisiting design choices
 - Ask before making architectural or structural changes
-- If any scaffold file contradicts what you observe in the codebase, trust the codebase. State the contradiction to me explicitly and await my approval before proceeding.
-- If a session is getting long and available context is less than 40%, pause the work and suggest /scaffold:checkpoint for completed work before continuing
-- If we made decisions, found bugs, discussed scope changes, or planned future work and I haven't said "checkpoint" — remind me before the session ends
+- If any scaffold file contradicts what you observe in the codebase, trust the codebase. State the contradiction.
+- If a session is getting long (context below 40%), suggest /scaffold:checkpoint
+- If we made decisions or completed work, remind me to checkpoint before session ends
 
 ## Working
-- Before making code changes: research the relevant code, present your approach, get approval
-- One task at a time. Verify each works before starting the next.
-- Only work on tasks in the current scope (see state.md Next Action)
+- If state.md references a plan doc, read it and follow its scope
 - Out-of-scope discoveries get noted for checkpoint, not acted on now
 
 ### Session Protocol
 | User says | Action |
 |-----------|--------|
 | "status" | Run `/scaffold:status` |
-| "plan" / "let's think" | Run `/scaffold:plan` |
-| "do it" / "go ahead" / "execute" | Run `/scaffold:do` — always invoke the command, do not begin execution without it |
-| "checkpoint" / "save" | Run `/scaffold:checkpoint` |
-| "pause" / "I need to stop" | Run `/scaffold:checkpoint` (mid-session) |
+| "plan" / "what's next" / "let's think" | Run `/scaffold:plan` |
+| "scope this" / "write a plan" | Run `/scaffold:scope` |
+| "do" / "execute the plan" | Run `/scaffold:do` |
+| "go ahead" / "do it" | If plan doc exists, read it and execute per Working rules. Otherwise do what was discussed. |
+| "checkpoint" / "save" / "pause" | Run `/scaffold:checkpoint` |
 | "decision: [X]" | Log in `.scaffold/decisions.md` |
 
 ### Command Reference
 | Command | Role |
 |---------|------|
-| `/scaffold:status` | Orient — read state, suggest next action |
-| `/scaffold:plan` | Plan — update roadmap, scope work, produce plan doc |
-| `/scaffold:do` | Execute — research, propose, get approval, build |
+| `/scaffold:status` | Orient — read state, present options |
+| `/scaffold:plan` | Consult — discuss direction, update roadmap |
+| `/scaffold:scope` | Formalize — write a plan doc for complex/multi-actor work |
+| `/scaffold:do` | Execute — formal scope-controlled execution from plan doc |
 | `/scaffold:checkpoint` | Save — verify, update files, commit |
 | `/scaffold:cleanup` | Migrate existing project to current format |
 | `/scaffold:update` | Update scaffold commands to latest version |
@@ -111,14 +112,14 @@ For new projects, use the placeholder text as-is.
 ### Core Principle
 Every command leaves ALL state documents accurate and self-consistent.
 Any command could be the last thing that runs before a week-long gap.
-Plan updates scaffold files directly — user approves roadmap changes before they're written.
+Commands are optional tools — the minimum ceremony is status → work → checkpoint.
 
 ### Key Documents
-- `.scaffold/roadmap.md` — Phase plan and task tracking
+- `.scaffold/roadmap.md` — Phases with criteria and deliverables
 - `.scaffold/state.md` — Current status and next action pointer
-- `.scaffold/decisions.md` — Design and architecture decisions
-- `.scaffold/project.md` — Project definition and scope
-- `.scaffold/plans/` — Plan documents (execution contracts)
+- `.scaffold/decisions.md` — Design and architecture decisions with rationale
+- `.scaffold/project.md` — Vision, scope, and requirements
+- `.scaffold/plans/` — Plan documents (scope contracts for complex work)
 - `.scaffold/investigations/` — Investigation output (durable research findings)
 
 ## Hard constraints
@@ -156,6 +157,13 @@ this feel real? e.g. "I can add stops to a map and it saves them."]
 ## Scope boundaries
 [What is this NOT? What are you explicitly choosing not to build, at least for now?
 e.g. "Not a social network. No sharing features yet. Single user only for now."]
+
+## Requirements
+[Verifiable product rules. Add these as you discover them. Examples:]
+- [ ] [Must work on mobile]
+- [ ] [All inputs validated]
+- [ ] [Performance under 2 seconds]
+- [ ] [Remove this section if none yet]
 ```
 
 3. **`.scaffold/state.md`** — Where we are NOW. Changes every session.
@@ -191,7 +199,10 @@ If nothing queued: "Run /scaffold:plan to determine next steps."]
 # Roadmap
 
 ## Phase 1 — Exploration [IN-PROGRESS]
-- [ ] [First task or deliverable]
+Phase complete when:
+1. [Acceptance condition for this phase]
+
+- [ ] [First deliverable]
 
 ## Backlog
 - [Ideas not yet assigned to a phase]
@@ -199,20 +210,22 @@ If nothing queued: "Run /scaffold:plan to determine next steps."]
 
 For existing projects with known phases, create appropriate phase structure
 instead of the default "Exploration" phase. Use information from scope analysis
-to populate phases and tasks.
+to populate phases and deliverables.
 
 Phase rules:
 - Only ONE phase may be `[IN-PROGRESS]` at a time
 - Completed phases are marked `[COMPLETE]` — only with explicit user sign-off (during checkpoint)
-- ALL phases use checkboxes for tasks (including `[PLANNED]` phases)
-- Plain sub-bullets are for clarification or detail, not tasks
+- Phase criteria are numbered (not checkboxes) — evaluated as a set during sign-off
+- Deliverables are checkboxes — checked when the outcome is achieved
+- Sub-bullets under deliverables are progress notes, not tasks
+- `[USER]` marks deliverables requiring human action
 - `Backlog` absorbs future ideas and unassigned work
 
-Task conventions:
-- `- [x] Completed task (YYYY-MM-DD)` — done, with completion date
-- `- [ ] >> Active task being worked on` — in progress
-- `- [ ] Upcoming task` — in any phase (including PLANNED and Backlog)
-  - Plain sub-bullet for detail or clarification
+Deliverable conventions:
+- `- [x] Completed deliverable (YYYY-MM-DD)` — done, with completion date
+- `- [ ] In-progress deliverable` — not yet complete
+  - Sub-bullet for progress notes or clarification
+- `- [ ] [USER] Human-owned deliverable` — requires user action
 
 5. **`.scaffold/decisions.md`** — The record. Why things are the way they are.
 
@@ -258,9 +271,9 @@ for a solo builder. Good defaults, large community, easy Vercel deployment.
 ```
 
 6. **Verify companion commands** — confirm that `status.md`, `plan.md`,
-   `do.md`, `checkpoint.md`, `cleanup.md`, `graduate.md`, and `update.md`
-   exist as sibling files in this same folder. If any are missing, tell me —
-   they should have been installed together.
+   `scope.md`, `do.md`, `checkpoint.md`, `cleanup.md`, `graduate.md`,
+   and `update.md` exist as sibling files in this same folder. If any are
+   missing, tell me — they should have been installed together.
 
 7. **Create or update `.claude/hooks.json`** — SessionStart hook for automatic
    scaffold context loading.

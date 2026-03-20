@@ -85,29 +85,45 @@ Check each file against the current format:
 - Missing `scoped`, `user-pending`, `paused` as recognized values
 
 **CLAUDE.md — check for:**
-- Missing "Working" section (v2 addition — execution behavior rules)
-- Missing "Session Protocol" table
-- Missing "Command Reference" table
-- Missing "Core Principle" section
-- Missing "Key Documents" section
-- Old v1 command references: `/scaffold:prime`, `/scaffold:pause`,
-  `/scaffold:resume`, `/scaffold:quick`, `/scaffold:quick-execute`,
-  `/scaffold:verify` — replace with v2 commands (`/scaffold:do`)
-- Old session protocol entries: "prime" / "execute" → "do it" / "go ahead";
-  "pause" → checkpoint mid-session; remove "resume", "quick fix" rows
-- `.scaffold/quick/` in Key Documents — remove (v2 dropped quick workflow)
+- Missing or outdated "Working" section — current version has only 2 rules:
+  - If state.md references a plan doc, read it and follow its scope
+  - Out-of-scope discoveries get noted for checkpoint, not acted on now
+- Over-imposing Working rules from v2: "research the relevant code", "one task
+  at a time", "only work on tasks in current scope" — remove (Claude already
+  does these; don't tell Claude what it already knows)
+- "Ask before making code changes" should be in Rules, not Working
+- Missing or outdated Session Protocol — current version includes: status, plan,
+  scope, do, go ahead, checkpoint/save/pause, decision
+- Missing or outdated Command Reference — current commands: status, plan, scope,
+  do, checkpoint, cleanup, update, graduate
+- Old command references: `/scaffold:prime`, `/scaffold:pause`, `/scaffold:resume`,
+  `/scaffold:quick`, `/scaffold:quick-execute`, `/scaffold:verify` — all removed
+- v2 Core Principle should say "Commands are optional tools" not "Plan updates
+  scaffold files directly"
+- `.scaffold/quick/` in Key Documents — remove
 - Redundant rules that duplicate SessionStart hook and command logic:
-  - "Run /scaffold:status at the start of every session..." — handled by SessionStart hook
-  - "If /scaffold:status wasn't run, read ..." — handled by SessionStart hook
-  - "Before checkpoint: verify claims with evidence..." — handled by checkpoint command
+  - "Run /scaffold:status at the start of every session..." — handled by hook
+  - "If /scaffold:status wasn't run, read ..." — handled by hook
+  - "Before checkpoint: verify claims with evidence..." — handled by checkpoint
   - "When I say 'checkpoint' — run /scaffold:checkpoint" — self-evident
-  - "Ask before making major architectural..." — simplify to "Ask before making architectural..."
-  - If found, replace the full rules block with:
-    - Consult .scaffold/decisions.md when making or revisiting technology/architecture/design choices
+  - If found, replace with the current lean Rules block:
+    - Ask before making code changes — present your approach and get approval
+    - Consult .scaffold/decisions.md when making or revisiting design choices
     - Ask before making architectural or structural changes
-    - If any scaffold file contradicts what you observe in the codebase, trust the codebase. State the contradiction to me explicitly and await my approval before proceeding.
-    - If a session is getting long and available context is less than 40%, pause the work and suggest /scaffold:checkpoint for completed work before continuing
-    - If we made decisions, found bugs, discussed scope changes, or planned future work and I haven't said "checkpoint" — remind me before the session ends
+    - If any scaffold file contradicts the codebase, trust the codebase
+    - If context below 40%, suggest checkpoint
+    - If decisions or work completed, remind to checkpoint before session ends
+
+**roadmap.md — check for v2→v3 format:**
+- Missing phase criteria (numbered acceptance conditions per phase)
+- `>>` markers — remove (state.md is the controller, not roadmap markers)
+- Items that are tasks (session-level) rather than deliverables (span sessions) —
+  flag for consolidation
+- Missing `[USER]` markers on human-owned deliverables
+
+**project.md — check for:**
+- Missing "Requirements" section — add with verifiable checkboxes
+- Requirements hiding in decisions.md — flag for migration to project.md
 
 ---
 
@@ -120,11 +136,13 @@ For each file that needs changes, build the new content by mapping old → new:
 - "Done" items → become `[x]` tasks in completed phases or Phase 1
   - If items suggest natural phase boundaries, group into separate phases
   - Otherwise, group all into "Phase 1 — [inferred title] [COMPLETE]"
-- "In progress" items → become `[ ] >>` tasks in the `[IN-PROGRESS]` phase
-- "Up next" items → become `[ ]` tasks in the `[IN-PROGRESS]` or next `[PLANNED]` phase
+- "In progress" items → become `[ ]` deliverables in the `[IN-PROGRESS]` phase
+- "Up next" items → become `[ ]` deliverables in the `[IN-PROGRESS]` or next `[PLANNED]` phase
 - "Later" items → move to `Backlog` (as `[ ]` checkbox items)
 - Old `- v Item` → `- [x] Item`
-- Old `- >> Item` → `- [ ] >> Item`
+- Old `- >> Item` → `- [ ] Item` (drop `>>` — state.md is the controller)
+- Add phase criteria if missing: `Phase complete when:` with numbered conditions
+- Consolidate granular tasks into deliverables (items that span sessions)
 
 **state.md migration:**
 - "What's not working" → "Blockers"
@@ -142,13 +160,29 @@ For each file that needs changes, build the new content by mapping old → new:
 - Keep `## Archived` section at bottom
 
 **CLAUDE.md migration:**
-- Add "Working" section if missing (v2: execution behavior rules)
-- Add/update Session Protocol table to v2 format (do/checkpoint/pause rows)
-- Add/update Command Reference table to v2 format (status, plan, do, checkpoint,
-  cleanup, update, graduate — remove prime, pause, resume, quick, quick-execute)
-- Add Core Principle text if missing
-- Add Key Documents section if missing, remove `.scaffold/quick/` if present
-- Update existing tables to include new commands, remove old ones
+- Add/update "Working" section to current format (2 rules only)
+- Move "ask before making code changes" to Rules if it's in Working
+- Add/update Session Protocol to current format (status, plan, scope, do,
+  go ahead, checkpoint, decision)
+- Add/update Command Reference to current format (status, plan, scope, do,
+  checkpoint, cleanup, update, graduate)
+- Update Core Principle: "Commands are optional tools — minimum ceremony is
+  status → work → checkpoint."
+- Add Key Documents if missing, remove `.scaffold/quick/` if present
+- Remove old command references (prime, pause, resume, quick, quick-execute)
+
+**project.md migration:**
+- Add "Requirements" section if missing
+- Scan decisions.md for entries that are requirements (product rules, not
+  design choices with rejected alternatives) — flag for migration to project.md
+- Present each candidate: "[decision entry] looks like a requirement. Move to
+  project.md Requirements?"
+
+**roadmap.md migration:**
+- Add phase criteria if missing
+- Remove `>>` markers
+- Consolidate granular tasks into deliverables where appropriate
+- Add `[USER]` markers to human-owned items if missing
 
 ---
 
