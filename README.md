@@ -49,7 +49,7 @@ The scaffold is a state machine. Every command leaves all state documents accura
 
 ```
 status → plan → prime → execute → checkpoint
-                ╰── plan mode ──╯
+                ╰─ plan mode ─╯
 ```
 
 | Step | What happens |
