@@ -76,6 +76,11 @@ Read in this order. Do not present findings yet — absorb context:
 4. .scaffold/decisions.md — recent active decisions only
 5. CLAUDE.md — constraints and tech stack
 
+Scan `.scaffold/context/` — read context docs relevant to the current phase.
+These are controlling documents (specs, architecture docs) that contain detailed
+requirements, design direction, and implementation specifications. When planning
+a build phase, context docs are often the most important input.
+
 Scan `.scaffold/investigations/` — read any that look relevant by filename.
 
 If Session Context exists (resuming from pause), read it to pick up the thread.
@@ -84,6 +89,7 @@ Assess internally:
 - Which phase is `[IN-PROGRESS]`? What deliverables are done vs remaining?
 - Are there blockers or open questions to resolve first?
 - Are any scaffold files stale (>7 days)?
+- Are there context docs (specs, architecture docs) for the current phase?
 - Are there investigation files that inform the current phase?
 
 ---
@@ -97,6 +103,7 @@ Present a brief assessment:
 - **Where we are:** 1-2 sentences on current state
 - **What the docs suggest:** what roadmap/state point to as next work
 - **Flags:** blockers, stale files, contradictions, open questions
+- **Context docs:** specs or architecture docs relevant to the current phase
 - **Prior research:** investigation files if relevant
 
 Then ask:

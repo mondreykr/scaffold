@@ -25,6 +25,10 @@ Read these files in order:
 2. `.scaffold/state.md` — for Session Context (if present) and current state
 3. `.scaffold/roadmap.md` — for deliverable details and completion status
 4. `CLAUDE.md` — for constraints and tech stack
+5. `.scaffold/context/` — context docs relevant to the plan being executed.
+   These contain detailed specifications (interaction flows, visual design,
+   data models, architecture patterns) that inform implementation. When
+   building from a spec, this is the primary implementation reference.
 
 ---
 

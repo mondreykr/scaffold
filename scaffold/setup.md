@@ -96,6 +96,7 @@ For new projects, use the placeholder text as-is.
 | "go ahead" / "do it" | If plan doc exists, read it and execute per Working rules. Otherwise do what was discussed. |
 | "checkpoint" / "save" / "pause" | Run `/scaffold:checkpoint` |
 | "decision: [X]" | Log in `.scaffold/decisions.md` |
+| "integrate this" / "absorb this spec" | Run `/scaffold:integrate` |
 
 ### Command Reference
 | Command | Role |
@@ -105,6 +106,7 @@ For new projects, use the placeholder text as-is.
 | `/scaffold:scope` | Formalize — write a plan doc for complex/multi-actor work |
 | `/scaffold:do` | Execute — formal scope-controlled execution from plan doc |
 | `/scaffold:checkpoint` | Save — verify, update files, commit |
+| `/scaffold:integrate` | Absorb — ingest artifacts (specs, research) into scaffold |
 | `/scaffold:cleanup` | Migrate existing project to current format |
 | `/scaffold:update` | Update scaffold commands to latest version |
 | `/scaffold:graduate` | Exit scaffold to heavier framework |
@@ -121,6 +123,7 @@ Commands are optional tools — the minimum ceremony is status → work → chec
 - `.scaffold/project.md` — Vision, scope, and requirements
 - `.scaffold/plans/` — Plan documents (scope contracts for complex work)
 - `.scaffold/investigations/` — Investigation output (durable research findings)
+- `.scaffold/context/` — Controlling documents (specs, architecture docs, design docs)
 
 ## Hard constraints
 - [Things that must be true. Examples:]
@@ -271,9 +274,10 @@ for a solo builder. Good defaults, large community, easy Vercel deployment.
 ```
 
 6. **Verify companion commands** — confirm that `status.md`, `plan.md`,
-   `scope.md`, `do.md`, `checkpoint.md`, `cleanup.md`, `graduate.md`,
-   and `update.md` exist as sibling files in this same folder. If any are
-   missing, tell me — they should have been installed together.
+   `scope.md`, `do.md`, `checkpoint.md`, `integrate.md`, `cleanup.md`,
+   `graduate.md`, and `update.md` exist as sibling files in this same
+   folder. If any are missing, tell me — they should have been installed
+   together.
 
 7. **Create or update `.claude/hooks.json`** — SessionStart hook for automatic
    scaffold context loading.

@@ -85,6 +85,12 @@ Check each file against the current format:
 - Missing `scoped`, `user-pending`, `paused` as recognized values
 
 **CLAUDE.md — check for:**
+- Missing `/scaffold:integrate` in Command Reference — add:
+  `| /scaffold:integrate | Absorb — ingest artifacts (specs, research) into scaffold |`
+- Missing `.scaffold/context/` in Key Documents — add:
+  `- .scaffold/context/ — Controlling documents (specs, architecture docs, design docs)`
+- Missing "integrate this" in Session Protocol — add:
+  `| "integrate this" / "absorb this spec" | Run /scaffold:integrate |`
 - Missing or outdated "Working" section — current version has only 2 rules:
   - If state.md references a plan doc, read it and follow its scope
   - Out-of-scope discoveries get noted for checkpoint, not acted on now
@@ -95,9 +101,10 @@ Check each file against the current format:
 - Missing or outdated Session Protocol — current version includes: status, plan,
   scope, do, go ahead, checkpoint/save/pause, decision
 - Missing or outdated Command Reference — current commands: status, plan, scope,
-  do, checkpoint, cleanup, update, graduate
+  do, checkpoint, integrate, cleanup, update, graduate
 - Old command references: `/scaffold:prime`, `/scaffold:pause`, `/scaffold:resume`,
   `/scaffold:quick`, `/scaffold:quick-execute`, `/scaffold:verify` — all removed
+- Missing command references: `/scaffold:integrate` — add if absent
 - v2 Core Principle should say "Commands are optional tools" not "Plan updates
   scaffold files directly"
 - `.scaffold/quick/` in Key Documents — remove

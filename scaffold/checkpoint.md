@@ -238,6 +238,16 @@ If commit fails, show error and stop.
 
 List open questions or loose threads for next session.
 
+**Artifact detection:** Check if the session produced major artifacts that
+should be integrated into scaffold — specs (completed SPEC.md files),
+architecture documents, design system docs, or substantial research findings
+that go beyond a single investigation. If detected:
+
+> "This session produced [artifact description]. Consider running
+> `/scaffold:integrate [path]` to absorb it into scaffold."
+
+This is a suggestion, not a gate. The user decides whether and when to integrate.
+
 **Route to next:** Present options based on resulting state.
 - If `idle`: "Run `/scaffold:plan`, start working, or done for now."
 - If `scoped`: "`/scaffold:do` or 'go ahead' to continue."

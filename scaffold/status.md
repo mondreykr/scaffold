@@ -32,15 +32,19 @@ Give a brief orientation:
 2. **Phase** — Which phase is `[IN-PROGRESS]`, how many deliverables done vs remaining
 3. **State** — Current status and any blockers (from state.md)
 4. **Open threads** — Open questions or things being figured out
-5. **Investigations** — If `.scaffold/investigations/` exists and contains files,
+5. **Context docs** — If `.scaffold/context/` exists and contains files,
+   list filenames with one-line descriptions. These are controlling documents
+   (specs, architecture docs) that inform current and future phases.
+   Skip if empty or absent.
+6. **Investigations** — If `.scaffold/investigations/` exists and contains files,
    list filenames with one-line descriptions. Skip if empty or absent.
-6. **Next action** — Route based on state.md Status (see Step 3)
-7. **Health check** — Flag contradictions between files:
+7. **Next action** — Route based on state.md Status (see Step 3)
+8. **Health check** — Flag contradictions between files:
    - State says blocked but roadmap shows it as complete
    - Roadmap shows a deliverable as in progress but state doesn't reference it
    - Project scope boundaries say "no X" but roadmap includes X
    - If consistent, say so.
-8. **Staleness check** — If any scaffold file's `<!-- Last updated -->` date is
+9. **Staleness check** — If any scaffold file's `<!-- Last updated -->` date is
    more than 7 days old, flag it.
 
 ---
