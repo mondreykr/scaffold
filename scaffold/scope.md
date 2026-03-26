@@ -104,7 +104,7 @@ For simple scope: 1-2 sentences. For complex: a paragraph.]
 ```
 
 For investigation deliverables, add to the entry:
-`Output: .scaffold/investigations/YYYYMMDD-NN-slug.md`
+`Output: .scaffold/investigations/YYYYMMDD-slug.md`
 
 ---
 

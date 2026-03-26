@@ -238,7 +238,7 @@ For simple scope: 1-2 sentences. For complex: a paragraph.]
 
 **Naming convention:** `YYYYMMDD-NN-phase-N-slug.md` (date, zero-padded sequence, phase, brief descriptor).
 
-Investigation tasks add `Output: .scaffold/investigations/YYYYMMDD-NN-slug.md` to their entry.
+Investigation tasks add `Output: .scaffold/investigations/YYYYMMDD-slug.md` to their entry.
 
 **When to use scope:** Multi-actor plans ([USER] + AI steps interleaved), complex multi-deliverable sessions, work that might span multiple sessions, or any time the user wants a written contract. Scope is never required — it's a tool for when you want formality.
 

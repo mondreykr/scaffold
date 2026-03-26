@@ -29,7 +29,7 @@ Check if `.scaffold/scratch/` exists:
 1. If it does, read each file in the directory
 2. Present each file: "Found `.scaffold/scratch/[filename]` — [one-line summary of contents]"
 3. Propose migration: move files to `.scaffold/investigations/`, rename to match
-   `YYYYMMDD-NN-slug.md` convention (date without dashes, zero-padded counter, brief slug)
+   `YYYYMMDD-slug.md` convention (date without dashes, brief slug)
 4. For each file, propose the new name based on content and creation date
 5. Wait for user approval
 6. Create `.scaffold/investigations/` if needed and move files with new names
