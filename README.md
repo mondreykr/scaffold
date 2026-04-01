@@ -68,7 +68,7 @@ These are independent tools. Use them in any combination:
 Freeform:  status → work → checkpoint
 Guided:    status → plan → work → checkpoint
 Scoped:    status → plan → scope → do → checkpoint
-After spec: /spec → integrate → plan → scope → do → checkpoint
+With artifacts: integrate → plan → scope → do → checkpoint
 ```
 
 ### Quick fixes
