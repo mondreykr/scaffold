@@ -13,7 +13,7 @@ Claude Code loses context between sessions — every `/clear` or new conversatio
 One-time setup (installs commands for all projects):
 
 ```bash
-npx degit Mondreykr/essentials-scaffold/scaffold $HOME/.claude/commands/scaffold
+npx degit mondreykr/essentials-scaffold/scaffold $HOME/.claude/commands/scaffold
 ```
 
 Or copy the `scaffold/` folder to `~/.claude/commands/scaffold/` manually if you already have the repo.
@@ -32,7 +32,7 @@ Run `/scaffold:update` to pull the latest commands. This also detects and remove
 Or manually:
 
 ```bash
-npx degit Mondreykr/essentials-scaffold/scaffold $HOME/.claude/commands/scaffold --force
+npx degit mondreykr/essentials-scaffold/scaffold $HOME/.claude/commands/scaffold --force
 ```
 
 This is safe — it only replaces the command files in `~/.claude/commands/scaffold/`. Your project data in `.scaffold/` and `CLAUDE.md` is never touched.
