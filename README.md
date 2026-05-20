@@ -111,7 +111,7 @@ Five core files provide context persistence.
 | `.scaffold/decisions.md` | Record — decisions logged chronologically with rationale |
 | `.scaffold/plans/` | Plan documents — scope contracts for complex work (created by `/scaffold:scope`) |
 | `.scaffold/investigations/` | Investigation output — durable research findings |
-| `.scaffold/context/` | Controlling documents — specs, architecture docs, design docs (created by `/scaffold:integrate`) |
+| `.scaffold/knowledge/` | Controlling documents — specs, architecture docs, design docs (created by `/scaffold:integrate`) |
 
 All scaffold data lives in `.scaffold/` at project root (except `CLAUDE.md`, which lives at the root so Claude auto-reads it).
 
@@ -165,11 +165,11 @@ When a phase produces a major artifact — a spec, architecture doc, design syst
 ```
 
 This does three things:
-1. **Stores** a copy in `.scaffold/context/` (scaffold's own knowledge base)
+1. **Stores** a copy in `.scaffold/knowledge/` (scaffold's own knowledge base)
 2. **Extracts** requirements, decisions, and constraints into scaffold files
 3. **Resolves conflicts** between the artifact and existing scaffold content
 
-Context docs are then read by plan, scope, and do when working on related phases — so the spec's detailed flows, design direction, and implementation specs are available where they're needed.
+Knowledge docs are then read by plan, scope, and do when working on related phases — so the spec's detailed flows, design direction, and implementation specs are available where they're needed.
 
 Run `/scaffold:integrate --sync` periodically to reconcile all scaffold files without a new artifact — catches drift, duplication, and stale content.
 

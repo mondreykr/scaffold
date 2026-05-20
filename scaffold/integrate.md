@@ -10,7 +10,7 @@ argument-hint: [path/to/artifact | --sync]
 
 **Boundary:** This command updates scaffold files only. It does NOT modify
 project files, execute work, or write plan docs. It MAY copy an external
-artifact into `.scaffold/context/`.
+artifact into `.scaffold/knowledge/`.
 
 ---
 
@@ -32,7 +32,7 @@ Check arguments:
 Look for artifacts that may need integration:
 
 1. Scan `.scaffold/investigations/` for substantial research findings
-2. Scan `.scaffold/context/` for docs that may have been placed manually
+2. Scan `.scaffold/knowledge/` for docs that may have been placed manually
 3. Check conversation context for recently completed specs, architecture
    docs, or other major artifacts
 
@@ -63,13 +63,13 @@ Read in this order:
 3. `.scaffold/roadmap.md` — phases, deliverables, criteria
 4. `.scaffold/state.md` — current status and position
 5. `CLAUDE.md` — constraints, tech stack, rules
-6. All files in `.scaffold/context/` — existing context documents
+6. All files in `.scaffold/knowledge/` — existing knowledge documents
 7. The new artifact (the path provided by the user)
 
 **If the artifact path doesn't exist:** Stop and report. Don't guess at
 alternative paths.
 
-**If `.scaffold/context/` doesn't exist:** That's fine — create it in Step 3.
+**If `.scaffold/knowledge/` doesn't exist:** That's fine — create it in Step 3.
 
 ---
 
@@ -85,7 +85,7 @@ extract what's present:
 - **Vision/problem refinements** — updated understanding of what's being
   built and why
 - **Design direction** — visual design, interaction models, data models,
-  architecture patterns (these stay in the context doc, not extracted)
+  architecture patterns (these stay in the knowledge doc, not extracted)
 - **Implementation notes** — tech recommendations, library choices
 
 Summarize what you found:
@@ -95,7 +95,7 @@ Summarize what you found:
 > - [N] decisions (choices with rationale)
 > - [N] scope boundary changes
 > - [N] hard constraints
-> - Detailed [flows/design/architecture] (will stay in context doc)
+> - Detailed [flows/design/architecture] (will stay in knowledge doc)
 >
 > Proceeding with integration."
 
@@ -103,15 +103,15 @@ Summarize what you found:
 
 ## Step 3: Store the Artifact
 
-Create `.scaffold/context/` if it doesn't exist.
+Create `.scaffold/knowledge/` if it doesn't exist.
 
-Copy the artifact to `.scaffold/context/YYYYMMDD-slug.md` where:
+Copy the artifact to `.scaffold/knowledge/YYYYMMDD-slug.md` where:
 - `YYYYMMDD` is today's date (without dashes)
 - `slug` is a brief descriptor derived from the artifact's title or content
 
-If a context doc with the same slug already exists, ask:
+If a knowledge doc with the same slug already exists, ask:
 
-> "A context doc `[filename]` already exists. Replace it, or save as
+> "A knowledge doc `[filename]` already exists. Replace it, or save as
 > `[new-filename]`?"
 
 ---
@@ -226,7 +226,7 @@ Update `<!-- Last updated -->` dates on ALL modified files.
 
 ### 6a. Load Everything
 
-Read ALL scaffold files + ALL context docs + CLAUDE.md. Same as Step 1
+Read ALL scaffold files + ALL knowledge docs + CLAUDE.md. Same as Step 1
 but without a new artifact.
 
 ### 6b. Cross-File Consistency Check
@@ -236,14 +236,14 @@ Check for and report:
 - **Decision drift** — decisions.md entries that contradict project.md
   requirements or CLAUDE.md constraints
 - **Stale requirements** — project.md requirements that no longer match
-  what context docs or decisions specify
+  what knowledge docs or decisions specify
 - **Orphaned scope boundaries** — project.md says "not X" but roadmap
   includes X, or vice versa
-- **Missing decisions** — context docs reference decisions not in
+- **Missing decisions** — knowledge docs reference decisions not in
   decisions.md
 - **Stale state** — state.md references phases, plans, or blockers that
   no longer exist
-- **Constraint gaps** — context docs establish constraints not reflected
+- **Constraint gaps** — knowledge docs establish constraints not reflected
   in CLAUDE.md
 - **Duplication** — the same decision or requirement appears in multiple
   places with different wording
@@ -284,7 +284,7 @@ Show a summary of all changes:
 
 > "## Integration Summary
 >
-> **Context doc:** [filename] (new/updated/none)
+> **Knowledge doc:** [filename] (new/updated/none)
 > **project.md:** [N requirements added/updated, N scope changes]
 > **decisions.md:** [N decisions added, N reversed, N updated]
 > **CLAUDE.md:** [N constraints added/updated]
@@ -302,7 +302,7 @@ If git is initialized:
 
 ## Principles
 
-**Nothing lost.** The full artifact lives in `.scaffold/context/`. The
+**Nothing lost.** The full artifact lives in `.scaffold/knowledge/`. The
 extraction into scaffold files is the operational summary. Both are needed.
 
 **Thorough extraction.** Decisions get full scaffold-format entries with
@@ -327,6 +327,6 @@ Integrate does NOT:
 - **Execute work** — it updates scaffold files, not project files
 - **Write plan docs** — that is /scaffold:scope
 - **Make strategic decisions** — it extracts and reconciles, user decides
-- **Delete context docs** — context docs accumulate as project history
+- **Delete knowledge docs** — knowledge docs accumulate as project history
 - **Modify the source artifact** — the original in docs/ (or wherever)
   is never touched

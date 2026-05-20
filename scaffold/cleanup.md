@@ -121,7 +121,7 @@ content that needs explicit user routing.
 *Stale path references anywhere in CLAUDE.md:*
 - `.scaffold/quick/` — remove
 - `docs/` pointers to scaffold-owned content — scaffold's home for specs/design docs
-  is `.scaffold/context/`, not `docs/`. If the project keeps a top-level `docs/`,
+  is `.scaffold/knowledge/`, not `docs/`. If the project keeps a top-level `docs/`,
   that's the project's call; only flag references that look like scaffold-owned
   files living outside scaffold.
 

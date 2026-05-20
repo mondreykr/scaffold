@@ -35,7 +35,7 @@ Read:
 1. `.scaffold/roadmap.md` — current deliverables and phase state
 2. `.scaffold/state.md` — current position and context
 3. `CLAUDE.md` — constraints and tech stack
-4. `.scaffold/context/` — context docs relevant to deliverables being scoped
+4. `.scaffold/knowledge/` — knowledge docs relevant to deliverables being scoped
    (specs, architecture docs with detailed requirements and design direction)
 5. Conversation context — what has been discussed this session
 

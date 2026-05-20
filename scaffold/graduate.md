@@ -19,7 +19,7 @@ scaffold so it doesn't conflict.
 - `.scaffold/decisions.md`
 - CLAUDE.md
 - Any plan files in `.scaffold/plans/`, investigation files in `.scaffold/investigations/`,
-  and context documents in `.scaffold/context/`
+  and knowledge documents in `.scaffold/knowledge/`
 
 **2. Create the snapshot:**
 Create `.scaffold/snapshot/PROJECT-CONTEXT.md` — a single structured file that
@@ -40,8 +40,8 @@ consolidates everything worth carrying forward:
 ## Decisions
 [From .scaffold/decisions.md — all active decisions with their context and reasoning]
 
-## Context Documents
-[From .scaffold/context/ — list each with title and one-line description.
+## Knowledge Documents
+[From .scaffold/knowledge/ — list each with title and one-line description.
 These are controlling documents (specs, architecture docs) that contain
 detailed requirements and design direction for the project.]
 
@@ -56,7 +56,7 @@ detailed requirements and design direction for the project.]
 - Move `.scaffold/project.md`, `.scaffold/state.md`,
   `.scaffold/roadmap.md`, `.scaffold/decisions.md`
   to `.scaffold/archive/`
-- Move `.scaffold/plans/`, `.scaffold/investigations/`, and `.scaffold/context/` to `.scaffold/archive/` (if they exist)
+- Move `.scaffold/plans/`, `.scaffold/investigations/`, and `.scaffold/knowledge/` to `.scaffold/archive/` (if they exist)
 - Move all scaffold commands (setup.md, status.md, plan.md, scope.md, do.md,
   checkpoint.md, cleanup.md, update.md, graduate.md) from
   `.claude/commands/scaffold/` to `.scaffold/archive/scaffold/`

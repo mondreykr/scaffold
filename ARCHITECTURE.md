@@ -21,13 +21,13 @@ Five layers of information, each with a distinct home:
 | **Deliverables** | Chunks of work that span sessions. Trackable outcomes. | `.scaffold/roadmap.md` | "User management API" |
 | **Phase criteria** | When is this phase done? Acceptance conditions. | `.scaffold/roadmap.md` (per phase) | "Users can CRUD through validated endpoints" |
 | **Tasks** | Atomic action steps for a single session. Ephemeral. | Plan docs (`.scaffold/plans/`) | "Implement PUT /users/:id with Zod validation" |
-| **Context** | Controlling documents that inform phase execution. Detailed specs, architecture docs, design direction. | `.scaffold/context/` | "Resource planner spec — interaction flows, visual design, data model" |
+| **Knowledge** | Controlling documents that inform phase execution. Detailed specs, architecture docs, design direction. | `.scaffold/knowledge/` | "Resource planner spec — interaction flows, visual design, data model" |
 
 **The test for roadmap items:** Can this item survive multiple plan/do/checkpoint cycles and still make sense? If yes, it's a deliverable (roadmap). If it can be done in one session, it's a task (plan doc).
 
 **Decisions** (`.scaffold/decisions.md`) record the WHY — rationale and rejected alternatives. They are not requirements (what) or tasks (how).
 
-**Context** (`.scaffold/context/`) stores controlling documents — specs, architecture docs, design system docs — that contain detailed requirements, design direction, and implementation specifications. These are absorbed into scaffold via `/scaffold:integrate`. The context doc is the lossless original; scaffold files get the operational extract. Commands that need deep detail (plan, scope, do) read context docs directly.
+**Knowledge** (`.scaffold/knowledge/`) stores controlling documents — specs, architecture docs, design system docs — that contain detailed requirements, design direction, and implementation specifications. These are absorbed into scaffold via `/scaffold:integrate`. The knowledge doc is the lossless original; scaffold files get the operational extract. Commands that need deep detail (plan, scope, do) read knowledge docs directly.
 
 ## Files
 
@@ -47,7 +47,7 @@ Five layers of information, each with a distinct home:
 |-----------|----------|------------|
 | `.scaffold/plans/` | Plan docs. Scope contracts + records for complex/multi-actor work. | scope |
 | `.scaffold/investigations/` | Durable research findings. | do (during investigation tasks) |
-| `.scaffold/context/` | Controlling documents (specs, architecture docs, design docs). Absorbed via integrate. | integrate |
+| `.scaffold/knowledge/` | Controlling documents (specs, architecture docs, design docs). Absorbed via integrate. | integrate |
 
 ### Roadmap format
 
@@ -138,11 +138,11 @@ Commands are tools you reach for when you need them. The minimum session is stat
 
 **Purpose:** Orient. Read scaffold files, present briefing, suggest next actions as options.
 
-**Reads:** CLAUDE.md, project.md, state.md, roadmap.md. If state.md references a plan doc, reads it for scope details. Detects context docs and investigations.
+**Reads:** CLAUDE.md, project.md, state.md, roadmap.md. If state.md references a plan doc, reads it for scope details. Detects knowledge docs and investigations.
 
 **Writes:** Nothing. Status is read-only.
 
-**Briefing:** Project summary, phase progress, state, open threads, context docs, investigations, health check, staleness check. Keep it short — a briefing, not a report.
+**Briefing:** Project summary, phase progress, state, open threads, knowledge docs, investigations, health check, staleness check. Keep it short — a briefing, not a report.
 
 **Routing** (suggests options, does not mandate):
 
@@ -161,7 +161,7 @@ Commands are tools you reach for when you need them. The minimum session is stat
 
 **Purpose:** Consultation. "Help me figure out what's next." Read state, discuss direction, update roadmap and scaffold files. Does NOT write plan docs.
 
-**Reads:** All 5 core files. `.scaffold/context/` and `.scaffold/investigations/` if relevant. Session Context if present.
+**Reads:** All 5 core files. `.scaffold/knowledge/` and `.scaffold/investigations/` if relevant. Session Context if present.
 
 **Writes:**
 - `.scaffold/roadmap.md` — new/reordered deliverables, phase changes, phase criteria
@@ -193,7 +193,7 @@ Commands are tools you reach for when you need them. The minimum session is stat
 
 **Purpose:** Write a plan doc. Formalize the current plan into a scope contract. Can be invoked at any point in a session — delivers fresh doc-writing instructions regardless of context depth.
 
-**Reads:** `.scaffold/state.md`, `.scaffold/roadmap.md`, `CLAUDE.md`, `.scaffold/context/` (relevant docs), conversation context.
+**Reads:** `.scaffold/state.md`, `.scaffold/roadmap.md`, `CLAUDE.md`, `.scaffold/knowledge/` (relevant docs), conversation context.
 
 **Writes:**
 - `.scaffold/plans/YYYYMMDD-NN-phase-N-slug.md` — plan document
@@ -257,7 +257,7 @@ Investigation tasks add `Output: .scaffold/investigations/YYYYMMDD-slug.md` to t
 - Plan doc referenced in state.md
 - `.scaffold/roadmap.md` — deliverable details and completion status
 - `CLAUDE.md` — constraints
-- `.scaffold/context/` — context docs relevant to the plan (specs, architecture docs with detailed implementation specs)
+- `.scaffold/knowledge/` — knowledge docs relevant to the plan (specs, architecture docs with detailed implementation specs)
 
 **Writes:** Project files only. MAY write investigation outputs to `.scaffold/investigations/`.
 
@@ -371,10 +371,10 @@ Route to next: present options based on resulting state.
 
 **Purpose:** Absorb controlling documents (specs, architecture docs) into scaffold and reconcile content. Three modes: absorb a specific artifact, scan for un-integrated artifacts, or sync/reconcile existing files.
 
-**Reads:** ALL scaffold files + ALL context docs + the new artifact (if provided). Loads everything into memory before proceeding — no lazy loading.
+**Reads:** ALL scaffold files + ALL knowledge docs + the new artifact (if provided). Loads everything into memory before proceeding — no lazy loading.
 
 **Writes:**
-- `.scaffold/context/YYYYMMDD-slug.md` — copy of the artifact (absorb mode)
+- `.scaffold/knowledge/YYYYMMDD-slug.md` — copy of the artifact (absorb mode)
 - `.scaffold/project.md` — requirements, scope boundaries, vision refinements
 - `.scaffold/decisions.md` — decisions extracted from the artifact
 - `CLAUDE.md` — hard constraints, tech stack
@@ -384,9 +384,9 @@ Route to next: present options based on resulting state.
 **Boundary:** Integrate does NOT execute work, write plan docs, or modify project files.
 
 **Modes:**
-- **Absorb** (`/scaffold:integrate path/to/artifact`) — Copy artifact to context/, extract operational info, resolve conflicts, update scaffold files.
+- **Absorb** (`/scaffold:integrate path/to/artifact`) — Copy artifact to knowledge/, extract operational info, resolve conflicts, update scaffold files.
 - **Scan** (`/scaffold:integrate`) — Look for un-integrated artifacts, offer to absorb.
-- **Sync** (`/scaffold:integrate --sync`) — Reconcile all existing scaffold files and context docs. Fix inconsistencies, gaps, staleness, duplication.
+- **Sync** (`/scaffold:integrate --sync`) — Reconcile all existing scaffold files and knowledge docs. Fix inconsistencies, gaps, staleness, duplication.
 
 **Conflict handling:** Compares new content against existing scaffold files. Classifies each piece as New, Consistent, Conflict, or Superseded. Presents ALL conflicts before resolving any. User approves resolutions.
 
@@ -491,14 +491,14 @@ blocked ──scope──→ scoped         (blocker resolved, new scope)
 | project.md | — | ✓ (requirements) | — | — | ✓ | ✓ (rare) |
 | CLAUDE.md | — | — | — | — | ✓ | ✓ (rare) |
 | plan doc | — | — | ✓ (creates) | reads | — | ✓ (reads for routing) |
-| context/ | — | reads | reads | reads | ✓ (creates) | — |
+| knowledge/ | — | reads | reads | reads | ✓ (creates) | — |
 | investigations/ | — | reads | — | ✓ | reads | — |
 | project files | — | — | — | ✓ | — | — |
 
 **Key rules:**
 - Do writes project files. Plan, scope, integrate, and checkpoint write scaffold files. Never the reverse.
 - Scope is the only command that creates plan docs.
-- Integrate is the only command that creates context docs.
+- Integrate is the only command that creates knowledge docs.
 - Status writes nothing.
 
 ## CLAUDE.md Template
