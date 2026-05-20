@@ -50,9 +50,6 @@ detailed requirements and design direction for the project.]
 
 ## Hard Constraints
 [From CLAUDE.md]
-
-## Who I Am
-[From CLAUDE.md — comfort levels and communication preferences]
 ```
 
 **3. Archive the scaffold:**
@@ -84,9 +81,10 @@ locations:
 If anything is missing, stop and report what failed to move.
 
 **5. Update CLAUDE.md:**
-- Remove all scaffold-specific sections (Rules, Working, Session Protocol,
-  Command Reference, Core Principle, Key Documents)
-- Keep "Who I am", "Hard constraints", and "Tech stack"
+- Remove scaffold-specific sections (`## Command Reference`, `## Core Principle`)
+- Keep `## Hard constraints` and `## Tech stack`
+- If the project has any custom sections beyond the lean template (added during
+  setup or cleanup), preserve them as-is
 - Add a pointer: "Previous scaffold context is at `.scaffold/snapshot/PROJECT-CONTEXT.md`"
 
 **6. Commit:**

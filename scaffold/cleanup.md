@@ -85,41 +85,45 @@ Check each file against the current format:
 - Missing `scoped`, `user-pending`, `paused` as recognized values
 
 **CLAUDE.md — check for:**
-- Missing `/scaffold:integrate` in Command Reference — add:
-  `| /scaffold:integrate | Absorb — ingest artifacts (specs, research) into scaffold |`
-- Missing `.scaffold/context/` in Key Documents — add:
-  `- .scaffold/context/ — Controlling documents (specs, architecture docs, design docs)`
-- Missing "integrate this" in Session Protocol — add:
-  `| "integrate this" / "absorb this spec" | Run /scaffold:integrate |`
-- Missing or outdated "Working" section — current version has only 2 rules:
-  - If state.md references a plan doc, read it and follow its scope
-  - Out-of-scope discoveries get noted for checkpoint, not acted on now
-- Over-imposing Working rules from v2: "research the relevant code", "one task
-  at a time", "only work on tasks in current scope" — remove (Claude already
-  does these; don't tell Claude what it already knows)
-- "Ask before making code changes" should be in Rules, not Working
-- Missing or outdated Session Protocol — current version includes: status, plan,
-  scope, do, go ahead, checkpoint/save/pause, decision
-- Missing or outdated Command Reference — current commands: status, plan, scope,
-  do, checkpoint, integrate, cleanup, update, graduate
+
+The current lean template contains only: Title, Command Reference, Core Principle,
+Hard constraints, Tech stack. Anything else is either deprecated or custom user
+content that needs explicit user routing.
+
+*Deprecated sections to remove (do not silently strip — see Step 3 for handling):*
+- `## Who I am` — user-level concern; belongs in `~/.claude/CLAUDE.md` if anywhere
+- `## Rules` — per-user preferences and scaffold operating rules that Claude defaults
+  + slash command logic now cover
+- `## Working` — `/scaffold:status` reads the plan doc; `/scaffold:do` enforces scope;
+  freeform scope discipline is per-user preference
+- `### Session Protocol` (or `## Session Protocol`) — Claude infers natural-language
+  → command mapping from command descriptions; the explicit table is over-instruction
+- `### Key Documents` — `/scaffold:status` surfaces these
+
+*Structural fixes:*
+- If `### Command Reference` and `### Core Principle` exist as `###` subsections
+  nested under `## Working`, promote both to top-level `##` headers after Working
+  is removed
+
+*Content fixes within Command Reference:*
 - Old command references: `/scaffold:prime`, `/scaffold:pause`, `/scaffold:resume`,
-  `/scaffold:quick`, `/scaffold:quick-execute`, `/scaffold:verify` — all removed
-- Missing command references: `/scaffold:integrate` — add if absent
+  `/scaffold:quick`, `/scaffold:quick-execute`, `/scaffold:verify` — all removed;
+  drop the corresponding rows
+- Missing `/scaffold:integrate` row — add:
+  `| /scaffold:integrate | Absorb — ingest artifacts (specs, research) into scaffold |`
+- Verify the full row set matches the current template: status, plan, scope, do,
+  checkpoint, integrate, cleanup, update, graduate
+
+*Content fixes within Core Principle (if present in old form):*
 - v2 Core Principle should say "Commands are optional tools" not "Plan updates
-  scaffold files directly"
-- `.scaffold/quick/` in Key Documents — remove
-- Redundant rules that duplicate SessionStart hook and command logic:
-  - "Run /scaffold:status at the start of every session..." — handled by hook
-  - "If /scaffold:status wasn't run, read ..." — handled by hook
-  - "Before checkpoint: verify claims with evidence..." — handled by checkpoint
-  - "When I say 'checkpoint' — run /scaffold:checkpoint" — self-evident
-  - If found, replace with the current lean Rules block:
-    - Ask before making code changes — present your approach and get approval
-    - Consult .scaffold/decisions.md when making or revisiting design choices
-    - Ask before making architectural or structural changes
-    - If any scaffold file contradicts the codebase, trust the codebase
-    - If context below 40%, suggest checkpoint
-    - If decisions or work completed, remind to checkpoint before session ends
+  scaffold files directly" — update the wording if outdated
+
+*Stale path references anywhere in CLAUDE.md:*
+- `.scaffold/quick/` — remove
+- `docs/` pointers to scaffold-owned content — scaffold's home for specs/design docs
+  is `.scaffold/context/`, not `docs/`. If the project keeps a top-level `docs/`,
+  that's the project's call; only flag references that look like scaffold-owned
+  files living outside scaffold.
 
 **roadmap.md — check for v2→v3 format:**
 - Missing phase criteria (numbered acceptance conditions per phase)
@@ -167,16 +171,42 @@ For each file that needs changes, build the new content by mapping old → new:
 - Keep `## Archived` section at bottom
 
 **CLAUDE.md migration:**
-- Add/update "Working" section to current format (2 rules only)
-- Move "ask before making code changes" to Rules if it's in Working
-- Add/update Session Protocol to current format (status, plan, scope, do,
-  go ahead, checkpoint, decision)
-- Add/update Command Reference to current format (status, plan, scope, do,
-  checkpoint, cleanup, update, graduate)
-- Update Core Principle: "Commands are optional tools — minimum ceremony is
-  status → work → checkpoint."
-- Add Key Documents if missing, remove `.scaffold/quick/` if present
-- Remove old command references (prime, pause, resume, quick, quick-execute)
+
+Target shape (lean template, 5 sections only):
+1. Title + one-line description
+2. `## Command Reference` (top-level)
+3. `## Core Principle` (top-level)
+4. `## Hard constraints` (project-specific)
+5. `## Tech stack` (project-specific)
+
+Migration steps:
+
+1. **Promote nested subsections.** If `### Command Reference` and `### Core Principle`
+   exist as children of `## Working`, lift them to top-level `##`.
+
+2. **Identify deprecated sections.** For each of `## Who I am`, `## Rules`, `## Working`
+   (body bullets, not the subsections you already promoted), `### Session Protocol`
+   (or `## Session Protocol`), `### Key Documents`:
+   - If section is empty or matches the old template defaults verbatim, mark for silent removal.
+   - If section contains custom user content (anything beyond the boilerplate), do NOT
+     silently drop it. Present each one to the user in Step 4 with three options:
+     (a) drop, (b) move to `~/.claude/CLAUDE.md`, (c) keep in this CLAUDE.md as a
+     custom section below Tech stack.
+
+3. **Fix the surviving Command Reference table:**
+   - Drop rows referencing removed commands (`prime`, `pause`, `resume`, `quick`,
+     `quick-execute`, `verify`)
+   - Add the `/scaffold:integrate` row if absent
+   - Verify the full row set matches: status, plan, scope, do, checkpoint, integrate,
+     cleanup, update, graduate
+
+4. **Fix the surviving Core Principle:**
+   - If outdated wording ("Plan updates scaffold files directly" or similar), update
+     to: "Every command leaves ALL state documents accurate and self-consistent. Any
+     command could be the last thing that runs before a week-long gap. Commands are
+     optional tools — the minimum ceremony is status → work → checkpoint."
+
+5. **Hard constraints and Tech stack:** preserve as-is (project-specific content).
 
 **project.md migration:**
 - Add "Requirements" section if missing

@@ -17,14 +17,18 @@ markdown files that maintain context across sessions.
     this project is already set up.
   - **Existing CLAUDE.md without scaffold** — if `CLAUDE.md` exists in root but
     NO `.scaffold/` files exist, this is an existing Claude Code configuration:
-    - Read its contents — preserve all existing rules, constraints, and tech stack
+    - Read its contents
     - Archive the original to `.scaffold/archive/CLAUDE.md.pre-scaffold`
-    - When creating the scaffold CLAUDE.md, merge the existing content:
-      - Existing rules → add to "Rules" section (alongside scaffold rules)
+    - When creating the scaffold CLAUDE.md, merge existing content as follows:
       - Existing tech stack → populate "Tech stack" section
-      - Existing constraints → populate "Hard constraints" section
-      - Any other sections → preserve as-is below scaffold sections
-    - Tell the user what was preserved and where it went
+      - Existing hard constraints → populate "Hard constraints" section
+      - **Other content (rules, preferences, communication notes, "who I am" info, etc.)**
+        does not map cleanly to the lean template. Do NOT silently merge it. Present
+        each non-empty section found to the user and ask: "Found `## [section]` in the
+        existing CLAUDE.md. Options: (a) drop — Claude defaults cover it, (b) move to
+        `~/.claude/CLAUDE.md` (user-level config), (c) keep as a custom section in this
+        project's CLAUDE.md." Wait for the user's choice per section before merging.
+    - Tell the user what was preserved, dropped, or relocated
   - **Legacy scaffold files** (`CLAUDE-project.md`, `CLAUDE-state.md`, `CLAUDE-roadmap.md`,
     `CLAUDE-decisions.md` in project root) — archive them to `.scaffold/archive/`
     before creating fresh scaffold files. Log what was archived and why.
@@ -69,36 +73,7 @@ For new projects, use the placeholder text as-is.
 ```markdown
 # [Project Name]
 
-## Who I am
-- Comfortable with: [e.g. "terminal, git basics, reading code"]
-- Less familiar with: [e.g. "databases, deployment, CSS"]
-- Communication: [e.g. "Explain the why, skip the how unless I ask"]
-
-## Rules
-- Ask before making code changes — present your approach and get approval
-- Consult .scaffold/decisions.md when making or revisiting design choices
-- Ask before making architectural or structural changes
-- If any scaffold file contradicts what you observe in the codebase, trust the codebase. State the contradiction.
-- If a session is getting long (context below 40%), suggest /scaffold:checkpoint
-- If we made decisions or completed work, remind me to checkpoint before session ends
-
-## Working
-- If state.md references a plan doc, read it and follow its scope
-- Out-of-scope discoveries get noted for checkpoint, not acted on now
-
-### Session Protocol
-| User says | Action |
-|-----------|--------|
-| "status" | Run `/scaffold:status` |
-| "plan" / "what's next" / "let's think" | Run `/scaffold:plan` |
-| "scope this" / "write a plan" | Run `/scaffold:scope` |
-| "do" / "execute the plan" | Run `/scaffold:do` |
-| "go ahead" / "do it" | If plan doc exists, read it and execute per Working rules. Otherwise do what was discussed. |
-| "checkpoint" / "save" / "pause" | Run `/scaffold:checkpoint` |
-| "decision: [X]" | Log in `.scaffold/decisions.md` |
-| "integrate this" / "absorb this spec" | Run `/scaffold:integrate` |
-
-### Command Reference
+## Command Reference
 | Command | Role |
 |---------|------|
 | `/scaffold:status` | Orient — read state, present options |
@@ -111,19 +86,10 @@ For new projects, use the placeholder text as-is.
 | `/scaffold:update` | Update scaffold commands to latest version |
 | `/scaffold:graduate` | Exit scaffold to heavier framework |
 
-### Core Principle
+## Core Principle
 Every command leaves ALL state documents accurate and self-consistent.
 Any command could be the last thing that runs before a week-long gap.
 Commands are optional tools — the minimum ceremony is status → work → checkpoint.
-
-### Key Documents
-- `.scaffold/roadmap.md` — Phases with criteria and deliverables
-- `.scaffold/state.md` — Current status and next action pointer
-- `.scaffold/decisions.md` — Design and architecture decisions with rationale
-- `.scaffold/project.md` — Vision, scope, and requirements
-- `.scaffold/plans/` — Plan documents (scope contracts for complex work)
-- `.scaffold/investigations/` — Investigation output (durable research findings)
-- `.scaffold/context/` — Controlling documents (specs, architecture docs, design docs)
 
 ## Hard constraints
 - [Things that must be true. Examples:]
@@ -136,6 +102,16 @@ Commands are optional tools — the minimum ceremony is status → work → chec
 - [e.g. "Next.js with App Router, Tailwind CSS, Supabase"]
 - [Empty is fine early on]
 ```
+
+The lean template includes only what scaffold needs to operate (Command Reference as
+reference material for the available commands; Core Principle as the operating
+contract) plus project-specific information that has nowhere else to live (Hard
+constraints, Tech stack). Generic rules like "ask before code changes" or "note
+out-of-scope discoveries" are intentionally omitted — they're per-user preferences
+that belong in `~/.claude/CLAUDE.md`, not in every project. Natural-language → command
+mapping (e.g. "status" → `/scaffold:status`) is left to Claude to infer from command
+descriptions. Orientation comes from the SessionStart hook (Step 7) which directs
+Claude to run `/scaffold:status`.
 
 2. **`.scaffold/project.md`** — The vision. What this project is and where it's going.
 

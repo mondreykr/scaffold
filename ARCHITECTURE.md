@@ -503,46 +503,14 @@ blocked ──scope──→ scoped         (blocker resolved, new scope)
 
 ## CLAUDE.md Template
 
-### Rules section
-
-```markdown
-## Rules
-- Ask before making code changes — present your approach and get approval
-- Consult .scaffold/decisions.md when making or revisiting design choices
-- Ask before making architectural or structural changes
-- If any scaffold file contradicts the codebase, trust the codebase. State the contradiction.
-- If a session is getting long (context below 40%), suggest /scaffold:checkpoint
-- If we made decisions or completed work, remind me to checkpoint before session ends
-```
-
-### Working section
-
-```markdown
-## Working
-- If state.md references a plan doc, read it and follow its scope
-- Out-of-scope discoveries get noted for checkpoint, not acted on now
-```
-
-### Session Protocol
-
-```markdown
-### Session Protocol
-| User says | Action |
-|-----------|--------|
-| "status" | Run `/scaffold:status` |
-| "plan" / "what's next" / "let's think" | Run `/scaffold:plan` |
-| "scope this" / "write a plan" | Run `/scaffold:scope` |
-| "do" / "execute the plan" | Run `/scaffold:do` |
-| "go ahead" / "do it" | If plan doc exists, read it and execute per Working rules. If not, do what was discussed. |
-| "checkpoint" / "save" / "pause" | Run `/scaffold:checkpoint` |
-| "decision: [X]" | Log in `.scaffold/decisions.md` |
-| "integrate this" / "absorb this spec" | Run `/scaffold:integrate` |
-```
+The lean template contains only what scaffold needs to operate plus project-specific
+information that has nowhere else to live. Five sections total: Title, Command
+Reference, Core Principle, Hard constraints, Tech stack.
 
 ### Command Reference
 
 ```markdown
-### Command Reference
+## Command Reference
 | Command | Role |
 |---------|------|
 | `/scaffold:status` | Orient — read state, present options |
@@ -556,6 +524,49 @@ blocked ──scope──→ scoped         (blocker resolved, new scope)
 | `/scaffold:graduate` | Exit scaffold to heavier framework |
 ```
 
+Reference material — orients both Claude and the user to what's available. Claude
+infers natural-language → command mapping (e.g. "status" → `/scaffold:status`) from
+the command descriptions; no separate Session Protocol table is needed.
+
+### Core Principle
+
+```markdown
+## Core Principle
+Every command leaves ALL state documents accurate and self-consistent.
+Any command could be the last thing that runs before a week-long gap.
+Commands are optional tools — the minimum ceremony is status → work → checkpoint.
+```
+
+Sets the operating contract for what every scaffold-affecting action must guarantee.
+
+### Hard constraints and Tech stack
+
+Project-specific placeholders. No scaffold file owns this content, so it lives in
+CLAUDE.md.
+
+### What's NOT in the template (and why)
+
+Earlier versions included `## Who I am`, `## Rules`, `## Working`, `### Session
+Protocol`, and `### Key Documents`. All five were removed:
+
+- **Who I am** — User-calibration info belongs in `~/.claude/CLAUDE.md` (user-level
+  config), not in every project.
+- **Rules** — Most were per-user preferences ("ask before code changes") or workflow
+  nudges Claude already does ("suggest checkpoint at low context"). The one
+  scaffold-specific rule ("codebase trumps scaffold") is a behavior Claude does by
+  default when it sees a contradiction.
+- **Working** — `/scaffold:status` reads the plan doc; `/scaffold:do` enforces scope.
+  Freeform scope discipline is per-user preference.
+- **Session Protocol** — Claude infers natural-language → command mapping from the
+  command descriptions in Command Reference and the available-skills list. The
+  explicit table is over-instruction.
+- **Key Documents** — `/scaffold:status` surfaces these when run, and the SessionStart
+  hook instructs Claude to run it.
+
+Users who want any of these as project-specific rules can add them back as custom
+sections below Tech stack, or push them up to `~/.claude/CLAUDE.md` for cross-project
+effect.
+
 ## AI Instruction Strategy
 
 ### Principle 1: Commands inject fresh instructions at point of need
@@ -564,12 +575,8 @@ At 400k tokens deep, CLAUDE.md rules are far away. A slash command dumps precise
 
 ### Principle 2: Don't tell Claude what it already knows
 
-CLAUDE.md only instructs behaviors Claude wouldn't do by default:
-- "Read the plan doc" — Claude wouldn't know to look for it
-- "Note out-of-scope discoveries" — Claude would just fix things
-- "Ask before making code changes" — this is a user preference, not a Claude default
-
-Rules like "research code before changing it" or "work one task at a time" are dropped — Claude already does these.
+If a behavior is already covered by Claude's defaults, by a hook, or by a slash
+command's own body, CLAUDE.md doesn't restate it.
 
 ### Principle 3: Explicit boundaries prevent bleeding
 
