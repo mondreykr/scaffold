@@ -32,7 +32,7 @@ Give a brief orientation:
 2. **Phase** — Which phase is `[IN-PROGRESS]`, how many deliverables done vs remaining
 3. **State** — Current status and any blockers (from state.md)
 4. **Open threads** — Open questions or things being figured out
-5. **Context docs** — If `.scaffold/knowledge/` exists and contains files,
+5. **Knowledge docs** — If `.scaffold/knowledge/` exists and contains files,
    list filenames with one-line descriptions. These are controlling documents
    (specs, architecture docs) that inform current and future phases.
    Skip if empty or absent.
