@@ -50,8 +50,8 @@ If this project has existing code, do these three things before creating files:
    `CHANGELOG.md`, `.cursor/rules`, `.github/CODEOWNERS`, etc. For each file found,
    report:
    - The filename
-   - Which scaffold file its content maps to (e.g., `TODO.md` → parking lot in
-     `.scaffold/state.md`, `ARCHITECTURE.md` → `.scaffold/decisions.md`)
+   - Which scaffold file its content maps to (e.g., `TODO.md` → `.scaffold/roadmap.md`
+     Backlog, `ARCHITECTURE.md` → `.scaffold/decisions.md`)
    - A one-line summary of what it contains
    - Whether it will be archived or left in place
 
@@ -145,31 +145,38 @@ e.g. "Not a social network. No sharing features yet. Single user only for now."]
 - [ ] [Remove this section if none yet]
 ```
 
-3. **`.scaffold/state.md`** — Where we are NOW. Changes every session.
+3. **`.scaffold/state.md`** — Where we are NOW. Forward-looking. Changes every session.
 
 ```markdown
 <!-- Last updated: [today's date] -->
 # State
 
-## Status
-[idle / scoped / user-pending / paused / blocked]
+## Active focus
+[One paragraph. Plain-language synopsis + forward-look. Where things are,
+what's in flight, what's driving the work. No bullets, no code blocks,
+no quoted prompts. Grows only when the situation genuinely requires it.]
 
-## Current Position
-[Synopsis of the active phase, recent completions, and project health.
-1-3 sentences that orient someone picking this up cold.]
-
-## Next Action
-[What's queued for next execute — summary of scoped tasks.
-Plan: `.scaffold/plans/YYYYMMDD-NN-phase-N-slug.md`
-If nothing queued: "Run /scaffold:plan to determine next steps."]
+## Next
+[The concrete action when you resume. 1-2 sentences or short bullets.
+References the plan doc by path if one is active.]
 
 ## Blockers
-- [Things preventing progress]
+None.
 
 ## Open Questions
-- [Unknowns that need answers]
-
+None.
 ```
+
+**State is forward-looking, not a log.** Four sections. No status enum,
+no Session Context, no Closed archive, no project-specific carve-outs.
+
+- **Active focus** is one paragraph, plain language. Captures synopsis +
+  forward-look in one. Grows only when genuinely needed.
+- **Blockers** and **Open Questions** are always present with "None." when
+  empty — confirms the writer checked; absent sections would be ambiguous.
+- **When a Blocker or Open Question resolves:** remove the line and place
+  the resolution where it belongs (decisions.md / roadmap.md / commit log).
+  State does not accumulate resolved items.
 
 4. **`.scaffold/roadmap.md`** — The plan. Phase-grouped progress tracking.
 

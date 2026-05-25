@@ -15,23 +15,26 @@ This command does NOT write plan docs — `/scaffold:scope` does that.
 
 ## Precondition Guards
 
-Read `.scaffold/state.md` Status field before proceeding.
+Read `.scaffold/state.md` and `.scaffold/roadmap.md` before proceeding.
 
-**If status is `scoped`:**
-> "You have a scoped plan. Continuing will clear it. Proceed, or work from
-> the existing plan?"
+**If state.md's `## Next` references an existing plan doc in
+`.scaffold/plans/`:**
+> "You have an active plan doc ([path]). Continuing will clear that
+> scope. Proceed, or work from the existing plan?"
 
-Wait for explicit confirmation. If the user wants to keep the existing scope, stop.
-If confirmed, clear the plan pointer from state.md and proceed.
+Wait for explicit confirmation. If the user wants to keep the existing
+scope, stop. If confirmed, clear the plan-doc reference from state.md's
+Next during Phase 3 and proceed.
 
-**If status is `user-pending`:**
-> "Unverified USER tasks from the current plan. Run `/scaffold:checkpoint`
+**If unchecked `[USER]` deliverables exist in the `[IN-PROGRESS]` phase
+with no other unchecked AI deliverables:**
+> "Unverified USER tasks from prior work. Run `/scaffold:checkpoint`
 > first to handle them, then re-plan."
 
 Stop. Do not proceed.
 
-**If status is `blocked`:**
-> "State shows blocked: [reason from state.md]. Is this resolved?
+**If state.md's `## Blockers` section has content other than "None.":**
+> "State shows blockers: [reason from Blockers section]. Is this resolved?
 > If yes, we'll plan forward. If not, let's address the blocker first."
 
 Wait for confirmation.
@@ -69,8 +72,7 @@ If the user provided a description with the command (e.g.,
 ## Phase 1: Triage (silent)
 
 Read in this order. Do not present findings yet — absorb context:
-1. .scaffold/state.md — Status, Current Position, Next Action, Session Context,
-   Blockers, Open Questions
+1. .scaffold/state.md — Active focus, Next, Blockers, Open Questions
 2. .scaffold/roadmap.md — phases, deliverables, criteria, completion state
 3. .scaffold/project.md — vision, scope boundaries, requirements
 4. .scaffold/decisions.md — recent active decisions only
@@ -82,8 +84,6 @@ requirements, design direction, and implementation specifications. When planning
 a build phase, knowledge docs are often the most important input.
 
 Scan `.scaffold/investigations/` — read any that look relevant by filename.
-
-If Session Context exists (resuming from pause), read it to pick up the thread.
 
 Assess internally:
 - Which phase is `[IN-PROGRESS]`? What deliverables are done vs remaining?
@@ -141,12 +141,14 @@ For human-owned deliverables, use the `[USER]` marker.
 **If new requirements emerged:** Add to project.md's Requirements section.
 
 **Update state.md:**
-- Current Position — reflect the discussion and roadmap changes
-- Blockers — update if resolved or new
-- Open Questions — update if answered or new
-- Clear Session Context if present (consumed by this consultation)
-- Status stays `idle` (or becomes `idle` if was `blocked`/`paused`)
-- Next Action — brief note of what to work on
+- **Active focus** — reflect the discussion and roadmap changes.
+- **Next** — brief note of what to work on. If the prior Next referenced a
+  cleared plan doc, replace with the new direction.
+- **Blockers** — update if resolved or new. Resolved blockers: remove the
+  line; the resolution lives in decisions.md (Category: Resolved Blocker)
+  per Step 5c-equivalent below.
+- **Open Questions** — update if answered or new. Answered questions:
+  remove the line; the answer lives wherever it was captured.
 
 **Update decisions.md** if decisions were made (add at TOP, newest first).
 
@@ -186,6 +188,5 @@ End with options:
 Plan does NOT:
 - **Modify non-scaffold files** — no code, no project files
 - **Write plan docs** — that is /scaffold:scope
-- **Set state to `scoped`** — that is /scaffold:scope
 - **Use plan mode** — all work happens in normal mode
 - **Skip user consultation** — inline shortcut is the only exception

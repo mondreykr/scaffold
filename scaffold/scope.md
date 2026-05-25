@@ -14,16 +14,18 @@ modify non-scaffold files, does NOT execute work, and does NOT update roadmap.md
 
 ## Precondition Guards
 
-Read `.scaffold/state.md` Status field.
+Read `.scaffold/state.md` and `.scaffold/roadmap.md`.
 
-**If status is `user-pending`:**
-> "Unverified USER tasks from the current plan. Run `/scaffold:checkpoint`
+**If unchecked `[USER]` deliverables exist in the `[IN-PROGRESS]` phase
+with no other unchecked AI deliverables:**
+> "Unverified USER tasks from prior work. Run `/scaffold:checkpoint`
 > first to handle them."
 
 Stop. Do not proceed.
 
-**If status is `scoped`:**
-> "A plan doc already exists. Replace it with a new one?"
+**If state.md's `## Next` references an existing plan doc in
+`.scaffold/plans/`:**
+> "A plan doc already exists ([path]). Replace it with a new one?"
 
 Wait for confirmation. If declined, stop.
 
@@ -33,7 +35,7 @@ Wait for confirmation. If declined, stop.
 
 Read:
 1. `.scaffold/roadmap.md` — current deliverables and phase state
-2. `.scaffold/state.md` — current position and context
+2. `.scaffold/state.md` — active focus and context
 3. `CLAUDE.md` — constraints and tech stack
 4. `.scaffold/knowledge/` — knowledge docs relevant to deliverables being scoped
    (specs, architecture docs with detailed requirements and design direction)
@@ -113,11 +115,12 @@ For investigation deliverables, add to the entry:
 ## Step 4: Update State
 
 Update `.scaffold/state.md`:
-- Status → `scoped`
-- Next Action → "Plan doc: `.scaffold/plans/YYYYMMDD-NN-phase-N-slug.md`.
-  Say 'go ahead' or run `/scaffold:do` to execute."
-- Clear Session Context if present (it's from a previous pause and is now stale)
-- Update the `<!-- Last updated -->` date
+- **Active focus** → reflect the newly scoped work (one paragraph).
+- **Next** → "Execute plan doc: `.scaffold/plans/YYYYMMDD-NN-phase-N-slug.md`.
+  Say 'go ahead' or run `/scaffold:do`."
+- **Blockers / Open Questions** → unchanged unless the scoping discussion
+  resolved or surfaced something.
+- Update the `<!-- Last updated -->` date.
 
 ---
 

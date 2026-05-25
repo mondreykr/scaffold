@@ -16,30 +16,31 @@ You update scaffold files and commit only.
 
 Read `.scaffold/state.md`, `.scaffold/roadmap.md`, and CLAUDE.md.
 
-If state.md references a plan doc in Next Action, read it for task verification
-and routing.
+If state.md's `## Next` references a plan doc in `.scaffold/plans/`, read
+that plan doc for task verification and routing.
 
 Determine what kind of checkpoint this is:
 
-**A. Full close-out** — All scoped deliverables are complete, or no scope existed
-(freeform session). Proceed through all steps.
+**A. Full close-out** — All scoped deliverables are complete, or no plan doc
+was active (freeform session). Proceed through all steps.
 
-**B. Mid-session** — Scoped deliverables remain incomplete (state.md references a
-plan doc, not all deliverables `[x]` in roadmap). Go to Step 2.
+**B. Mid-session** — Plan doc is active and scoped deliverables remain
+incomplete (state.md's Next references a plan doc; not all deliverables
+`[x]` in roadmap). Go to Step 2.
 
-**C. No plan doc** — Freeform session. No plan doc exists. Skip plan doc routing
-(Step 6). Update files from conversation context.
+**C. No plan doc** — Freeform session, no plan doc was active. Skip plan
+doc routing (Step 6). Update files from conversation context.
 
 ---
 
 ## Step 2: Mid-Session Handling
 
-*Skip if full close-out or no scope.*
+*Skip if full close-out or no plan doc was active.*
 
 Ask:
 > "Incomplete scoped work. What would you like to do?
-> - **Pause** — Save context, continue next session
-> - **Partial save** — Record what's done, keep scope active
+> - **Pause** — Save current state, continue next session
+> - **Partial save** — Record what's done, keep plan doc active
 > - **Abandon** — Done with this scope"
 
 Wait for response.
@@ -49,32 +50,25 @@ Ask: "Anything I should note for next time? (Context, gotchas, where you
 left off mentally — or just 'no'.)"
 
 Wait for response. Then:
-- Write Session Context to state.md (see format below)
-- Set status to `paused`
-- Preserve plan pointer in Next Action
+- Update state.md's **Active focus** to reflect the paused situation —
+  fold the user's response into the paragraph (progress / where their head
+  was / what to pick up). One paragraph; no separate Session Context section.
+- Update state.md's **Next** with the concrete resume action.
+- Preserve the plan-doc reference in Next.
 - Skip Steps 3-6. Go directly to Step 7 (Review) and Step 8 (Commit).
 
 **If Partial save:**
-- Mark completed deliverables `[x]` in roadmap with today's date
-- Keep status as `scoped`
-- Preserve plan pointer
-- Clear Session Context if present (stale — roadmap now reflects progress)
+- Mark completed deliverables `[x]` in roadmap with today's date.
+- Update state.md's Active focus to reflect progress.
+- Preserve the plan-doc reference in Next.
 - Skip Step 3. Proceed to Step 5 (partial updates), then Steps 7-8.
 
 **If Abandon:**
-- Mark completed deliverables `[x]` in roadmap with today's date
-- Clear plan pointer from Next Action
-- Set status to `idle`
+- Mark completed deliverables `[x]` in roadmap with today's date.
+- Clear the plan-doc reference from state.md's Next; replace with a brief
+  pointer to the new direction (or "Run /scaffold:plan to determine next steps.").
+- Update Active focus to reflect that the scope was abandoned and why.
 - Proceed to Step 5, then Steps 7-8.
-
-**Session Context format:**
-```markdown
-## Session Context
-<!-- Written by checkpoint mid-session. Cleared on full close-out. -->
-**Progress:** [What's done vs remaining — reference deliverable names]
-**Key context:** [Approach notes, gotchas, discoveries]
-**Next step:** [Concrete next action when resuming]
-```
 
 ---
 
@@ -158,27 +152,28 @@ Wait for explicit approval.
 
 ### 5b. `.scaffold/state.md` (always update)
 
-- Status → determined by outcome:
-  - Full close-out, all done: `idle`
-  - Full close-out, USER tasks remain: `user-pending`
-  - Pause: `paused`
-  - Partial save: `scoped`
-  - Abandon: `idle`
-  - Blocker discovered: `blocked`
-- Current Position → reflect what was accomplished
-- Next Action →
-  - If `idle`: "Run /scaffold:plan or start working."
-  - If `scoped`: preserve plan pointer
-  - If `paused`: preserve plan pointer
-  - If `user-pending`: "USER tasks pending: [list]. Complete, then checkpoint.
-    Plan: [plan file path]"
-  - If `blocked`: note blocker and suggest resolution
-- Clear Session Context on full close-out. Preserve on pause. Clear on partial save (stale).
-- Update Blockers — add new, remove resolved
-- **Resolved blocker routing:** For each blocker removed, add to decisions.md
-  (Category: Resolved Blocker)
-- Update Open Questions
-- Update `<!-- Last updated -->` date
+State is forward-looking. Four sections only: Active focus, Next, Blockers,
+Open Questions. No status field, no Session Context.
+
+- **Active focus** — one paragraph. Plain-language synopsis of where the
+  work currently sits and what's in flight. Rewrite to reflect this
+  session's outcome. Forward-looking, not retrospective journaling.
+- **Next** — concrete next action.
+  - Full close-out, all done: "Run /scaffold:plan or start working."
+  - Pause / partial save: preserve plan-doc reference + name the concrete
+    resume step.
+  - USER tasks pending after AI work: "USER tasks pending: [list].
+    Complete, then `/scaffold:checkpoint`. Plan: [plan file path]"
+  - Abandon: brief pointer to new direction.
+- **Blockers** — add new (write the blocking condition). Remove resolved
+  ones (do not retain a "Closed" archive). For each resolved blocker, add
+  to decisions.md (Category: Resolved Blocker) so the resolution lives
+  somewhere durable. If no blockers, write "None."
+- **Open Questions** — add new, remove answered. Answered questions: the
+  answer is captured in the artifact, decision, or conversation that
+  resolved it; no need to retain in state. If no open questions, write
+  "None."
+- Update `<!-- Last updated -->` date.
 
 ### 5c. `.scaffold/decisions.md` (if decisions were made)
 
@@ -208,14 +203,14 @@ Wait for explicit approval.
 **Check for incomplete USER tasks first.**
 If any `[USER]` deliverables from the plan doc are NOT `[x]` in roadmap:
 - Do NOT route Deferred or Decisions from the plan doc
-- Preserve plan pointer
+- Preserve the plan-doc reference in state.md's Next
 - Session decisions (from conversation, not plan doc) are still logged in Step 5c
 
 **If no incomplete USER tasks:**
 - **Deferred section** → route to roadmap phases or Backlog as specified
 - **Decisions section** → route to decisions.md (if not already logged in Step 5c)
 - **Investigation outputs** → verify files exist in `.scaffold/investigations/`
-- Clear plan pointer from state.md
+- Clear the plan-doc reference from state.md's Next (replace with the full-close-out Next per Step 5b)
 
 ---
 
@@ -248,12 +243,12 @@ that go beyond a single investigation. If detected:
 
 This is a suggestion, not a gate. The user decides whether and when to integrate.
 
-**Route to next:** Present options based on resulting state.
-- If `idle`: "Run `/scaffold:plan`, start working, or done for now."
-- If `scoped`: "`/scaffold:do` or 'go ahead' to continue."
-- If `paused`: "Next session, `/scaffold:status` picks up."
-- If `user-pending`: "Complete your tasks, then checkpoint again."
-- If `blocked`: "Resolve [blocker], then `/scaffold:plan`."
+**Route to next:** Present options based on resulting content.
+- If plan doc still active (paused/partial): "Next session, `/scaffold:status`
+  picks up. Or `/scaffold:do` to resume now."
+- If USER tasks pending: "Complete your tasks, then checkpoint again."
+- If blockers present: "Resolve [blocker summary], then `/scaffold:plan`."
+- Otherwise: "Run `/scaffold:plan`, start working, or done for now."
 
 ---
 

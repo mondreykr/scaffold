@@ -61,7 +61,7 @@ Read in this order:
 1. `.scaffold/project.md` — current vision, scope, requirements
 2. `.scaffold/decisions.md` — all decisions (active and archived)
 3. `.scaffold/roadmap.md` — phases, deliverables, criteria
-4. `.scaffold/state.md` — current status and position
+4. `.scaffold/state.md` — active focus and open threads
 5. `CLAUDE.md` — constraints, tech stack, rules
 6. All files in `.scaffold/knowledge/` — existing knowledge documents
 7. The new artifact (the path provided by the user)
@@ -212,8 +212,9 @@ moving to the next.
 
 ### 5e. `.scaffold/state.md`
 
-- Update Current Position if the integration changes project context.
-- Clear stale Open Questions that the artifact resolved.
+- Update Active focus if the integration changes project context.
+- Clear stale Open Questions that the artifact resolved (remove the line;
+  the resolution lives in the artifact and decisions.md).
 - Add Open Questions from the artifact if any remain unresolved.
 
 Update `<!-- Last updated -->` dates on ALL modified files.

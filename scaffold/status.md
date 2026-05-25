@@ -16,31 +16,50 @@ Read the following files in order:
 3. .scaffold/state.md
 4. .scaffold/roadmap.md
 
-If state.md references a plan doc in its Next Action section, read that plan doc
-too — you'll need it for scope details.
+If state.md's `## Next` references a plan doc in `.scaffold/plans/`,
+read that plan doc too — you'll need it for scope details.
 
-Do NOT read .scaffold/decisions.md unless something in state or roadmap references
-a decision that needs context — it's reference material, not session briefing.
+Do NOT read .scaffold/decisions.md unless something in state or roadmap
+references a decision that needs context — it's reference material, not
+session briefing.
 
 ---
 
-## Step 2: Present Briefing
+## Step 2: Derive Signals From Content
+
+State is content-derived, not status-keyword-driven. Compute the following
+signals from what you just read:
+
+- **Plan doc active?** `## Next` in state.md references a file in
+  `.scaffold/plans/` AND that plan doc still has incomplete scoped
+  deliverables.
+- **USER tasks pending?** Roadmap's `[IN-PROGRESS]` phase has unchecked
+  `[USER]` deliverables AND no other unchecked AI deliverables in that phase.
+- **Blocked?** `## Blockers` in state.md has content other than "None."
+- **Otherwise:** continue active focus, or start a new direction.
+
+These signals drive routing in Step 4. They are not mutually exclusive
+(you can be blocked AND have a plan doc active) — surface all that apply.
+
+---
+
+## Step 3: Present Briefing
 
 Give a brief orientation:
 
 1. **Project** — What this is, in one sentence (from project.md)
 2. **Phase** — Which phase is `[IN-PROGRESS]`, how many deliverables done vs remaining
-3. **State** — Current status and any blockers (from state.md)
-4. **Open threads** — Open questions or things being figured out
+3. **Active focus** — From state.md, one paragraph synopsis
+4. **Open threads** — Blockers and Open Questions from state.md (skip if both "None.")
 5. **Knowledge docs** — If `.scaffold/knowledge/` exists and contains files,
    list filenames with one-line descriptions. These are controlling documents
    (specs, architecture docs) that inform current and future phases.
    Skip if empty or absent.
 6. **Investigations** — If `.scaffold/investigations/` exists and contains files,
    list filenames with one-line descriptions. Skip if empty or absent.
-7. **Next action** — Route based on state.md Status (see Step 3)
+7. **Next action** — Route per Step 4 based on the signals from Step 2
 8. **Health check** — Flag contradictions between files:
-   - State says blocked but roadmap shows it as complete
+   - State Blockers says blocked but roadmap shows it as complete
    - Roadmap shows a deliverable as in progress but state doesn't reference it
    - Project scope boundaries say "no X" but roadmap includes X
    - If consistent, say so.
@@ -49,41 +68,33 @@ Give a brief orientation:
 
 ---
 
-## Step 3: Route to Next Action
+## Step 4: Route to Next Step
 
-Present options based on state.md Status. Suggest, don't mandate.
+Present options based on the signals from Step 2. Suggest, don't mandate.
+Surface multiple signals if multiple apply.
 
-**Status is `idle`:**
-> "No active scope. What would you like to work on?
-> `/scaffold:plan` to discuss direction, or just tell me what you need."
-
-**Status is `scoped`:**
+**Plan doc active:**
 Read the plan doc. Present the scoped deliverables.
 > "Plan doc ready: [deliverable list].
 > Say 'go ahead', run `/scaffold:do` for formal execution, or keep working."
 
-**Status is `paused`:**
-Read Session Context from state.md. Present it.
-- If plan doc exists:
-  > "Paused from [date]. [Session Context summary].
-  > Continue working, `/scaffold:do`, or `/scaffold:plan` to re-scope."
-- If no plan doc:
-  > "Paused mid-work from [date]. [Session Context summary].
-  > Continue or `/scaffold:plan` to figure out next steps."
-
-**Status is `user-pending`:**
-Scan roadmap for unchecked `[USER]` deliverables in the `[IN-PROGRESS]` phase.
+**USER tasks pending (no plan doc active):**
+Surface the USER deliverables.
 > "AI work done. USER tasks pending:
 > - [deliverable description]
 > Complete them, then `/scaffold:checkpoint`."
 
-**Status is `blocked`:**
-> "Blocked: [reason].
+**Blocked:**
+> "Blocked: [content of Blockers section].
 > If resolved, continue working or `/scaffold:plan` to discuss direction."
 
-**USER deliverables in roadmap (regardless of state):**
-If unchecked `[USER]` deliverables exist and status is NOT `user-pending`,
-surface them as a note:
+**Otherwise:**
+> "Active focus: [synopsis from state.md]. Next: [content of Next section].
+> Continue working, or `/scaffold:plan` to recalibrate."
+
+**USER deliverables in roadmap (regardless of other signals):**
+If unchecked `[USER]` deliverables exist anywhere and weren't already the
+primary route above, surface them as a note:
 > "**Reminder:** [N] USER task(s) pending in Phase [N]."
 
 ---

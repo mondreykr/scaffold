@@ -77,7 +77,7 @@ Just start working after status. No plan or scope needed. Checkpoint saves whate
 
 ### Pausing and resuming
 
-Say "pause" or "I need to stop" at any point. Checkpoint captures your progress and session context. Next session, status detects the pause and tells you where you left off.
+Say "pause" or "I need to stop" at any point. Checkpoint captures your progress and updates state.md's Active focus to reflect where you left off. Next session, status reads state.md and tells you where to pick up.
 
 ### USER tasks
 
@@ -106,7 +106,7 @@ Five core files provide context persistence.
 |------|---------|
 | `CLAUDE.md` | Hub — identity, rules, constraints, tech stack (auto-read by Claude) |
 | `.scaffold/project.md` | Vision — what you're building, for whom, requirements (verifiable checkboxes) |
-| `.scaffold/state.md` | Status — current position, next action pointer, blockers, open questions |
+| `.scaffold/state.md` | State — active focus, next, blockers, open questions (forward-looking only) |
 | `.scaffold/roadmap.md` | Progress — phases with acceptance criteria and deliverable tracking |
 | `.scaffold/decisions.md` | Record — decisions logged chronologically with rationale |
 | `.scaffold/plans/` | Plan documents — scope contracts for complex work (created by `/scaffold:scope`) |

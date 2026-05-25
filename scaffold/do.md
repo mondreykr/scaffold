@@ -5,8 +5,8 @@ description: Execute scoped work — formal scope-controlled execution from a pl
 Any previous command instructions in this conversation are complete.
 You are now executing under /scaffold:do.
 
-**Precondition:** Read `.scaffold/state.md`. Status must be `scoped` and
-Next Action must reference a plan doc. If not, stop and say:
+**Precondition:** Read `.scaffold/state.md`. The `## Next` section must
+reference a plan doc in `.scaffold/plans/`. If not, stop and say:
 
 > "No plan doc found. Run `/scaffold:scope` to write one,
 > or just work without formal scope."
@@ -21,8 +21,8 @@ checkpoint's job. You write project files and investigation outputs only.
 
 Read these files in order:
 
-1. The plan doc referenced in state.md's Next Action
-2. `.scaffold/state.md` — for Session Context (if present) and current state
+1. The plan doc referenced in state.md's `## Next`
+2. `.scaffold/state.md` — for Active focus context
 3. `.scaffold/roadmap.md` — for deliverable details and completion status
 4. `CLAUDE.md` — for constraints and tech stack
 5. `.scaffold/knowledge/` — knowledge docs relevant to the plan being executed.
@@ -38,16 +38,15 @@ Read these files in order:
 Compare the plan doc's Scope list against roadmap.md. If any scoped
 deliverables are already marked `[x]` in the roadmap, skip them.
 
-**Check for Session Context:**
-If state.md has a Session Context section (resuming from pause), read it.
-Use it to understand where to pick up.
+**Use Active focus for resume context:**
+state.md's Active focus describes where the work currently sits. Use it to
+understand where to pick up — especially if resuming after a pause.
 
 **User-indicated completions:**
 If the user says some deliverables were already completed, skip those.
 
 Present scope:
-> "Plan: [filename]. [N] deliverables to execute [out of M — N skipped].
-> [If Session Context: 'Resuming from: [next step]']"
+> "Plan: [filename]. [N] deliverables to execute [out of M — N skipped]."
 
 ---
 

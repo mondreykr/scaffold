@@ -48,8 +48,8 @@ If `.scaffold/scratch/` does not exist, skip this step.
 
 **Check for `.scaffold/continue-here.md`:** If it exists, this is a v1 pause file.
 - Read it and present the context
-- Propose: incorporate relevant context into state.md Session Context section,
-  then delete the file
+- Hold the content for Step 3's state.md migration — the resume context
+  becomes part of the rebuilt Active focus paragraph there. Then delete the file.
 - Wait for user approval
 
 If neither exists, skip this step.
@@ -69,20 +69,30 @@ Check each file against the current format:
 - Plain bullets in `[PLANNED]` phases (should be `- [ ]` checkboxes; plain sub-bullets for detail only)
 - Missing `Backlog` section
 
-**state.md — check for:**
+**state.md — check for v1 sections:**
 - Old sections: "What's not working", "What's working well", "Parking lot",
   "Next session"
-- Missing new sections: "Status", "Current Position", "Next Action",
-  "Blockers"
+
+**state.md — check for v2 sections (current target is v3):**
+- `## Status` field (any value) — v3 removes the status enum entirely;
+  routing is content-derived.
+- `## Current Position` — v3 renames to `## Active focus`.
+- `## Next Action` — v3 renames to `## Next`.
+- `## Session Context` (with sub-fields Progress / Key context / Next step) —
+  v3 removes this section; fold its content into Active focus when migrating.
+- `## Closed` — v3 removes retrospective archives; route resolved items to
+  decisions.md / roadmap.md and delete the section.
+- Project-specific extra sections beyond Active focus / Next / Blockers /
+  Open Questions — v3 removes these; route content to its natural home or
+  drop with user approval.
+
+**state.md — check for empty Blockers / Open Questions:**
+- v3 always has both sections present; "None." when empty (do not omit the
+  section heading).
 
 **decisions.md — check for:**
 - Old category-grouped format (## Tech, ## Architecture, etc. as organizing headers)
   - Should be flat chronological with `**Category:**` field per entry
-
-**state.md — check for v1→v2 status values:**
-- `planning` → `idle` (planning is a transient state, not persisted)
-- `executing` → `scoped` (execution scope is set, awaiting /scaffold:do)
-- Missing `scoped`, `user-pending`, `paused` as recognized values
 
 **CLAUDE.md — check for:**
 
@@ -156,13 +166,52 @@ For each file that needs changes, build the new content by mapping old → new:
 - Consolidate granular tasks into deliverables (items that span sessions)
 
 **state.md migration:**
-- "What's not working" → "Blockers"
-- "Open questions" → "Open Questions" (unchanged)
+
+Target shape (v3, four sections, forward-looking only):
+
+```markdown
+<!-- Last updated: YYYY-MM-DD -->
+# State
+
+## Active focus
+[One paragraph. Plain-language synopsis + forward-look.]
+
+## Next
+[Concrete action when resuming. 1-2 sentences or short bullets.]
+
+## Blockers
+[Always present. "None." when empty.]
+
+## Open Questions
+[Always present. "None." when empty.]
+```
+
+Migration steps:
+
+1. **Drop the `## Status` field entirely.** v3 derives routing from content.
+2. **Rename `## Current Position` → `## Active focus`.** Trim to one paragraph
+   if it has bullets, sub-headings, or code blocks. Keep the synopsis;
+   drop retrospective journaling.
+3. **Rename `## Next Action` → `## Next`.** Trim prose to a concrete action;
+   drop embedded prompts, narrative paragraphs.
+4. **Fold `## Session Context` into Active focus.** The Progress / Key
+   context / Next step content gets absorbed into the Active focus
+   paragraph (or its sub-bullets into Next, where appropriate). Then
+   delete the Session Context section.
+5. **Delete any `## Closed` section.** Route the items inside it to their
+   natural home: resolved blockers → decisions.md (Category: Resolved
+   Blocker); answered questions → wherever the answer was captured (often
+   decisions.md or knowledge docs); completed work → roadmap.md.
+6. **Delete project-specific extra sections** (e.g., calendars, schedules).
+   Route content to its natural home — roadmap, plan doc, or knowledge
+   doc — or surface in Active focus if genuinely status-level.
+7. **Ensure Blockers and Open Questions are present.** Add "None." if empty.
+
+Legacy v1 sections:
+- "What's not working" → Blockers (with current-state content; resolved items dropped)
 - "What's working well" → Drop (preferences route to CLAUDE.md)
 - "Parking lot" / "Future Ideas" → move to roadmap.md Backlog
-- "Next session" → "Next Action" (rewrite as action pointer, not vague intentions)
-- Add "Status" section (infer from current state: idle / scoped / blocked)
-- Add "Current Position" section (synthesize from existing content)
+- "Next session" → Next (rewrite as concrete resume action)
 
 **decisions.md migration:**
 - Extract entries from category sections (## Tech, ## Architecture, ## Design, ## Scope)
@@ -253,6 +302,6 @@ Write all approved changes to their respective files.
 ## Step 6: Commit
 
 If git is initialized:
-`git add CLAUDE.md .scaffold/ && git commit -m "scaffold: migrate to v2 format"`
+`git add CLAUDE.md .scaffold/ && git commit -m "scaffold: migrate to current format"`
 
 Show a summary of what was migrated.

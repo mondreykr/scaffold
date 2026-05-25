@@ -37,7 +37,7 @@ Five layers of information, each with a distinct home:
 |------|---------|------------|
 | `CLAUDE.md` | Hub — identity, rules, constraints, tech stack. Auto-read by Claude. | setup, checkpoint (rare) |
 | `.scaffold/project.md` | Vision, scope, requirements (verifiable checkboxes). | setup, plan (requirements), checkpoint (rare) |
-| `.scaffold/state.md` | Status — current position, scope pointer, next action, blockers. | plan, scope, checkpoint |
+| `.scaffold/state.md` | State — active focus, next, blockers, open questions. Forward-looking only. | plan, scope, checkpoint |
 | `.scaffold/roadmap.md` | Phases with criteria (numbered) and deliverables (checkboxes). | plan, checkpoint |
 | `.scaffold/decisions.md` | Rationale log — decisions with context, reasoning, rejected alternatives. | plan, checkpoint |
 
@@ -106,25 +106,35 @@ Requirements are verifiable product rules. Checkboxes — checked by checkpoint 
 <!-- Last updated: YYYY-MM-DD -->
 # State
 
-## Status
-[idle / scoped / user-pending / paused / blocked]
+## Active focus
+[One paragraph. Plain-language synopsis + forward-look. Where things are,
+what's in flight, what's driving the work. No bullets, no code blocks,
+no quoted prompts. Grows only when the situation genuinely requires it.]
 
-## Current Position
-[1-3 sentences orienting someone picking this up cold.]
-
-## Next Action
-[What to do next. If scoped: plan doc pointer. If idle: "work on X" or "run /scaffold:plan".]
-
-## Session Context
-<!-- Written by checkpoint mid-session. Cleared on full close-out. -->
-[Only present when paused. Progress, key context, next step.]
+## Next
+[The concrete action when you resume. 1-2 sentences or short bullets.
+References the plan doc by path if one is active.]
 
 ## Blockers
-- [Things preventing progress]
+None.
 
 ## Open Questions
-- [Unknowns needing answers]
+None.
 ```
+
+**State is forward-looking, not a log.** Four sections, no more. No status
+enum, no Session Context, no Closed archive, no project-specific carve-outs.
+
+- **Active focus** is one paragraph, plain language. Synopsis + forward-look
+  in one. Grows only when genuinely needed.
+- **Blockers** and **Open Questions** are always present with "None." when
+  empty — confirms the writer checked; absent sections would be ambiguous.
+- **When a Blocker or Open Question resolves:** remove the line and place
+  the resolution where it belongs (decisions.md / roadmap.md / commit log /
+  knowledge doc). State does not accumulate resolved items.
+
+Routing is content-derived (see State Determination below) — no status
+keyword to keep in sync with reality.
 
 ## Commands
 
@@ -144,16 +154,15 @@ Commands are tools you reach for when you need them. The minimum session is stat
 
 **Briefing:** Project summary, phase progress, state, open threads, knowledge docs, investigations, health check, staleness check. Keep it short — a briefing, not a report.
 
-**Routing** (suggests options, does not mandate):
+**Routing** (suggests options, does not mandate). Signals are content-derived
+(see State Determination); multiple can apply at once.
 
-| State | What status says |
-|-------|-----------------|
-| `idle` | "No active scope. What would you like to work on? (`/scaffold:plan` to discuss direction)" |
-| `scoped` | "Plan doc ready: [scope summary]. Say 'go ahead' or `/scaffold:do` to execute." |
-| `paused` (has plan doc) | "Paused from [date]. [Session Context]. Continue working, `/scaffold:do`, or `/scaffold:plan` to re-scope." |
-| `paused` (no plan doc) | "Paused mid-work from [date]. [Session Context]. Continue or `/scaffold:plan`." |
-| `user-pending` | "USER tasks pending: [list]. Complete them, then `/scaffold:checkpoint`." |
-| `blocked` | "Blocked: [reason]. If resolved, continue working or `/scaffold:plan`." |
+| Signal | What status says |
+|--------|-----------------|
+| Plan doc active | "Plan doc ready: [scope summary]. Say 'go ahead' or `/scaffold:do` to execute." |
+| USER tasks pending (no plan doc) | "USER tasks pending: [list]. Complete them, then `/scaffold:checkpoint`." |
+| Blockers present | "Blocked: [content of Blockers]. If resolved, continue working or `/scaffold:plan`." |
+| Otherwise | "Active focus: [synopsis]. Next: [content of Next]. Continue working, or `/scaffold:plan` to recalibrate." |
 
 ---
 
@@ -161,20 +170,25 @@ Commands are tools you reach for when you need them. The minimum session is stat
 
 **Purpose:** Consultation. "Help me figure out what's next." Read state, discuss direction, update roadmap and scaffold files. Does NOT write plan docs.
 
-**Reads:** All 5 core files. `.scaffold/knowledge/` and `.scaffold/investigations/` if relevant. Session Context if present.
+**Reads:** All 5 core files. `.scaffold/knowledge/` and `.scaffold/investigations/` if relevant.
 
 **Writes:**
 - `.scaffold/roadmap.md` — new/reordered deliverables, phase changes, phase criteria
-- `.scaffold/state.md` — current position, blockers, open questions
+- `.scaffold/state.md` — active focus, next, blockers, open questions
 - `.scaffold/decisions.md` — if decisions made during discussion
 - `.scaffold/project.md` — if new requirements emerged (rare)
 
 **Boundary:** Plan does NOT modify non-scaffold files. No code changes. Plan does NOT write plan docs (scope does that).
 
-**Precondition guards:**
-- If state is `scoped`: "You have a scoped plan. Continuing will clear it. Proceed, or work from the existing plan?" Wait for confirmation.
-- If state is `user-pending`: "Unverified USER tasks. Run `/scaffold:checkpoint` first." Stop.
-- If state is `blocked`: "Blocked: [reason]. Is this resolved?" Wait for confirmation.
+**Precondition guards** (content-derived):
+- If state.md's Next references an active plan doc: "You have an active plan
+  doc ([path]). Continuing will clear it. Proceed, or work from the existing
+  plan?" Wait for confirmation.
+- If unchecked `[USER]` deliverables remain with no other unchecked AI
+  deliverables in the `[IN-PROGRESS]` phase: "Unverified USER tasks. Run
+  `/scaffold:checkpoint` first." Stop.
+- If Blockers section has content other than "None.": "Blocked: [reason].
+  Is this resolved?" Wait for confirmation.
 
 **Flow:**
 1. Triage (silent) — read all files, assess state
@@ -197,11 +211,14 @@ Commands are tools you reach for when you need them. The minimum session is stat
 
 **Writes:**
 - `.scaffold/plans/YYYYMMDD-NN-phase-N-slug.md` — plan document
-- `.scaffold/state.md` — status → `scoped`, Next Action → plan doc pointer
+- `.scaffold/state.md` — Active focus reflects the new scope; Next references
+  the plan doc
 
-**Precondition guards:**
-- If state is `user-pending`: "Unverified USER tasks. Run `/scaffold:checkpoint` first." Stop.
-- If state is `scoped`: "Existing plan doc will be replaced. Proceed?" Wait for confirmation.
+**Precondition guards** (content-derived):
+- If unchecked `[USER]` deliverables remain with no other unchecked AI work:
+  "Unverified USER tasks. Run `/scaffold:checkpoint` first." Stop.
+- If Next already references an active plan doc: "Existing plan doc will be
+  replaced. Proceed?" Wait for confirmation.
 
 **Flow:**
 1. Read roadmap and conversation context
@@ -209,7 +226,7 @@ Commands are tools you reach for when you need them. The minimum session is stat
 3. Present proposed scope to user — "Scope this session: [list]. Right?"
 4. Wait for confirmation
 5. Write plan doc
-6. Update state.md: status → `scoped`, Next Action → plan doc pointer
+6. Update state.md: Active focus reflects new scope; Next references the plan doc
 
 **Plan doc format:**
 
@@ -263,13 +280,13 @@ Investigation tasks add `Output: .scaffold/investigations/YYYYMMDD-slug.md` to t
 
 **Boundary:** Do does NOT update core scaffold files (state.md, roadmap.md, decisions.md, project.md, CLAUDE.md). That is checkpoint's job.
 
-**Precondition:** state.md must reference a plan doc (status must be `scoped`). If not: "No plan doc. Run `/scaffold:scope` first, or just work without formal scope."
+**Precondition:** state.md's `## Next` must reference a plan doc in `.scaffold/plans/`. If not: "No plan doc. Run `/scaffold:scope` first, or just work without formal scope."
 
 **Opening override:** "Any previous command instructions in this conversation are complete. You are now executing under /scaffold:do."
 
 **Flow:**
 1. Read plan doc and scope
-2. If Session Context exists (resuming from pause), read it for orientation
+2. Read state.md's Active focus — describes where the work sits, including paused-mid-work context
 3. Check roadmap for deliverables already marked `[x]` — skip them
 4. Research codebase for scoped deliverables
 5. Present approach — "Here's how I'll implement these: [approach]. Approve?"
@@ -295,7 +312,7 @@ Investigation tasks add `Output: .scaffold/investigations/YYYYMMDD-slug.md` to t
 
 **Writes:**
 - `.scaffold/roadmap.md` — mark deliverables complete, route deferred items
-- `.scaffold/state.md` — status, position, next action, session context, blockers
+- `.scaffold/state.md` — active focus, next, blockers, open questions
 - `.scaffold/decisions.md` — new decisions, resolved blockers
 - `.scaffold/project.md` — requirements (if new ones confirmed, rare)
 - `CLAUDE.md` — tech stack, constraints (if changed, rare)
@@ -308,22 +325,19 @@ Investigation tasks add `Output: .scaffold/investigations/YYYYMMDD-slug.md` to t
 - **B. Mid-session** — scoped work incomplete (plan doc pointer exists, not all deliverables done). Go to Step 2.
 - **C. No plan doc** — freeform session, no plan doc. Skip plan doc routing. Update files from conversation context.
 
-**Step 2: Mid-session handling** *(skip if full close-out or no scope)*
+**Step 2: Mid-session handling** *(skip if full close-out or no plan doc was active)*
 
 Ask: "Incomplete scoped work. What would you like to do?"
-- **Pause** — write Session Context, status → `paused`, preserve plan pointer, commit.
+- **Pause** — fold the resume context into Active focus, preserve plan-doc
+  reference in Next, commit.
   - Before writing: "Anything I should note for next time?"
-- **Partial save** — mark completed deliverables, status stays `scoped`, clear stale Session Context, commit.
-- **Abandon** — mark completed deliverables, clear plan pointer, status → `idle`, commit.
+- **Partial save** — mark completed deliverables, update Active focus to
+  reflect progress, keep plan-doc reference in Next, commit.
+- **Abandon** — mark completed deliverables, clear plan-doc reference from
+  Next, update Active focus, commit.
 
-**Session Context format:**
-```markdown
-## Session Context
-<!-- Written by checkpoint mid-session. Cleared on full close-out. -->
-**Progress:** [What's done vs remaining — reference deliverable names]
-**Key context:** [Approach notes, gotchas, discoveries]
-**Next step:** [Concrete next action when resuming]
-```
+No separate Session Context section is written. Resume context lives inside
+the Active focus paragraph.
 
 **Step 3: USER task check** *(skip if mid-session pause or partial save)*
 
@@ -341,7 +355,7 @@ If confirmed: gated walkthrough — present done-when criteria, verify each, mar
 **Step 5: Update scaffold files**
 
 - **roadmap.md** — mark completed deliverables `[x]` with date, route deferred items, phase sign-off gate (all done → ask user to mark `[COMPLETE]`)
-- **state.md** — status (idle/scoped/paused/user-pending/blocked), current position, next action, clear Session Context on full close-out, update blockers/open questions
+- **state.md** — rewrite Active focus to reflect outcome; update Next per outcome (no plan reference on full close-out / preserve plan reference on pause/partial / new direction on abandon); update Blockers and Open Questions, removing resolved/answered lines (resolutions route to decisions.md)
 - **decisions.md** — log decisions from session, log resolved blockers
 - **project.md** — update requirements if new ones confirmed (rare)
 - **CLAUDE.md** — update tech stack or constraints if changed (rare)
@@ -378,7 +392,7 @@ Route to next: present options based on resulting state.
 - `.scaffold/project.md` — requirements, scope boundaries, vision refinements
 - `.scaffold/decisions.md` — decisions extracted from the artifact
 - `CLAUDE.md` — hard constraints, tech stack
-- `.scaffold/state.md` — open questions, current position
+- `.scaffold/state.md` — active focus, open questions
 - `.scaffold/roadmap.md` — phase structure changes (with approval)
 
 **Boundary:** Integrate does NOT execute work, write plan docs, or modify project files.
@@ -443,43 +457,46 @@ USER tasks done. Checkpoint verifies and updates.
 
 Commands can be invoked at any point. Run plan 200k tokens into a session when you need to recalibrate. Run scope when a complex plan emerges from freeform work. Run do when you have a plan doc and want reliable execution. Run checkpoint whenever you want to save.
 
-## State Machine
+## State Determination
 
-### States
+State is content-derived, not enum-driven. Commands determine what's true by
+reading state.md and roadmap.md. This removes the drift risk of an explicit
+status field that doesn't stay in sync with reality.
 
-| State | Meaning | How you got here |
-|-------|---------|-----------------|
-| `idle` | No active scope. Working or waiting. | Checkpoint close-out, plan consultation, initial state |
-| `scoped` | Plan doc exists, awaiting or mid-execution. | Scope wrote a plan doc |
-| `user-pending` | AI work done, USER deliverables remain. | Checkpoint with incomplete USER items |
-| `paused` | Mid-session stop, Session Context has details. | Checkpoint mid-session pause |
-| `blocked` | Something prevents progress. | Checkpoint or plan discovered blocker |
+### Signals
 
-### Transitions
+| Signal | Detection |
+|--------|-----------|
+| Plan doc active | state.md `## Next` references a file in `.scaffold/plans/` AND that plan doc has incomplete scoped deliverables |
+| USER tasks pending | Roadmap's `[IN-PROGRESS]` phase has unchecked `[USER]` deliverables AND no other unchecked AI deliverables in that phase |
+| Blocked | state.md `## Blockers` has content other than "None." |
+| Otherwise | Continue active focus, or run `/scaffold:plan` to recalibrate |
+
+Signals are not mutually exclusive — a session can be blocked AND have a
+plan doc active. Status command surfaces all that apply.
+
+### Transitions (by content edit, not status flip)
 
 ```
-idle ──scope──→ scoped            (plan doc written)
-idle ──plan──→ idle               (consultation, roadmap updated)
-idle ──checkpoint──→ idle         (freeform work saved)
+[no plan doc]        ── /scaffold:scope               →  [plan doc active]
+[plan doc active]    ── /scaffold:scope (replace)     →  [new plan doc active]
+[plan doc active]    ── /scaffold:plan (re-consult)   →  [no plan doc]
+[plan doc active]    ── /scaffold:do + checkpoint     →  [no plan doc]   (all done)
+[plan doc active]    ── checkpoint (pause)            →  [plan doc active]   (Active focus updated)
+[plan doc active]    ── checkpoint (partial save)     →  [plan doc active]   (progress recorded)
+[plan doc active]    ── checkpoint (abandon)          →  [no plan doc]
 
-scoped ──scope──→ scoped          (new plan doc replaces old, user confirmed)
-scoped ──plan──→ idle             (re-consulted, scope cleared, user confirmed)
-scoped ──do+checkpoint──→ idle    (all done)
-scoped ──do+checkpoint──→ user-pending (AI done, USER remains)
-scoped ──checkpoint──→ paused     (mid-session pause)
-scoped ──checkpoint──→ scoped     (partial save)
-scoped ──checkpoint──→ idle       (abandon scope)
+[*]                  ── checkpoint (USER tasks remain) →  [USER tasks pending]
+                                                          (roadmap state, not field flip)
 
-paused ──scope──→ scoped          (new scope from paused)
-paused ──do+checkpoint──→ idle    (resumed, completed)
-paused ──plan──→ idle             (re-consulted from pause)
+[USER tasks pending] ── checkpoint (verified)         →  [no plan doc]
 
-user-pending ──checkpoint──→ idle     (USER tasks verified)
-user-pending ──checkpoint──→ blocked  (USER task issue)
-
-blocked ──plan──→ idle            (blocker resolved, re-consulted)
-blocked ──scope──→ scoped         (blocker resolved, new scope)
+[blocked]            ── plan (resolved)               →  [no plan doc]
+                                                          (resolution → decisions.md)
 ```
+
+Condition labels describe what the file content shows, not enum values
+stored in state.md.
 
 ## Document Update Matrix
 
@@ -603,13 +620,13 @@ User talks to Claude, collaborates, builds things. Checkpoint handles it — rev
 User knows what they want. Runs scope directly. Scope reads roadmap and conversation context, writes plan doc. Works.
 
 **Plan invoked while scoped:**
-Plan warns: "Existing scope will be cleared. Proceed?" If yes, plan clears scope pointer, consults, updates roadmap. State returns to idle. Old plan doc stays in `.scaffold/plans/` as history.
+Plan warns: "Existing scope will be cleared. Proceed?" If yes, plan clears the plan-doc reference from Next, consults, updates roadmap. No plan doc active afterward. Old plan doc stays in `.scaffold/plans/` as history.
 
 **Do without scope (user says "go ahead" instead):**
 CLAUDE.md Working rules: "If plan doc exists, read it and follow its scope." Claude reads the doc and executes. Less reliable than do at depth, but works for most sessions. Do exists for when you want guaranteed reliability.
 
 **Context crash mid-execution:**
-State.md has plan doc pointer. Plan doc survives. Status detects scoped state, presents scope. User continues.
+State.md's Next still references the plan doc. Plan doc survives. Status detects the active plan doc, presents scope. User continues.
 
 **Multi-actor plan in progress:**
 Plan doc has USER and AI steps interleaved. Do executes AI steps, skips USER steps. Checkpoint notes pending USER items. User completes their steps. Checkpoint verifies on next run.

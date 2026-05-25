@@ -32,7 +32,7 @@ consolidates everything worth carrying forward:
 [From .scaffold/project.md — what this is, who it's for, success criteria, scope]
 
 ## Current State
-[From .scaffold/state.md — status, current position, blockers, open questions]
+[From .scaffold/state.md — active focus, next, blockers, open questions]
 
 ## Roadmap
 [From .scaffold/roadmap.md — all phases with their status and tasks]
