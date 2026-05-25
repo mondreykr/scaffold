@@ -155,9 +155,12 @@ Wait for explicit approval.
 State is forward-looking. Four sections only: Active focus, Next, Blockers,
 Open Questions. No status field, no Session Context.
 
-- **Active focus** — one paragraph. Plain-language synopsis of where the
-  work currently sits and what's in flight. Rewrite to reflect this
-  session's outcome. Forward-looking, not retrospective journaling.
+- **Active focus** — one paragraph. Synopsis of where the work sits and
+  what's in flight. Rewrite to reflect this session's outcome.
+  Forward-looking, not retrospective journaling.
+  **ELI5 — explain it like the reader is five.** Plain words, short
+  sentences, no jargon shortcuts, no status-report officialese. If a
+  five-year-old wouldn't follow the gist, rewrite it.
 - **Next** — concrete next action.
   - Full close-out, all done: "Run /scaffold:plan or start working."
   - Pause / partial save: preserve plan-doc reference + name the concrete

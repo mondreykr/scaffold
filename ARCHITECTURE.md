@@ -107,9 +107,15 @@ Requirements are verifiable product rules. Checkboxes — checked by checkpoint 
 # State
 
 ## Active focus
-[One paragraph. Plain-language synopsis + forward-look. Where things are,
-what's in flight, what's driving the work. No bullets, no code blocks,
-no quoted prompts. Grows only when the situation genuinely requires it.]
+[One paragraph. Synopsis + forward-look. Where things are, what's in flight,
+what's driving the work.
+
+**ELI5 — explain it like the reader is five.** Plain words, short sentences,
+no jargon shortcuts, no status-report officialese. If a five-year-old
+wouldn't follow the gist, rewrite it.
+
+No bullets, no code blocks, no quoted prompts. Grows only when the
+situation genuinely requires it.]
 
 ## Next
 [The concrete action when you resume. 1-2 sentences or short bullets.

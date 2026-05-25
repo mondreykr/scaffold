@@ -116,6 +116,9 @@ For investigation deliverables, add to the entry:
 
 Update `.scaffold/state.md`:
 - **Active focus** → reflect the newly scoped work (one paragraph).
+  **ELI5 — explain it like the reader is five.** Plain words, short
+  sentences, no jargon shortcuts, no status-report officialese. If a
+  five-year-old wouldn't follow the gist, rewrite it.
 - **Next** → "Execute plan doc: `.scaffold/plans/YYYYMMDD-NN-phase-N-slug.md`.
   Say 'go ahead' or run `/scaffold:do`."
 - **Blockers / Open Questions** → unchanged unless the scoping discussion

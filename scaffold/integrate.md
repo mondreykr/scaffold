@@ -213,6 +213,9 @@ moving to the next.
 ### 5e. `.scaffold/state.md`
 
 - Update Active focus if the integration changes project context.
+  **ELI5 — explain it like the reader is five.** Plain words, short
+  sentences, no jargon shortcuts, no status-report officialese. If a
+  five-year-old wouldn't follow the gist, rewrite it.
 - Clear stale Open Questions that the artifact resolved (remove the line;
   the resolution lives in the artifact and decisions.md).
 - Add Open Questions from the artifact if any remain unresolved.

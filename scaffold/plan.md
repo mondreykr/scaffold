@@ -142,6 +142,9 @@ For human-owned deliverables, use the `[USER]` marker.
 
 **Update state.md:**
 - **Active focus** — reflect the discussion and roadmap changes.
+  **ELI5 — explain it like the reader is five.** Plain words, short
+  sentences, no jargon shortcuts, no status-report officialese. If a
+  five-year-old wouldn't follow the gist, rewrite it.
 - **Next** — brief note of what to work on. If the prior Next referenced a
   cleared plan doc, replace with the new direction.
 - **Blockers** — update if resolved or new. Resolved blockers: remove the
