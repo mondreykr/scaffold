@@ -244,6 +244,12 @@ Check for and report:
   requirements or CLAUDE.md constraints
 - **Stale requirements** — project.md requirements that no longer match
   what knowledge docs or decisions specify
+- **Misfiled requirements** — decisions.md entries that are actually
+  requirements (product rules / "must" statements, not choices with
+  rejected alternatives). Flag for migration to project.md Requirements.
+- **Roadmap granularity** — roadmap.md items that are session-level tasks
+  rather than deliverables (span sessions). Flag for consolidation into
+  deliverables.
 - **Orphaned scope boundaries** — project.md says "not X" but roadmap
   includes X, or vice versa
 - **Missing decisions** — knowledge docs reference decisions not in

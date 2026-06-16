@@ -138,13 +138,15 @@ content that needs explicit user routing.
 **roadmap.md — check for v2→v3 format:**
 - Missing phase criteria (numbered acceptance conditions per phase)
 - `>>` markers — remove (state.md is the controller, not roadmap markers)
-- Items that are tasks (session-level) rather than deliverables (span sessions) —
-  flag for consolidation
 - Missing `[USER]` markers on human-owned deliverables
 
 **project.md — check for:**
 - Missing "Requirements" section — add with verifiable checkboxes
-- Requirements hiding in decisions.md — flag for migration to project.md
+
+> **Out of scope for cleanup:** content-consistency checks (tasks vs.
+> deliverables, requirements misfiled in decisions.md, cross-file drift)
+> belong to `/scaffold:integrate --sync`, not here. Cleanup transforms
+> file *shape* to the current schema; sync reconciles *meaning*.
 
 ---
 
@@ -163,7 +165,7 @@ For each file that needs changes, build the new content by mapping old → new:
 - Old `- v Item` → `- [x] Item`
 - Old `- >> Item` → `- [ ] Item` (drop `>>` — state.md is the controller)
 - Add phase criteria if missing: `Phase complete when:` with numbered conditions
-- Consolidate granular tasks into deliverables (items that span sessions)
+- Add `[USER]` markers to human-owned deliverables if missing
 
 **state.md migration:**
 
@@ -261,17 +263,8 @@ Migration steps:
 5. **Hard constraints and Tech stack:** preserve as-is (project-specific content).
 
 **project.md migration:**
-- Add "Requirements" section if missing
-- Scan decisions.md for entries that are requirements (product rules, not
-  design choices with rejected alternatives) — flag for migration to project.md
-- Present each candidate: "[decision entry] looks like a requirement. Move to
-  project.md Requirements?"
-
-**roadmap.md migration:**
-- Add phase criteria if missing
-- Remove `>>` markers
-- Consolidate granular tasks into deliverables where appropriate
-- Add `[USER]` markers to human-owned items if missing
+- Add "Requirements" section if missing (empty section is fine — populating
+  it from misfiled content is sync's job, not cleanup's)
 
 ---
 
