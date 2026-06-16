@@ -8,7 +8,7 @@ argument-hint: [--thorough]
 `.scaffold/roadmap.md`, `.scaffold/decisions.md`.
 If any are missing, stop and report which files are absent.
 
-The project is graduating from the essentials scaffold to a more capable framework.
+The project is graduating from Scaffold to a more capable framework.
 Your job is to consolidate everything into a clean handoff package and remove the
 scaffold so it doesn't conflict.
 
@@ -88,7 +88,7 @@ If anything is missing, stop and report what failed to move.
 - Add a pointer: "Previous scaffold context is at `.scaffold/snapshot/PROJECT-CONTEXT.md`"
 
 **6. Commit:**
-`git add -A && git commit -m "graduate: essentials scaffold -> [new framework]"`
+`git add -A && git commit -m "graduate: scaffold -> [new framework]"`
 
 **7. Tell me:**
 - What was consolidated into the snapshot

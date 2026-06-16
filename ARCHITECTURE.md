@@ -1,4 +1,4 @@
-# Essentials Scaffold — Architecture
+# Scaffold — Architecture
 
 This is the controlling document. All commands, workflows, and file behaviors derive from what's defined here.
 

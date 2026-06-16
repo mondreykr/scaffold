@@ -1,4 +1,4 @@
-# Research Prompt: Agentic Execution Patterns for Essentials Scaffold
+# Research Prompt: Agentic Execution Patterns for Scaffold
 
 **NOTE**: all of the content below was brainstormed by me and a claude instance outside the scope of this project. Take it with a grain of salt. It didn't have the details. Some things may not line up exactly. Use it at a brainstorm start point for you and me to think through.
 
@@ -34,7 +34,7 @@ Specifically investigate:
 
 ## Evaluation Frame
 
-After researching GSD, evaluate its patterns against the essentials-scaffold
+After researching GSD, evaluate its patterns against the scaffold
 architecture by answering these specific questions:
 
 **A. Research integration**
@@ -65,7 +65,7 @@ Produce a structured findings document with:
 
 1. **GSD Summary** — what the project is and its core design philosophy (3–5 sentences)
 2. **Pattern Findings** — answers to the four research questions above
-3. **Evaluation** — answers to A, B, C, D against the essentials-scaffold architecture
+3. **Evaluation** — answers to A, B, C, D against the scaffold architecture
 4. **Recommended Changes** — concrete, specific proposed additions or modifications
    to the scaffold design (reference actual command names and document sections)
 5. **Open Questions** — anything that needs a human decision before implementation

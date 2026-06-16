@@ -1,9 +1,9 @@
 ---
-description: Initialize essentials scaffold — context persistence for Claude Code
+description: Initialize scaffold — context persistence for Claude Code
 argument-hint: [--deep]
 ---
 
-I'm setting up the essentials scaffold for this project — a lightweight system of
+I'm setting up Scaffold for this project — a lightweight system of
 markdown files that maintain context across sessions.
 
 **Preflight checks:**
@@ -298,7 +298,7 @@ defaults, large community, easy Vercel deployment.
    hook already exists, append to the array.
 
 **After creating everything:**
-- If git is initialized: stage new files and any deletions from archiving, then commit: `git add CLAUDE.md .scaffold/ && git add -u && git commit -m "init: essentials scaffold"`
+- If git is initialized: stage new files and any deletions from archiving, then commit: `git add CLAUDE.md .scaffold/ && git add -u && git commit -m "init: scaffold"`
 - Give me a summary of what was set up, what content was incorporated (and from where), what was archived, and what I should fill in or verify.
 
 **Enhanced mode (`/scaffold:setup --deep`):**

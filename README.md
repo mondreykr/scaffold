@@ -1,10 +1,10 @@
-# Essentials Scaffold
+# Scaffold
 
 Lightweight context persistence for Claude Code. Markdown files, slash commands, nothing else.
 
 ## What this is
 
-Claude Code loses context between sessions — every `/clear` or new conversation starts from zero. Essentials Scaffold gives it memory with five markdown files and a set of slash commands. No dependencies, no config, no build step. Works in any project with or without git.
+Claude Code loses context between sessions — every `/clear` or new conversation starts from zero. Scaffold gives it memory with five markdown files and a set of slash commands. No dependencies, no config, no build step. Works in any project with or without git.
 
 ## Install
 
