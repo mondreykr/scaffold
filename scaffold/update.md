@@ -21,7 +21,7 @@ commands moved to user-level.
 
 Run:
 ```bash
-npx degit mondreykr/essentials-scaffold/scaffold $HOME/.claude/commands/scaffold --force
+npx degit mondreykr/scaffold/scaffold $HOME/.claude/commands/scaffold --force
 ```
 
 This overwrites only the command files at the user level. Project data in

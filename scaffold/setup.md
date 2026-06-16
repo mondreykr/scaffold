@@ -286,7 +286,7 @@ defaults, large community, easy Vercel deployment.
        "SessionStart": [
          {
            "type": "command",
-           "command": "test -f .scaffold/state.md && echo '{\"additionalContext\": \"[SCAFFOLD] This project uses essentials-scaffold for context persistence. Scaffold files are at .scaffold/. Run /scaffold:status to orient before starting work. Do not skip this step even if the task seems simple.\"}' || true"
+           "command": "test -f .scaffold/state.md && echo '{\"additionalContext\": \"[SCAFFOLD] This project uses scaffold for context persistence. Scaffold files are at .scaffold/. Run /scaffold:status to orient before starting work. Do not skip this step even if the task seems simple.\"}' || true"
          }
        ]
      }
