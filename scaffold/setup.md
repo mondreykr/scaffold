@@ -219,9 +219,24 @@ Deliverable conventions:
   - Sub-bullet for progress notes or clarification
 - `- [ ] [USER] Human-owned deliverable` — requires user action
 
-5. **`.scaffold/decisions.md`** — The record. Why things are the way they are.
+5. **`.scaffold/decisions.md`** — The record. The load-bearing *why* behind
+   choices you could otherwise reverse and regret.
 
-Decisions are logged chronologically, newest first. Each entry carries a `Category:` field for filtering.
+Logged chronologically, newest first. Each entry carries a `Category:` field for filtering.
+
+- **Logging bar — selective, not a journal.** Log a decision only if future-you,
+  looking at only `project.md` and the code, could undo it and regret it —
+  because the reasoning isn't visible there (non-obvious choice, tempting
+  rejected alternative, costly to reverse blind). Skip what's self-evident,
+  trivially reversible, or already plain in the code.
+- **Curated, not append-only — git is the history.** Edit an entry in place
+  when its decision is refined. Prune an entry (delete it) when it no longer
+  guards anything — the alternative is now impossible, the choice has become
+  self-evident, or it was replaced. There is no `Status` field and no
+  `## Archived` graveyard: a reversed decision is removed, not flagged. `git log`
+  / `git blame` this file for how a decision was reached or unwound. (No git in
+  this project? Replace the entry with a one-line "superseded by …" note in
+  place of deleting.)
 
 ```markdown
 <!-- Last updated: [today's date] -->
@@ -231,8 +246,7 @@ Decisions are logged chronologically, newest first. Each entry carries a `Catego
 **Category:** Tech | Architecture | Design | Scope | Resolved Blocker
 **Context:** [What prompted this choice]
 **Decision:** [What was chosen]
-**Why:** [The reasoning — even if informal]
-**Status:** Active | Revisiting | Reversed
+**Why:** [The reasoning — even if informal. If a tempting alternative was rejected, name it and why; that's the guardrail.]
 
 ---
 
@@ -242,9 +256,9 @@ Decisions are logged chronologically, newest first. Each entry carries a `Catego
 **Category:** Architecture
 **Context:** Need a database and user authentication. Don't want to manage infrastructure.
 **Decision:** Supabase (PostgreSQL + built-in auth)
-**Why:** Free tier covers prototyping. Auth is built in so I don't have to wire it up
-separately. Claude has strong familiarity with the SDK.
-**Status:** Active
+**Why:** Free tier covers prototyping. Auth is built in so I don't wire it up
+separately. Rejected raw Postgres + a custom auth layer — more control, but
+weeks of work this prototype doesn't need.
 
 ---
 
@@ -252,14 +266,8 @@ separately. Claude has strong familiarity with the SDK.
 **Category:** Tech
 **Context:** Needed to pick a framework. No strong preference.
 **Decision:** Next.js with App Router and Tailwind CSS
-**Why:** Claude recommended it as the most straightforward full-stack option
-for a solo builder. Good defaults, large community, easy Vercel deployment.
-**Status:** Active
-
----
-
-## Archived
-[Reversed or superseded decisions. Kept for historical context.]
+**Why:** Most straightforward full-stack option for a solo builder. Good
+defaults, large community, easy Vercel deployment.
 ```
 
 6. **Verify companion commands** — confirm that `status.md`, `plan.md`,

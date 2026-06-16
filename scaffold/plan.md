@@ -75,7 +75,7 @@ Read in this order. Do not present findings yet — absorb context:
 1. .scaffold/state.md — Active focus, Next, Blockers, Open Questions
 2. .scaffold/roadmap.md — phases, deliverables, criteria, completion state
 3. .scaffold/project.md — vision, scope boundaries, requirements
-4. .scaffold/decisions.md — recent active decisions only
+4. .scaffold/decisions.md — recent decisions only
 5. CLAUDE.md — constraints and tech stack
 
 Scan `.scaffold/knowledge/` — read knowledge docs relevant to the current phase.
@@ -153,7 +153,10 @@ For human-owned deliverables, use the `[USER]` marker.
 - **Open Questions** — update if answered or new. Answered questions:
   remove the line; the answer lives wherever it was captured.
 
-**Update decisions.md** if decisions were made (add at TOP, newest first).
+**Update decisions.md** if decisions were made — add at TOP (newest first),
+but only those that clear the logging bar (a future reader could reverse and
+regret); edit in place when a prior decision was refined; prune entries that no
+longer guard anything.
 
 Update `<!-- Last updated -->` dates on all modified files.
 

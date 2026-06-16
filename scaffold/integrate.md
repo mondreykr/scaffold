@@ -59,7 +59,7 @@ If nothing found:
 
 Read in this order:
 1. `.scaffold/project.md` — current vision, scope, requirements
-2. `.scaffold/decisions.md` — all decisions (active and archived)
+2. `.scaffold/decisions.md` — all decisions
 3. `.scaffold/roadmap.md` — phases, deliverables, criteria
 4. `.scaffold/state.md` — active focus and open threads
 5. `CLAUDE.md` — constraints, tech stack, rules
@@ -138,7 +138,7 @@ piece of extracted information, classify as:
 >
 > **Decisions:**
 > - Artifact Decision #N reverses decisions.md entry [date — title].
->   → Recommend: mark old decision as Reversed, add new decision
+>   → Recommend: prune the old entry (git keeps it), add new decision
 >
 > **Constraints:**
 > - Artifact adds constraint: [X]. CLAUDE.md doesn't have it.
@@ -181,14 +181,17 @@ moving to the next.
   **Category:** [Tech | Architecture | Design | Scope | Resolved Blocker]
   **Context:** [What prompted this choice]
   **Decision:** [What was chosen]
-  **Why:** [The reasoning]
-  **Status:** Active
+  **Why:** [The reasoning, including any tempting alternative that was rejected]
   ```
+  Only decisions that clear the logging bar (a future reader could reverse
+  and regret) — skip the self-evident.
 - Add decisions at the TOP (newest first).
-- For each decision: include context, choice, reasoning, and alternatives
-  considered. Do NOT condense to one-liners — preserve the full rationale.
-- For reversed decisions: move the old entry to `## Archived` with a note:
-  "Reversed by [artifact name], [date]. See [new decision]."
+- For each decision: include context, choice, reasoning, and the rejected
+  alternative. Do NOT condense to one-liners — preserve the full rationale.
+- For reversed decisions: prune the old entry (git keeps the history); add the
+  new one. There is no `Status` field and no `## Archived` section. (No git?
+  Replace the old entry with a one-line "superseded by [artifact name], [date]"
+  note instead of deleting.)
 - Do NOT duplicate decisions that already exist in decisions.md with
   matching content. If the artifact has a richer version of an existing
   decision, update the existing entry.
@@ -317,7 +320,7 @@ wording. Don't condense or summarize — preserve the detail.
 both sides, recommend a resolution, and wait for the user.
 
 **Additive by default, corrective when needed.** New content is added.
-Conflicting content is flagged. Reversed decisions are archived, not deleted.
+Conflicting content is flagged. Reversed decisions are pruned (git is the history), not flagged-and-kept.
 
 **The artifact is authoritative for what it covers.** If a completed spec
 says "manual load/save" and project.md says "auto-saves between sessions,"

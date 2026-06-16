@@ -217,7 +217,10 @@ Legacy v1 sections:
 - Extract entries from category sections (## Tech, ## Architecture, ## Design, ## Scope)
 - Add `**Category:** [section name]` field to each entry
 - Flatten into single chronological list, newest first (sort by date in ### header)
-- Keep `## Archived` section at bottom
+- Drop the `**Status:**` field from every entry — v3 has no status enum
+- Dissolve any `## Archived` section: prune reversed/superseded entries (git
+  keeps the history). If the project has no git, fold each archived entry back
+  inline as a one-line "superseded by …" note rather than keeping a graveyard.
 
 **CLAUDE.md migration:**
 

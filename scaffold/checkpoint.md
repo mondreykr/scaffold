@@ -180,11 +180,17 @@ Open Questions. No status field, no Session Context.
 
 ### 5c. `.scaffold/decisions.md` (if decisions were made)
 
-- Add new entries at TOP (below header, above existing)
-- Include decisions from session conversation
-- Skip trivial decisions
-- If status changed (Active → Reversed), move to `## Archived`
-- If 20+ active entries, suggest archiving older stable ones
+- Add new entries at TOP (below header, above existing) — but only those that
+  clear the logging bar: future-you, seeing only `project.md` and the code,
+  could reverse them and regret it. Skip the self-evident and trivially reversible.
+- **Edit in place** when a prior decision was refined this session — don't add a
+  second entry that contradicts the first.
+- **Prune** (delete) any entry that no longer guards anything — reversed,
+  replaced, or now self-evident. Git keeps the history; there is no `Status`
+  field and no `## Archived` section. (No git in this project? Replace the entry
+  with a one-line "superseded by …" note instead of deleting.)
+- Surface proposed adds and prunes in the checkpoint summary so they're visible,
+  not silent.
 - Update `<!-- Last updated -->` date
 
 ### 5d. `.scaffold/project.md` (if requirements confirmed or vision evolved)

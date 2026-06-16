@@ -38,7 +38,7 @@ consolidates everything worth carrying forward:
 [From .scaffold/roadmap.md — all phases with their status and tasks]
 
 ## Decisions
-[From .scaffold/decisions.md — all active decisions with their context and reasoning]
+[From .scaffold/decisions.md — all decisions with their context and reasoning]
 
 ## Knowledge Documents
 [From .scaffold/knowledge/ — list each with title and one-line description.
