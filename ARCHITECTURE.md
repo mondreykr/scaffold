@@ -418,7 +418,7 @@ Route to next: present options based on resulting state.
 
 | Command | Purpose |
 |---------|---------|
-| `/scaffold:setup` | Initialize scaffold files and SessionStart hook |
+| `/scaffold:setup` | Initialize scaffold files |
 | `/scaffold:update` | Pull latest commands |
 | `/scaffold:cleanup` | Migrate formats (v1→v2→v3) |
 | `/scaffold:graduate` | Consolidate, archive, hand off |
@@ -583,8 +583,8 @@ Protocol`, and `### Key Documents`. All five were removed:
 - **Session Protocol** — Claude infers natural-language → command mapping from the
   command descriptions in Command Reference and the available-skills list. The
   explicit table is over-instruction.
-- **Key Documents** — `/scaffold:status` surfaces these when run, and the SessionStart
-  hook instructs Claude to run it.
+- **Key Documents** — `/scaffold:status` surfaces these when run, which is the manual
+  first step of every session.
 
 Users who want any of these as project-specific rules can add them back as custom
 sections below Tech stack, or push them up to `~/.claude/CLAUDE.md` for cross-project

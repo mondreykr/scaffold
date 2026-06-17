@@ -110,8 +110,8 @@ constraints, Tech stack). Generic rules like "ask before code changes" or "note
 out-of-scope discoveries" are intentionally omitted — they're per-user preferences
 that belong in `~/.claude/CLAUDE.md`, not in every project. Natural-language → command
 mapping (e.g. "status" → `/scaffold:status`) is left to Claude to infer from command
-descriptions. Orientation comes from the SessionStart hook (Step 7) which directs
-Claude to run `/scaffold:status`.
+descriptions. Orientation is a manual step: run `/scaffold:status` at the start of
+every session.
 
 2. **`.scaffold/project.md`** — The vision. What this project is and where it's going.
 
@@ -275,27 +275,6 @@ defaults, large community, easy Vercel deployment.
    `graduate.md`, and `update.md` exist as sibling files in this same
    folder. If any are missing, tell me — they should have been installed
    together.
-
-7. **Create or update `.claude/hooks.json`** — SessionStart hook for automatic
-   scaffold context loading.
-
-   If `.claude/hooks.json` does not exist, create it:
-   ```json
-   {
-     "hooks": {
-       "SessionStart": [
-         {
-           "type": "command",
-           "command": "test -f .scaffold/state.md && echo '{\"additionalContext\": \"[SCAFFOLD] This project uses scaffold for context persistence. Scaffold files are at .scaffold/. Run /scaffold:status to orient before starting work. Do not skip this step even if the task seems simple.\"}' || true"
-         }
-       ]
-     }
-   }
-   ```
-
-   If `.claude/hooks.json` already exists, add the SessionStart hook entry
-   to the existing hooks without overwriting other hooks. If a SessionStart
-   hook already exists, append to the array.
 
 **After creating everything:**
 - If git is initialized: stage new files and any deletions from archiving, then commit: `git add CLAUDE.md .scaffold/ && git add -u && git commit -m "init: scaffold"`

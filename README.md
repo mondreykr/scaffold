@@ -87,7 +87,7 @@ Mark deliverables that require human action with `[USER]` in the roadmap. Checkp
 
 | Command | What it does | When to use it |
 |---------|-------------|----------------|
-| `/scaffold:setup` | Creates context files and a SessionStart hook. Pass `--deep` to scan the codebase. | Once per project |
+| `/scaffold:setup` | Creates context files. Pass `--deep` to scan the codebase. | Once per project |
 | `/scaffold:status` | Reads scaffold files, gives a session briefing with health checks. | Every session start, or after `/clear` |
 | `/scaffold:plan` | Discusses direction, updates roadmap and state, helps figure out what's next. | When you need to recalibrate |
 | `/scaffold:scope` | Writes a plan doc — scope contract for complex or multi-actor work. | When you want a formal plan |
@@ -197,7 +197,7 @@ Run `/scaffold:cleanup` to migrate files to the current format.
 
 **Context rot within a session.** Long conversations degrade Claude's attention. This scaffold solves between-session memory, not within-session degradation. Use `/clear` and status to reset.
 
-**No enforcement.** The persistence chain depends on Claude following the SessionStart hook and CLAUDE.md rules. Nothing forces status to run — the hook and CLAUDE.md reinforce it, but can't enforce it.
+**No enforcement.** The persistence chain depends on you running `/scaffold:status` at the start of each session and Claude following CLAUDE.md rules. Nothing forces status to run — it's a manual first step, reinforced by CLAUDE.md but not enforced.
 
 **Solo-only.** No multi-user conflict detection. Git handles merge conflicts at the file level.
 
