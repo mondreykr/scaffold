@@ -27,10 +27,22 @@ npx degit mondreykr/scaffold/scaffold $HOME/.claude/commands/scaffold --force
 This overwrites only the command files at the user level. Project data in
 `.scaffold/` and `CLAUDE.md` is never touched.
 
-**Step 3 — Confirm:**
+**Step 3 — Detect old layout + confirm:**
+
+The current project may now have NEW commands against an OLD layout — the most
+dangerous window in the whole rollout. Check the project for pre-restructure
+markers: a single `.scaffold/decisions.md` (file, not a `decisions/` folder), a
+`.scaffold/plans/` directory, a per-phase build plan inside `roadmap.md`, or a
+missing `.scaffold/architecture.md`.
+
+- **If any marker is present**, emit a hard directive (do not soften it):
+  > "⚠ This project is on the OLD scaffold layout, but the commands were just
+  > updated. Run `/scaffold:cleanup` NOW — before any other scaffold command
+  > (`status` / `plan` / `go` / `checkpoint`). They expect the new layout and
+  > will misread the old one."
+- If the layout is already current, no migration is needed.
 
 Report what happened:
 - Whether a legacy per-project install was found and removed
 - That commands were updated at `~/.claude/commands/scaffold/`
-- Remind: "Run `/scaffold:cleanup` if updating from an older version to migrate
-  scaffold file formats."
+- The old-layout directive above, if it applied

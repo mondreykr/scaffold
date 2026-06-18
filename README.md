@@ -4,7 +4,15 @@ Lightweight context persistence for Claude Code. Markdown files, slash commands,
 
 ## What this is
 
-Claude Code loses context between sessions — every `/clear` or new conversation starts from zero. Scaffold gives it memory with five markdown files and a set of slash commands. No dependencies, no config, no build step. Works in any project with or without git.
+Claude Code loses context between sessions — every `/clear` or new conversation starts from zero. Scaffold gives it memory with a small set of markdown documents in `.scaffold/` and a set of slash commands that keep them accurate. No dependencies, no config, no build step. Works in any project with or without git.
+
+The documents are organized in three bands, governed by two laws:
+
+- **Living truth** — always current, overwritten in place: `project.md` (what it is), `architecture.md` (how it's built), `roadmap.md` (the program), `state.md` (where you are now), `knowledge/` (durable rules).
+- **History** — frozen, written once, never the source of current truth: `decisions/` (ADRs) and `investigations/` (research records).
+- **Execution** — temporal, retires when its chunk of work is done: `milestones/NN-slug/` holding a `plan.md`, optional `spec/`, and `phases/` briefs.
+
+**Law 1 — truth and history never share a document.** **Law 2 — a document lives at the layer that owns its lifecycle and audience.** Everything routes from those two rules. The full model is in [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## Install
 
@@ -23,7 +31,7 @@ Then, in any project:
 1. Open Claude Code
 2. Run `/scaffold:setup`
 
-That's it. The setup command creates your context files and walks you through filling them in. Commands are installed once at the user level and available in every project.
+That's it. Setup creates your context files and walks you through filling them in. Commands are installed once at the user level and available in every project.
 
 ## Updating
 
@@ -57,121 +65,116 @@ That's the whole system. The other commands are tools you reach for when you nee
 
 | Command | What it's for | When to use it |
 |---------|--------------|----------------|
-| `/scaffold:plan` | "Help me figure out what's next." Discuss direction, update roadmap. | When you need to recalibrate or don't know what to work on. |
-| `/scaffold:scope` | "Write up a formal plan." Create a scope contract for complex work. | When work involves multiple steps, multiple actors (you + Claude), or will span sessions. |
-| `/scaffold:do` | "Execute the plan." Formal scope-controlled execution. | When a plan doc exists and you want reliable scope control. |
-| `/scaffold:integrate` | "Absorb this spec." Ingest artifacts into scaffold. | After completing a spec, architecture doc, or other major artifact. Also `--sync` to reconcile files. |
+| `/scaffold:plan` | "Help me figure out what's next, and write it down." Discuss direction, then persist it — update the roadmap, author phase briefs, set the active cursor. | When you need to recalibrate, scope new work, or author the next chunk. |
+| `/scaffold:go` | "Execute the active phase." Builds the phase brief that `state.md` Next points at. | When a brief is ready and you want scope-controlled execution. |
+| `/scaffold:integrate` | "Absorb this artifact." Ingest a spec or doc into the scaffold. | After producing a spec, or to bring an external/shared spec under a milestone. |
 
 These are independent tools. Use them in any combination:
 
 ```
-Freeform:  status → work → checkpoint
-Guided:    status → plan → work → checkpoint
-Scoped:    status → plan → scope → do → checkpoint
-With artifacts: integrate → plan → scope → do → checkpoint
+Freeform:        status → work → checkpoint
+Guided:          status → plan → work → checkpoint
+Predetermined:   status → go → checkpoint   (repeat per phase)
+With artifacts:  integrate → plan → go → checkpoint
+Reconcile only:  checkpoint --reconcile
 ```
 
 ### Quick fixes
 
-Just start working after status. No plan or scope needed. Checkpoint saves whatever happened.
+Just start working after status. No plan needed. Checkpoint saves whatever happened and reconciles the tree.
 
 ### Pausing and resuming
 
-Say "pause" or "I need to stop" at any point. Checkpoint captures your progress and updates state.md's Active focus to reflect where you left off. Next session, status reads state.md and tells you where to pick up.
+Say "pause" or "I need to stop" at any point. Checkpoint captures your progress and updates `state.md`'s Active focus to reflect where you left off. Next session, status reads `state.md` and tells you where to pick up.
 
 ### USER tasks
 
-Mark deliverables that require human action with `[USER]` in the roadmap. Checkpoint walks you through verifying them when you're ready.
+Mark deliverables that require human action with `[USER]` in a phase brief or the milestone `plan.md`. Checkpoint walks you through verifying them when you're ready.
 
 ## Commands
 
 | Command | What it does | When to use it |
 |---------|-------------|----------------|
-| `/scaffold:setup` | Creates context files. Pass `--deep` to scan the codebase. | Once per project |
-| `/scaffold:status` | Reads scaffold files, gives a session briefing with health checks. | Every session start, or after `/clear` |
-| `/scaffold:plan` | Discusses direction, updates roadmap and state, helps figure out what's next. | When you need to recalibrate |
-| `/scaffold:scope` | Writes a plan doc — scope contract for complex or multi-actor work. | When you want a formal plan |
-| `/scaffold:do` | Loads plan doc, proposes approach, executes with scope control. | When a plan doc exists and you want formal execution |
-| `/scaffold:checkpoint` | Verifies work, updates scaffold files, commits. Handles pauses and USER task verification. Pass `--audit` to verify against code. | End of every session, or whenever you want to save |
-| `/scaffold:integrate` | Absorbs an artifact (spec, architecture doc) into scaffold. Extracts requirements, decisions, constraints. Pass `--sync` to reconcile existing files without a new artifact. | After completing a spec or major artifact, or periodically to clean up drift |
-| `/scaffold:cleanup` | Migrates scaffold files to current format. | After updating from an older version |
+| `/scaffold:setup` | Scaffolds the structure for a new project; on an existing codebase it automatically analyzes the code to seed the architecture doc. | Once per project |
+| `/scaffold:status` | Reads scaffold files, gives a session briefing with health checks. Read-only. | Every session start, or after `/clear` |
+| `/scaffold:plan` | Discusses direction and persists it — roadmap, phase briefs, milestone creation, active cursor. Proposes ADRs (you approve). | When you need to recalibrate or author the next chunk |
+| `/scaffold:go` | Executes the active phase brief. Writes code (and optional research records); never scaffold docs. | When a brief is ready and Next points at it |
+| `/scaffold:checkpoint` | Verifies work, updates scaffold docs, runs a coherence sweep, commits. Pass `--reconcile` to sweep without a work session; `--audit` to verify claims against code. | End of every session, or whenever you want to save |
+| `/scaffold:integrate` | Absorbs an artifact (spec, doc) into the scaffold — to a milestone's `spec/` (copy or pointer) or `knowledge/`. Pure ingest. | After producing a spec or major artifact |
+| `/scaffold:cleanup` | Migrates an older scaffold layout to the current structure. Cautious and interactive. | After updating from an older version |
 | `/scaffold:update` | Pulls latest scaffold commands. | When a new version is available |
-| `/scaffold:graduate` | Consolidates into snapshot, archives, hands off. Pass `--thorough` to scan for references. | When you outgrow the scaffold |
+
+Two boundaries hold across the set: **`go` writes code, never scaffold docs** (all scaffold write-back is `plan`/`checkpoint`'s job), and **`decisions/` is propose-only** — a command may draft an ADR but stops for your approval before writing it.
 
 ## Files
 
-Five core files provide context persistence.
+| Path | Band | Purpose |
+|------|------|---------|
+| `CLAUDE.md` | — | Hub — orientation, working rules, a pointer into `.scaffold/` (auto-read by Claude) |
+| `.scaffold/project.md` | living truth | What you're building, for whom, scope boundaries, requirements |
+| `.scaffold/architecture.md` | living truth | How it's built — stack, data-access, auth, deployment, conventions |
+| `.scaffold/roadmap.md` | living truth | The program — milestone index (`## Milestones`) + `## Backlog` |
+| `.scaffold/state.md` | living truth | Where you are now — active focus, next, blockers, open questions |
+| `.scaffold/knowledge/*.md` | living truth | Durable domain/behavioral rules (the residue of retired specs) |
+| `.scaffold/decisions/NNNN-slug.md` | history | ADRs — load-bearing decisions + why (frozen, you gate every one) |
+| `.scaffold/investigations/YYYYMMDD-slug.md` | history | Research and analysis records (frozen) |
+| `.scaffold/milestones/NN-slug/` | execution | A chunk of work: `plan.md`, optional `spec/`, `phases/NN-slug.md` briefs |
 
-| File | Purpose |
-|------|---------|
-| `CLAUDE.md` | Hub — identity, rules, constraints, tech stack (auto-read by Claude) |
-| `.scaffold/project.md` | Vision — what you're building, for whom, requirements (verifiable checkboxes) |
-| `.scaffold/state.md` | State — active focus, next, blockers, open questions (forward-looking only) |
-| `.scaffold/roadmap.md` | Progress — phases with acceptance criteria and deliverable tracking |
-| `.scaffold/decisions.md` | Record — decisions logged chronologically with rationale |
-| `.scaffold/plans/` | Plan documents — scope contracts for complex work (created by `/scaffold:scope`) |
-| `.scaffold/investigations/` | Investigation output — durable research findings |
-| `.scaffold/knowledge/` | Controlling documents — specs, architecture docs, design docs (created by `/scaffold:integrate`) |
+All scaffold data lives in `.scaffold/` at project root (except `CLAUDE.md`, which lives at the root so Claude auto-reads it). Repo-level `docs/` holds only code-adjacent reference assets (e.g. a design-system bundle) — never project documentation.
 
-All scaffold data lives in `.scaffold/` at project root (except `CLAUDE.md`, which lives at the root so Claude auto-reads it).
+## Milestone plans and the roadmap
 
-## Roadmap format
+Two altitudes, two documents:
 
-Phases have acceptance criteria (numbered) and deliverables (checkboxes):
+- **`roadmap.md`** is the program index — *which* milestones exist and what's in the backlog. It never retires.
 
 ```markdown
-## Phase 1 — Setup [COMPLETE]
-- [x] Project initialization (2026-03-01)
-- [x] Auth integration (2026-03-02)
-
-## Phase 2 — Core Features [IN-PROGRESS]
-Phase complete when:
-1. Users can create, read, update, delete accounts
-2. All endpoints validate input and return proper errors
-3. Integration tests pass for all CRUD operations
-
-- [x] Data model (2026-03-03)
-- [ ] User management API
-  - POST, GET done. PUT, DELETE remaining.
-- [ ] Input validation
-- [ ] Integration tests
-- [ ] [USER] Deploy to staging
-
-## Phase 3 — Dashboard [PLANNED]
-Phase complete when:
-1. Dashboard renders real user activity data
-
-- [ ] Activity data model
-- [ ] Dashboard UI
+## Milestones
+- **01-rebuild** — [active] Rebuild the core on the new schema → `milestones/01-rebuild/`
+- **02-multi-user** — [planned] Real auth + tenant isolation → `milestones/02-multi-user/`
 
 ## Backlog
 - Mobile app
 - Public API
 ```
 
-- Phase criteria are **numbered** — evaluated as a set during phase sign-off.
-- Deliverables are **checkboxes** — checked when the outcome is achieved (may span multiple sessions).
-- Sub-bullets are **progress notes**, not tasks. Tasks live in plan docs.
-- `[USER]` marks deliverables requiring human action.
-- `Backlog` holds unassigned ideas. No checkboxes needed.
-- Phase sign-off requires explicit user approval during checkpoint.
+- **`milestones/NN-slug/plan.md`** is the phase plan for *one* milestone — the phases inside it. It retires when the milestone closes.
+
+```markdown
+# Milestone 01 — Rebuild
+
+## Objective
+Rebuild the core on the new schema.
+
+## Done when
+1. All surfaces run on the new ledger; old code demolished.
+
+## Phases
+- [x] 01-foundation (2026-04-02)
+- [x] 02-ledger-engine (2026-04-09)
+- [ ] 03-reconciliation
+```
+
+The `## Phases` checklist (checkbox + completion date) is the disk-derivable "is it done?" signal — there is no status enum. `checkpoint` ticks it. Phase numbers admit interstitials (`09.1` for a surgical phase inserted after a frozen plan); they are never renumbered.
+
+A phase brief (`phases/NN-slug.md`) carries one phase's Goal / Scope / Approach / Acceptance. Briefs are authored up front (predetermined milestone, from a spec) or just-in-time by `plan` (emergent milestone). `go` executes from a brief's `## Scope`.
 
 ## Integrating specs and other artifacts
 
-When a phase produces a major artifact — a spec, architecture doc, design system doc — that artifact contains requirements, decisions, and constraints that future phases need. The integrate command absorbs it into scaffold:
+When work produces a major artifact — a spec, architecture doc, design doc — `/scaffold:integrate` absorbs it:
 
 ```
 /scaffold:integrate docs/my-spec/SPEC.md
 ```
 
-This does three things:
-1. **Stores** a copy in `.scaffold/knowledge/` (scaffold's own knowledge base)
-2. **Extracts** requirements, decisions, and constraints into scaffold files
-3. **Resolves conflicts** between the artifact and existing scaffold content
+It routes the artifact by what it is:
 
-Knowledge docs are then read by plan, scope, and do when working on related phases — so the spec's detailed flows, design direction, and implementation specs are available where they're needed.
+- **Scopes a milestone** → that milestone's `spec/` — either copied in, or left where it lives with a pointer file (for a shared or grandfathered spec). A pointer'd spec stays whole; its internals are never cracked open.
+- **Cross-cutting durable knowledge** → `knowledge/`.
 
-Run `/scaffold:integrate --sync` periodically to reconcile all scaffold files without a new artifact — catches drift, duplication, and stale content.
+It also extracts operational facts into the truth docs (run/env → `architecture.md`). Integrate is pure ingest — it does not author plans, run coherence sweeps, or migrate old layouts.
+
+While a milestone runs, its spec's `references/` are the *live* rulebook; at milestone close, the enduring rules graduate into `knowledge/` (via `checkpoint`).
 
 ## Recovery
 
@@ -185,10 +188,10 @@ Run checkpoint to save progress before `/clear`. If you already cleared, run sta
 `git diff .scaffold/` to see what changed. `git checkout -- .scaffold/<file>` to revert.
 
 **Files contradict each other:**
-Run status — health check flags contradictions. Tell Claude which file is correct.
+Run status — the health check flags contradictions — or `/scaffold:checkpoint --reconcile` to sweep and repair the tree. Tell Claude which file is correct when judgment is needed.
 
 **Everything feels stale:**
-Clear the contents of `state.md` and `roadmap.md`, then run checkpoint to regenerate from the codebase.
+Clear the contents of `state.md`, then run checkpoint to regenerate from the codebase.
 
 **Old format after update:**
 Run `/scaffold:cleanup` to migrate files to the current format.

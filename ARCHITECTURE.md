@@ -1,427 +1,548 @@
 # Scaffold — Architecture
 
-This is the controlling document. All commands, workflows, and file behaviors derive from what's defined here.
+This is the controlling document. All commands, workflows, and file behaviors
+derive from what's defined here. It describes how Scaffold works and where
+everything goes — the timeless human+AI reference, not a changelog of how the
+system got here.
+
+Scaffold is a solo-developer context-persistence system: a set of living and
+historical markdown documents in a repo's `.scaffold/` directory, plus Claude
+Code slash commands that maintain them so a session can resume after a
+week-long gap with full context intact.
 
 ## Design Principles
 
-1. **State machine.** Every command leaves all state documents accurate and self-consistent. Any command could be the last thing that runs before a week-long gap.
-2. **Commands are optional tools, not mandatory gates.** The minimum ceremony is status → work → checkpoint. Everything else is available when you need it.
-3. **No plan mode dependency.** All commands run in normal mode. Shift+Tab plan mode is available as a complementary tool but the scaffold doesn't require it.
-4. **Ceremony scales with the user.** The user decides how much structure they want per session. The system supports freeform collaboration and formal scoped execution equally.
-5. **A place for everything.** Every piece of information has exactly one canonical home. Documents don't duplicate each other.
-6. **Don't tell Claude what it already knows.** Commands and rules only instruct behaviors Claude wouldn't do by default.
+1. **State machine.** Every command leaves all state documents accurate and
+   self-consistent. Any command could be the last thing that runs before a
+   long gap.
+2. **Commands are optional tools, not mandatory gates.** The minimum ceremony
+   is status → work → checkpoint. Everything else is available when you need
+   it.
+3. **No plan mode dependency.** All commands run in normal mode. Shift+Tab plan
+   mode is a complementary tool, not a requirement.
+4. **Ceremony scales with the user.** You decide how much structure you want
+   per session. The system supports freeform collaboration and formal scoped
+   execution equally.
+5. **A place for everything.** Every piece of information has exactly one
+   canonical home. Documents don't duplicate each other.
+6. **Don't tell Claude what it already knows.** Commands and rules only
+   instruct behaviors Claude wouldn't do by default.
+7. **Content-derived state, no enums.** What's active, what's done, and what
+   mode a milestone is in are all read off disk, never stored as a status flag
+   that can drift from reality.
+
+## The Two Governing Laws
+
+Everything below derives from two laws. They are the test for where any
+artifact lives.
+
+**Law 1 — Truth and history never share a document.** A document is *either*
+**living truth** (one of it; always current; updated in place; never
+reconstructed by replaying a log) *or* **frozen history** (dated; written
+once; never the source of current truth). The failure mode to design out is a
+single append-only document that tries to be both — it smears current truth
+across N entries and bloats by construction. A living-truth document is
+overwritten in place; a history document is written once and never edited as
+the source of present truth.
+
+**Law 2 — A document lives at the layer that owns its lifecycle and audience.**
+Work-tracking belongs to Scaffold's execution layer. System truth
+(architecture, durable rules) belongs to Scaffold's truth layer. Strategy and
+cross-project thinking belong to an external knowledge base (e.g. cortex).
+Scaffold *points outward*; it does not absorb what another layer owns. Within
+the repo, `.scaffold/` is the single governed home for project documentation;
+repo-level `docs/` holds only **code-adjacent reference assets** (e.g. a
+design-system upload bundle), never project documentation.
+
+These two laws are the tie-breaker for every routing question. If a placement
+would violate one, the placement is wrong — not the law.
 
 ## Information Model
 
-Five layers of information, each with a distinct home:
+Each layer has exactly one home and a defined mutability. Living layers are
+overwritten in place; history layers are written once; execution layers are
+temporal and retire with their milestone.
 
-| Layer | What it is | Where it lives | Example |
-|-------|-----------|----------------|---------|
-| **Requirements** | What the product must do. Verifiable rules. | `.scaffold/project.md` | "Validate only SLDPRT and SLDASM files" |
-| **Deliverables** | Chunks of work that span sessions. Trackable outcomes. | `.scaffold/roadmap.md` | "User management API" |
-| **Phase criteria** | When is this phase done? Acceptance conditions. | `.scaffold/roadmap.md` (per phase) | "Users can CRUD through validated endpoints" |
-| **Tasks** | Atomic action steps for a single session. Ephemeral. | Plan docs (`.scaffold/plans/`) | "Implement PUT /users/:id with Zod validation" |
-| **Knowledge** | Controlling documents that inform phase execution. Detailed specs, architecture docs, design direction. | `.scaffold/knowledge/` | "Resource planner spec — interaction flows, visual design, data model" |
+| Layer | What it is | Home | Mutability |
+|-------|-----------|------|------------|
+| Orientation + instructions | How Claude should work here + a 3–5 line product orientation | `CLAUDE.md` (auto-read) | living |
+| Product identity | What this is, who for, why, scope boundaries, requirements | `.scaffold/project.md` | living |
+| **Architecture truth** | How it's built — tenancy, auth, stack, data-access, deployment, conventions | `.scaffold/architecture.md` | living |
+| Domain/behavioral truth | How the rules work — the durable residue of specs | `.scaffold/knowledge/*.md` | living |
+| Program | Milestones (done/active/planned) + backlog | `.scaffold/roadmap.md` | living |
+| Active state | Where we are now / next / blockers / open questions | `.scaffold/state.md` | living (churns) |
+| Decisions | Load-bearing *why* + rejected alternatives (ADRs) | `.scaffold/decisions/NNNN-slug.md` | frozen; **Adam-gated** |
+| Research | Investigations / analyses produced while working | `.scaffold/investigations/YYYYMMDD-slug.md` | frozen |
+| Milestone plan | The phases + objectives + acceptance for one chunk | `.scaffold/milestones/NN-slug/plan.md` | temporal |
+| Milestone contract | The spec, if the chunk needed heavy scoping | `.scaffold/milestones/NN-slug/spec/` | temporal |
+| Phase brief | Atomic execution unit: one phase's scope/approach/acceptance | `.scaffold/milestones/NN-slug/phases/NN-slug.md` | temporal |
 
-**The test for roadmap items:** Can this item survive multiple plan/do/checkpoint cycles and still make sense? If yes, it's a deliverable (roadmap). If it can be done in one session, it's a task (plan doc).
+The model has three bands: **living truth** (overwritten in place, always
+current), **history** (frozen, written once), and **execution** (temporal,
+retires with its milestone).
 
-**Decisions** (`.scaffold/decisions.md`) record the WHY — rationale and rejected alternatives. They are not requirements (what) or tasks (how).
+## Files & Folders
 
-**Knowledge** (`.scaffold/knowledge/`) stores controlling documents — specs, architecture docs, design system docs — that contain detailed requirements, design direction, and implementation specifications. These are absorbed into scaffold via `/scaffold:integrate`. The knowledge doc is the lossless original; scaffold files get the operational extract. Commands that need deep detail (plan, scope, do) read knowledge docs directly.
+```
+CLAUDE.md                         orientation + instructions + pointer into .scaffold/
 
-## Files
+.scaffold/
+  # ── LIVING TRUTH (overwritten in place; never reconstructed from a log) ──
+  project.md                      what this product is & why (identity/scope/requirements)
+  architecture.md                 how it's built (tech truth)
+  roadmap.md                      the program: milestone index + backlog
+  state.md                        where we are now / next / blockers / open questions
+  knowledge/
+    *.md                          durable domain/behavioral truth (living)
 
-### Core files (5)
+  # ── HISTORY (frozen; written once; never the source of truth) ──
+  decisions/
+    NNNN-slug.md                  ADRs — load-bearing why + alternatives + status line
+  investigations/
+    YYYYMMDD-slug.md              research & analysis records
 
-| File | Purpose | Updated by |
-|------|---------|------------|
-| `CLAUDE.md` | Hub — identity, rules, constraints, tech stack. Auto-read by Claude. | setup, checkpoint (rare) |
-| `.scaffold/project.md` | Vision, scope, requirements (verifiable checkboxes). | setup, plan (requirements), checkpoint (rare) |
-| `.scaffold/state.md` | State — active focus, next, blockers, open questions. Forward-looking only. | plan, scope, checkpoint |
-| `.scaffold/roadmap.md` | Phases with criteria (numbered) and deliverables (checkboxes). | plan, checkpoint |
-| `.scaffold/decisions.md` | Rationale log — decisions with context, reasoning, rejected alternatives. | plan, checkpoint |
+  # ── EXECUTION (temporal; retires with its milestone) ──
+  milestones/
+    NN-slug/
+      plan.md                     this milestone's phase plan + objectives + acceptance
+      spec/                       OPTIONAL — the contract, if heavy scoping was needed
+      phases/
+        NN-slug.md                phase briefs
 
-### Artifact directories
-
-| Directory | Contents | Created by |
-|-----------|----------|------------|
-| `.scaffold/plans/` | Plan docs. Scope contracts + records for complex/multi-actor work. | scope |
-| `.scaffold/investigations/` | Durable research findings. | do (during investigation tasks) |
-| `.scaffold/knowledge/` | Controlling documents (specs, architecture docs, design docs). Absorbed via integrate. | integrate |
-
-### Roadmap format
-
-```markdown
-## Phase 1 — Setup [COMPLETE]
-- [x] Project initialization (2026-03-01)
-- [x] Auth integration (2026-03-02)
-
-## Phase 2 — Core Features [IN-PROGRESS]
-Phase complete when:
-1. Users can create, read, update, delete accounts
-2. All endpoints validate input and return proper errors
-3. Integration tests pass for all CRUD operations
-
-- [x] Data model (2026-03-03)
-- [ ] User management API
-  - POST, GET done. PUT, DELETE remaining.
-- [ ] Input validation
-- [ ] Integration tests
-- [ ] [USER] Deploy to staging
-
-## Phase 3 — Dashboard [PLANNED]
-Phase complete when:
-1. Dashboard renders real user activity data
-
-- [ ] Activity data model
-- [ ] Dashboard UI
-
-## Backlog
-- Mobile app
-- Public API
+docs/                             code-adjacent reference assets ONLY (e.g. design-system bundle)
 ```
 
-- Phase criteria are **numbered** (not checkboxes). Evaluated as a set during phase sign-off.
-- Deliverables are **checkboxes**. Checked when the outcome is achieved.
-- Sub-bullets under deliverables are **progress notes**, not tasks.
-- `[USER]` marks deliverables requiring human action.
-- `[IN-PROGRESS]` / `[COMPLETE]` / `[PLANNED]` — only one phase IN-PROGRESS at a time.
-- Phase sign-off requires explicit user approval during checkpoint.
+**No `archive/`.** Retired milestones rest in place in `milestones/`. **What's
+active is whatever `state.md`'s `## Next` points at — not folder order.**
+"Highest `NN`" is only a fallback hint when `state.md` is silent: a
+later-numbered milestone can be pre-created while an earlier one is still
+active, so folder order cannot be the authority. (`setup`/`cleanup` may write a
+`.scaffold/archive/` holding pre-scaffold snapshots — an overwritten `CLAUDE.md`,
+superseded context files. It holds only superseded originals, is read by no
+command, and is not part of the live model. Retired *milestones* never go there
+— they rest in place in `milestones/`.)
 
-### project.md format (requirements section)
+**What happened (history)** lives in git. There is no `log.md`.
+
+## Per-Artifact Specifications
+
+### `project.md` (living)
+
+Product identity: what / who / why / scope boundaries / requirements
+(verifiable checkboxes). **Does not merge with `architecture.md`** — project
+answers *what the product is*; architecture answers *how it's built*.
+`CLAUDE.md` carries a 3–5 line orientation plus a pointer here. If `project.md`
+ever can't hold more than `CLAUDE.md` already says, drop it rather than keep it
+for symmetry.
+
+Requirements format (unchanged from the source convention):
 
 ```markdown
 ## Requirements
 - [ ] Validate only SLDPRT and SLDASM files
 - [ ] All validation rules are blockers (no warnings)
 - [ ] PreState performance: < 2 seconds, fail-open
-- [ ] BOM traversal: immediate children only
 ```
 
-Requirements are verifiable product rules. Checkboxes — checked by checkpoint when evidence confirms they're met. Requirements are stable (set early, refined rarely). They are NOT the same as deliverables or tasks.
+Requirements are verifiable product rules — checked by `checkpoint` when
+evidence confirms they're met. They are stable (set early, refined rarely) and
+are NOT deliverables, phases, or tasks.
 
-### state.md format
+### `architecture.md` (living)
+
+The defining technical truth, kept current: tenancy/isolation model, auth,
+stack, data-access patterns, deployment, cross-cutting conventions, and durable
+run/env facts (how to run the app). Updated in place when the system changes.
+
+- **Primary owner: `checkpoint`** — it sees the diff and updates architecture
+  when the build changed *how it's built*. `plan` updates it when a
+  cross-cutting truth shifts in discussion. `setup` seeds it;
+  `integrate`/`cleanup` populate it.
+- **Indexes the architecturally-significant decisions** in `decisions/`. Each
+  truth statement references the ADR that established it — the folder plus
+  these inline references *are* the index. There is no separate index file (it
+  would drift).
+- **Coupling rule:** approving or superseding an architectural ADR must update
+  its referencing statement in `architecture.md` in the *same* command turn, or
+  the index silently breaks.
+- **Architecture-vs-knowledge tie-break:** if a fact would change when you
+  *re-platform* but the business rule stays → `architecture.md`; if it changes
+  only when the *business rule* changes → `knowledge/`.
+
+Small projects may keep architecture as sections until it exceeds a screen.
+
+### `knowledge/*.md` (living)
+
+Durable domain/behavioral truth — how the rules actually work ("the ledger
+replays thus; reconciliation tolerance is ±X"). Living truth, maintained in
+place as code behavior changes. Lifecycle:
+
+- **While a predetermined milestone runs, the milestone's spec — especially its
+  `references/` docs — *is* the living rulebook,** maintained in place as the
+  build proceeds. `knowledge/` may stay empty until then. So "how does Claude
+  know the rules?" → from the active spec's references during a milestone, then
+  from `knowledge/` once it retires. The rules always have a *living* home,
+  never only a retired spec.
+- **At milestone close,** enduring rules graduate into `knowledge/`, and
+  `checkpoint` **reconciles them against existing knowledge docs, retiring or
+  superseding any they contradict.** Graduation is **surfaced for Adam's
+  confirmation**, not silently curated.
+- **Emergent milestones** (no spec) accrue rules directly into `knowledge/` as
+  they are discovered.
+
+### `roadmap.md` (living)
+
+The program at 20k feet. Two sections:
+
+- `## Milestones` — each milestone as a one-liner with a status token
+  `[done] | [active] | [planned]`, pointing to its folder. (`checkpoint` writes
+  `[done]` at close; `status` reads these tokens — the literal set is fixed so
+  the two agree.)
+- `## Backlog` — future features and someday/never items as one-liners.
+
+**This is the permanent home for a future-feature one-liner** — it does not
+retire, unlike a milestone's `plan.md`. Distinct from a milestone `plan.md`:
+roadmap = which milestones + what's next at program altitude; plan = the
+phases inside the active milestone.
+
+### `state.md` (living, churns)
+
+Forward-looking, not a log. The four core sections — **Active focus** (one ELI5
+paragraph) / **Next** / **Blockers** / **Open Questions** — plus one optional
+addition:
+
+- **`## Next` is the single authority for what's active** (milestone + current
+  phase brief). Not folder order, not a status enum.
+- **`## Notes` (optional)** — transient *operational* state: "the dev DB is
+  dirty, re-seed before verify," a temporary env swap. This is neither truth,
+  history, nor a next-action; it is legitimized here rather than force-fit
+  elsewhere. Durable run/env facts belong in `architecture.md`; only
+  *transient* state lives in `## Notes`, cleared when it resolves.
 
 ```markdown
 <!-- Last updated: YYYY-MM-DD -->
 # State
 
 ## Active focus
-[One paragraph. Synopsis + forward-look. Where things are, what's in flight,
-what's driving the work.
-
-**ELI5 — explain it like the reader is five.** Plain words, short sentences,
-no jargon shortcuts, no status-report officialese. If a five-year-old
-wouldn't follow the gist, rewrite it.
-
-No bullets, no code blocks, no quoted prompts. Grows only when the
-situation genuinely requires it.]
+[One paragraph. Synopsis + forward-look. ELI5 — plain words, short sentences.
+No bullets, no code blocks, no quoted prompts. Grows only when genuinely needed.]
 
 ## Next
-[The concrete action when you resume. 1-2 sentences or short bullets.
-References the plan doc by path if one is active.]
+[The concrete action when you resume — milestone + phase brief by path.
+1-2 sentences or short bullets.]
 
 ## Blockers
 None.
 
 ## Open Questions
 None.
+
+## Notes
+[Optional. Transient operational state only. Omit the section when empty.]
 ```
 
-**State is forward-looking, not a log.** Four sections, no more. No status
-enum, no Session Context, no Closed archive, no project-specific carve-outs.
-
-- **Active focus** is one paragraph, plain language. Synopsis + forward-look
-  in one. Grows only when genuinely needed.
 - **Blockers** and **Open Questions** are always present with "None." when
-  empty — confirms the writer checked; absent sections would be ambiguous.
-- **When a Blocker or Open Question resolves:** remove the line and place
-  the resolution where it belongs (decisions.md / roadmap.md / commit log /
+  empty — confirms the writer checked.
+- **When a Blocker or Open Question resolves,** remove the line and place the
+  resolution where it belongs (a decision, the roadmap, the commit log, a
   knowledge doc). State does not accumulate resolved items.
 
-Routing is content-derived (see State Determination below) — no status
-keyword to keep in sync with reality.
+### `decisions/NNNN-slug.md` (frozen, Adam-gated)
+
+One file per load-bearing decision (an ADR — Architecture Decision Record).
+
+- **Bar:** the rare, architecturally-significant, cross-cutting choices you'd
+  want the *why* of in a year (tenancy, auth, a foundational pivot) — not
+  routine guardrails or build-records.
+- **Write-gate (hard rule):** **no ADR is created, superseded, or pruned
+  without Adam's explicit approval.** A command (`plan` or `checkpoint`) may
+  *propose* one — present the full draft — but must stop and get approval
+  before writing. This is stricter than every other scaffold file, by design:
+  the decision log is curated by Adam, not by a command's judgment.
+- **Format (ADR-shaped):** Status line / Context / Decision / Why /
+  Alternatives considered / Consequences.
+- **Numbering:** `NNNN-slug`, sequential and zero-padded to **4 digits** — a
+  stable reference id ("decision 0001"). The 4-digit width is deliberately
+  distinct from milestones'/phases' 2-digit `NN`, so the two namespaces never
+  read alike. The convention: an ordered number = things you reference as a
+  sequence (phases/milestones 2-digit, decisions 4-digit); `YYYYMMDD` =
+  point-in-time captures (investigations).
+- **Supersession:** flip the `Status:` line (`Superseded by [[NNNN-…]]`) and
+  write a new file; never edit the ruling itself.
+- **Pruning:** a decision that guards nothing may be removed with approval (git
+  retains it); architecturally-significant ones are kept with a `Superseded`
+  status because their *why-not* stays valuable.
+
+### `investigations/YYYYMMDD-slug.md` (frozen)
+
+Research and analysis produced while working — gap maps, spikes, security
+investigations. Dated, immutable. Distinct from `decisions/` (research vs
+ruling) and from external/cortex investigations (repo-specific and tactical vs
+strategic and cross-project). Creation is **opportunistic** — any work may drop
+a record when warranted; nothing is obligated to create one. When a record
+yields a ruling, the analysis stays here and the ruling is *proposed* as an ADR
+at the next checkpoint.
+
+### `milestones/NN-slug/` (temporal)
+
+The first-class container for a durable, multi-phase chunk of work that retires
+when done. `NN` is a milestone counter **disambiguated from product version**
+(`01-rebuild`, `02-multi-user`). Contents:
+
+- **`plan.md`** — the milestone's phase plan: the **phase checklist** (each
+  phase a checkbox + completion date — *this* is the disk-derivable "is it
+  done?" signal, not a status enum), the objectives, and the milestone's
+  done-contract. Keep completion annotations **terse** (a date, not prose) so
+  `plan.md` stays a bounded checklist, never an append-log (Law 1). Verbose
+  per-phase narrative belongs in git.
+- **`spec/`** — OPTIONAL. The contract that scoped this milestone, **either the
+  spec itself or a pointer file to a spec that lives elsewhere** (a shared
+  spec, or one grandfathered in `docs/`). Present only when the work warranted
+  heavy scoping. **A spec is a *live* artifact, not frozen, until its milestone
+  closes** — maintained in place as the build proceeds (its `references/` are
+  the active rulebook; see `knowledge/`). At close, its enduring rules graduate
+  to `knowledge/`. A pointer'd spec's **internals are never cracked open or
+  absorbed** into `.scaffold/`; a grandfathered spec carrying its own
+  `DECISIONS.md`/`STATE.md` stays whole.
+- **`phases/NN-slug.md`** — phase briefs (the single execution-unit artifact;
+  authored by `plan`, executed by `go`). Phase numbers reset per milestone; the
+  slug namespaces them. **`NN` is the roadmap ordinal and admits interstitials**
+  (`09.1` for a surgical phase inserted after a frozen plan); migration
+  preserves these and never renumbers.
+
+**Lifecycle:** active = wherever `state.md` Next points (not folder order). On
+close, the folder rests in place (no archive move); durable rules graduate to
+`knowledge/`; `roadmap.md`'s milestone line flips to done.
+
+### The mode question — dissolved (no flag)
+
+Emergent vs predetermined is **not a setting**; it's an emergent property of
+how much was pre-written, derivable from disk:
+
+- **Predetermined milestone:** has a `spec/` (or pointer) and pre-written phase
+  briefs.
+- **Emergent milestone:** no spec; phase briefs written just-in-time as work is
+  discovered.
+
+Same structure either way.
+
+**One artifact type — the phase brief.** The source's transient scope docs and
+durable phase briefs are merged into one: a brief lives at
+`milestones/NN-active/phases/NN-slug.md`, written up front (predetermined) or
+just-in-time by `plan` (emergent), executed by `go`, persisting as the record.
+There is no standalone `plans/` folder.
+
+**Staleness obligation.** Because briefs now *persist* instead of being thrown
+away, a pre-written downstream brief can go **stale** when a later decision or
+plan change lands (e.g. inserting a surgical Phase 9.1 stales the Phase 10
+brief). Persistence buys durability at this cost, and we accept it explicitly.
+**Owner:** when `plan` pivots (a decision reverses, phases reorder), it sweeps
+all *unexecuted* briefs in the active milestone against the change and
+flags/rewrites the stale ones; `checkpoint`'s coherence sweep also flags
+brief-vs-decision drift.
+
+## Routing — "Where Does This Go?"
+
+Deterministic. Resolve by the two laws when in doubt.
+
+| The thing | Home |
+|-----------|------|
+| A new feature idea, one line | `roadmap.md` → Backlog |
+| A significant, durable choice + its why | `decisions/NNNN-slug.md` (+ reference it from `architecture.md` if architectural) |
+| Research / analysis output | `investigations/YYYYMMDD-slug.md` |
+| Current technical truth (how it's built) | `architecture.md` |
+| A durable business/behavioral rule | `knowledge/*.md` |
+| How to build phase X of the active milestone | `milestones/NN-active/phases/X-slug.md` |
+| The contract that scoped a milestone | `milestones/NN-slug/spec/` (the spec, or a pointer to a shared/external one) |
+| Where we are right now | `state.md` (`## Next` is the active-cursor authority) |
+| Transient operational state (dirty DB, temp env) | `state.md` → `## Notes` |
+| What the product is / scope boundaries | `project.md` |
+| A code-adjacent reference asset (design bundle) | repo `docs/` |
+| What happened (history) | git (no `log.md`) |
 
 ## Commands
 
-### Workflow commands (5 + status)
+The command set is **8**: `setup`, `status`, `plan`, `go`, `checkpoint`,
+`integrate`, `cleanup`, and the `update` utility. Commands are tools you reach
+for when you need them; the minimum session is status → work → checkpoint.
 
-Commands are tools you reach for when you need them. The minimum session is status → work → checkpoint. Plan, scope, do, and integrate are available when the situation warrants them.
+Two structural boundaries hold across the set:
 
----
-
-#### `/scaffold:status`
-
-**Purpose:** Orient. Read scaffold files, present briefing, suggest next actions as options.
-
-**Reads:** CLAUDE.md, project.md, state.md, roadmap.md. If state.md references a plan doc, reads it for scope details. Detects knowledge docs and investigations.
-
-**Writes:** Nothing. Status is read-only.
-
-**Briefing:** Project summary, phase progress, state, open threads, knowledge docs, investigations, health check, staleness check. Keep it short — a briefing, not a report.
-
-**Routing** (suggests options, does not mandate). Signals are content-derived
-(see State Determination); multiple can apply at once.
-
-| Signal | What status says |
-|--------|-----------------|
-| Plan doc active | "Plan doc ready: [scope summary]. Say 'go ahead' or `/scaffold:do` to execute." |
-| USER tasks pending (no plan doc) | "USER tasks pending: [list]. Complete them, then `/scaffold:checkpoint`." |
-| Blockers present | "Blocked: [content of Blockers]. If resolved, continue working or `/scaffold:plan`." |
-| Otherwise | "Active focus: [synopsis]. Next: [content of Next]. Continue working, or `/scaffold:plan` to recalibrate." |
+- **`go` writes code (and optional investigations); never scaffold truth or
+  execution docs.** All scaffold write-back is owned by `plan` and
+  `checkpoint`. Never the reverse — truth-writing commands never touch project
+  files.
+- **`decisions/` is propose-only.** Commands may draft an ADR and stop;
+  **Adam approves** before anything is written.
 
 ---
 
-#### `/scaffold:plan`
+### `/scaffold:setup`
 
-**Purpose:** Consultation. "Help me figure out what's next." Read state, discuss direction, update roadmap and scaffold files. Does NOT write plan docs.
+**Role:** Initialize. Scaffold the structure for a new project.
 
-**Reads:** All 5 core files. `.scaffold/knowledge/` and `.scaffold/investigations/` if relevant.
-
-**Writes:**
-- `.scaffold/roadmap.md` — new/reordered deliverables, phase changes, phase criteria
-- `.scaffold/state.md` — active focus, next, blockers, open questions
-- `.scaffold/decisions.md` — if decisions made during discussion
-- `.scaffold/project.md` — if new requirements emerged (rare)
-
-**Boundary:** Plan does NOT modify non-scaffold files. No code changes. Plan does NOT write plan docs (scope does that).
-
-**Precondition guards** (content-derived):
-- If state.md's Next references an active plan doc: "You have an active plan
-  doc ([path]). Continuing will clear it. Proceed, or work from the existing
-  plan?" Wait for confirmation.
-- If unchecked `[USER]` deliverables remain with no other unchecked AI
-  deliverables in the `[IN-PROGRESS]` phase: "Unverified USER tasks. Run
-  `/scaffold:checkpoint` first." Stop.
-- If Blockers section has content other than "None.": "Blocked: [reason].
-  Is this resolved?" Wait for confirmation.
-
-**Flow:**
-1. Triage (silent) — read all files, assess state
-2. Consult (interactive) — present assessment, ask user for direction. WAIT for response.
-3. Discuss — help user figure out what to do. Answer questions. Evaluate options.
-4. Update — write approved changes to roadmap, state, decisions, project (requirements).
-5. Summary — "Roadmap updated. [what changed]. Ready to work — just start, or `/scaffold:scope` for a formal plan."
-
-**Inline shortcut:** `/scaffold:plan fix the redirect` — treat description as direction, run triage silently, skip open-ended consultation, go to discuss/update. Still assess complexity — if it's bigger than expected, say so.
-
-**Ends with options, not directives.** Plan presents what the user can do next, not what they must do.
+Creates the four living-truth docs (`project`, `architecture`, `roadmap`,
+`state`), empty `knowledge/`, `decisions/`, `investigations/`, and `milestones/`
+with an initial `01-<slug>/` (emergent default: `plan.md` seeded with a single
+Phase 1, no spec, no pre-written briefs). The seed slug is rename-cheap (e.g.
+`01-main`); because the slug is a sticky namespace, setup documents the rename
+procedure. The `CLAUDE.md` template gains the orientation + pointer and loses
+anything that now belongs in `architecture.md`. On an **existing codebase**,
+setup automatically gives it careful treatment — a thorough Explore pass seeds
+`architecture.md`/`project.md` from the real code (no flag). It does **not**
+curate decisions into ADRs (that is `cleanup`/`integrate`'s job).
 
 ---
 
-#### `/scaffold:scope`
+### `/scaffold:status`
 
-**Purpose:** Write a plan doc. Formalize the current plan into a scope contract. Can be invoked at any point in a session — delivers fresh doc-writing instructions regardless of context depth.
+**Role:** Orient. Read state, present options. Read-only — writes nothing.
 
-**Reads:** `.scaffold/state.md`, `.scaffold/roadmap.md`, `CLAUDE.md`, `.scaffold/knowledge/` (relevant docs), conversation context.
-
-**Writes:**
-- `.scaffold/plans/YYYYMMDD-NN-phase-N-slug.md` — plan document
-- `.scaffold/state.md` — Active focus reflects the new scope; Next references
-  the plan doc
-
-**Precondition guards** (content-derived):
-- If unchecked `[USER]` deliverables remain with no other unchecked AI work:
-  "Unverified USER tasks. Run `/scaffold:checkpoint` first." Stop.
-- If Next already references an active plan doc: "Existing plan doc will be
-  replaced. Proceed?" Wait for confirmation.
-
-**Flow:**
-1. Read roadmap and conversation context
-2. Identify which deliverables to include in scope
-3. Present proposed scope to user — "Scope this session: [list]. Right?"
-4. Wait for confirmation
-5. Write plan doc
-6. Update state.md: Active focus reflects new scope; Next references the plan doc
-
-**Plan doc format:**
-
-```markdown
-# Plan: [brief title]
-<!-- Generated: YYYY-MM-DD -->
-<!-- Plan: .scaffold/plans/YYYYMMDD-NN-phase-N-slug.md -->
-
-## Goal
-[What and why — 1-3 sentences]
-
-## Scope
-Execute these deliverables. Present your approach before starting.
-Do not expand beyond this scope.
-
-1. [Deliverable] — [done-when condition]
-2. [Deliverable] — [done-when condition]
-3. [USER] [Deliverable] — [done-when condition]
-
-## Approach
-[Key decisions, strategy, things to watch out for.
-For simple scope: 1-2 sentences. For complex: a paragraph.]
-
-## Deferred
-[Items to route to roadmap at checkpoint. Omit if none.]
-
-## Decisions
-[Decisions to log to decisions.md at checkpoint. Omit if none.]
-```
-
-**Naming convention:** `YYYYMMDD-NN-phase-N-slug.md` (date, zero-padded sequence, phase, brief descriptor).
-
-Investigation tasks add `Output: .scaffold/investigations/YYYYMMDD-slug.md` to their entry.
-
-**When to use scope:** Multi-actor plans ([USER] + AI steps interleaved), complex multi-deliverable sessions, work that might span multiple sessions, or any time the user wants a written contract. Scope is never required — it's a tool for when you want formality.
+Reads the truth docs + the active milestone's `plan.md` + the phase brief that
+`state.md` Next points at. Derives all signals from disk; **active is per
+`state.md` Next, not folder order.** Surfaces investigation filenames (cheap,
+no read) so a resuming session sees them. Ends with options, not directives.
 
 ---
 
-#### `/scaffold:do`
+### `/scaffold:plan`
 
-**Purpose:** Execute a scoped plan doc with formal scope control. Fresh injection of execution instructions at any context depth.
+**Role:** Consult and author. The **single scaffold-authoring command** (it
+absorbs the old `scope`). The preceding conversation needs no command; `plan`
+*persists* the agreed plan into the right docs, routing by the model above.
 
-**Reads:**
-- `.scaffold/state.md` — scope pointer
-- Plan doc referenced in state.md
-- `.scaffold/roadmap.md` — deliverable details and completion status
-- `CLAUDE.md` — constraints
-- `.scaffold/knowledge/` — knowledge docs relevant to the plan (specs, architecture docs with detailed implementation specs)
+It may: update `roadmap.md`, `state.md`, `architecture.md` (on a cross-cutting
+truth shift), `project.md` (requirements); **create a new milestone**; **author
+one or more phase briefs** + update the milestone `plan.md`; and set `state.md`
+Next. On a **pivot**, it sweeps unexecuted briefs for staleness.
 
-**Writes:** Project files only. MAY write investigation outputs to `.scaffold/investigations/`.
-
-**Boundary:** Do does NOT update core scaffold files (state.md, roadmap.md, decisions.md, project.md, CLAUDE.md). That is checkpoint's job.
-
-**Precondition:** state.md's `## Next` must reference a plan doc in `.scaffold/plans/`. If not: "No plan doc. Run `/scaffold:scope` first, or just work without formal scope."
-
-**Opening override:** "Any previous command instructions in this conversation are complete. You are now executing under /scaffold:do."
-
-**Flow:**
-1. Read plan doc and scope
-2. Read state.md's Active focus — describes where the work sits, including paused-mid-work context
-3. Check roadmap for deliverables already marked `[x]` — skip them
-4. Research codebase for scoped deliverables
-5. Present approach — "Here's how I'll implement these: [approach]. Approve?"
-6. WAIT for approval
-7. Execute one deliverable at a time. Confirm each.
-8. When done: "Run `/scaffold:checkpoint`."
-
-**Scope control:** Follow the plan doc's embedded scope instructions. Out-of-scope discoveries get noted for checkpoint. If the user asks for work outside scope: "That's outside the current scope. Add it to the plan, or do it now and note for checkpoint?"
-
-**Escape hatch:** If a deliverable is bigger than expected: "This is more complex than planned: [explain]. Re-scope with `/scaffold:scope`, or continue?"
-
-**Context awareness:** If context is low mid-execution, complete current deliverable then suggest checkpoint.
-
-**When to use do:** When a plan doc exists and you want Claude to follow it with explicit scope control. Not required — the user can also say "go ahead" after scope and Claude will read the plan doc via CLAUDE.md Working rules. Do is for when you want the reliability of fresh execution instructions.
+- **Ordering rule:** if a brief depends on a not-yet-approved ADR, `plan`
+  resolves the ADR gate *first* — it never authors briefs premised on an
+  unratified decision.
+- May **propose** an ADR — present the draft, **stop for Adam's approval.**
+- **Announces its intended write-set before writing.**
+- **Boundary:** scaffold docs only, never code.
 
 ---
 
-#### `/scaffold:checkpoint`
+### `/scaffold:go`
 
-**Purpose:** Save session progress. Verify work, update all scaffold files, commit. Handles mid-session pauses and USER task verification.
+**Role:** Execute. Run the phase brief referenced by `state.md` Next (the old
+`do`, renamed).
 
-**Reads:** All 5 core files. Plan doc (if referenced in state.md). Git diff. Conversation context.
-
-**Writes:**
-- `.scaffold/roadmap.md` — mark deliverables complete, route deferred items
-- `.scaffold/state.md` — active focus, next, blockers, open questions
-- `.scaffold/decisions.md` — new decisions, resolved blockers
-- `.scaffold/project.md` — requirements (if new ones confirmed, rare)
-- `CLAUDE.md` — tech stack, constraints (if changed, rare)
-
-**Boundary:** Checkpoint does NOT make code changes or modify project files.
-
-**Step 1: Assess session state**
-
-- **A. Full close-out** — all scoped work complete, or no scope existed (freeform session). Proceed through all steps.
-- **B. Mid-session** — scoped work incomplete (plan doc pointer exists, not all deliverables done). Go to Step 2.
-- **C. No plan doc** — freeform session, no plan doc. Skip plan doc routing. Update files from conversation context.
-
-**Step 2: Mid-session handling** *(skip if full close-out or no plan doc was active)*
-
-Ask: "Incomplete scoped work. What would you like to do?"
-- **Pause** — fold the resume context into Active focus, preserve plan-doc
-  reference in Next, commit.
-  - Before writing: "Anything I should note for next time?"
-- **Partial save** — mark completed deliverables, update Active focus to
-  reflect progress, keep plan-doc reference in Next, commit.
-- **Abandon** — mark completed deliverables, clear plan-doc reference from
-  Next, update Active focus, commit.
-
-No separate Session Context section is written. Resume context lives inside
-the Active focus paragraph.
-
-**Step 3: USER task check** *(skip if mid-session pause or partial save)*
-
-Scan `[IN-PROGRESS]` phase for unchecked `[USER]` deliverables. If any:
-> "Phase N has pending USER tasks: [list]. Completed any? ('not yet' to skip.)"
-
-If confirmed: gated walkthrough — present done-when criteria, verify each, mark or note issues.
-
-**Step 4: Verify AI work** *(skip if no code changes)*
-
-- Run tests if they exist. Don't mark done if tests fail.
-- Evidence-based: `[x]` requires evidence (test output, observed behavior, user confirmation).
-- If verification isn't possible, note honestly.
-
-**Step 5: Update scaffold files**
-
-- **roadmap.md** — mark completed deliverables `[x]` with date, route deferred items, phase sign-off gate (all done → ask user to mark `[COMPLETE]`)
-- **state.md** — rewrite Active focus to reflect outcome; update Next per outcome (no plan reference on full close-out / preserve plan reference on pause/partial / new direction on abandon); update Blockers and Open Questions, removing resolved/answered lines (resolutions route to decisions.md)
-- **decisions.md** — log decisions from session, log resolved blockers
-- **project.md** — update requirements if new ones confirmed (rare)
-- **CLAUDE.md** — update tech stack or constraints if changed (rare)
-
-**Step 6: Plan doc routing** *(only on full close-out with plan doc)*
-
-- If USER tasks incomplete: defer plan doc routing (Deferred/Decisions sections). Preserve plan pointer. Session decisions still logged in Step 5.
-- If no incomplete USER tasks: route Deferred to roadmap, route Decisions to decisions.md, verify investigation outputs exist, clear plan pointer.
-
-**Step 7: Review before committing**
-
-Show changes, ask for approval. Wait for confirmation.
-
-**Step 8: Commit**
-
-`git add CLAUDE.md .scaffold/ && git commit -m "checkpoint: [brief summary]"`
-
-Route to next: present options based on resulting state.
-
-**Enhanced mode:** `--audit` runs an Explore subagent after commit to verify scaffold claims against codebase.
+Writes project files and may write an `investigations/` record; **does NOT
+write scaffold truth or execution docs** — that is `checkpoint`'s job. Reads
+its brief from `milestones/NN/phases/`. Presents its approach and waits for
+approval before executing; works one deliverable at a time; routes
+out-of-scope discoveries to checkpoint rather than expanding silently.
 
 ---
 
-### Integration command
+### `/scaffold:checkpoint`
 
-#### `/scaffold:integrate`
+**Role:** Save and reconcile. Verify work, update files, run the coherence
+sweep, commit. (Reconcile-capable — it absorbs the job that a separate `sync`
+would have owned.)
 
-**Purpose:** Absorb controlling documents (specs, architecture docs) into scaffold and reconcile content. Three modes: absorb a specific artifact, scan for un-integrated artifacts, or sync/reconcile existing files.
+Updates the truth docs + the active milestone's `plan.md` (tick the phase
+checklist + date) + `state.md` + `knowledge/` (when behavior changed).
 
-**Reads:** ALL scaffold files + ALL knowledge docs + the new artifact (if provided). Loads everything into memory before proceeding — no lazy loading.
+- **Every checkpoint runs a comprehensive coherence sweep** over *all* living
+  docs (not just the touched ones): cross-reference integrity
+  (architecture ↔ decisions), Law-1/Law-2 violations, duplication, and
+  **brief-vs-decision staleness.**
+- **On-demand `checkpoint --reconcile`** runs that sweep with no work session
+  (after hand-edits, or to tidy).
+- **On-demand `checkpoint --audit`** spawns a read-only Explore sub-agent to
+  verify scaffold claims against the actual code — ticked phases really built,
+  `architecture.md` matches the real stack, ADRs match reality. Reports drift;
+  changes nothing.
+- May **propose** an ADR (gated).
+- **Milestone-close motion:** graduate durable rules to `knowledge/`
+  (reconciling + retiring contradicted docs, **surfaced for Adam's
+  confirmation**), flip the `roadmap.md` line to done, leave the folder in
+  place.
+- **Primary owner of `architecture.md`** — it sees the diff and updates the
+  technical truth when the build changed how it's built.
+- Git is the history; no log file. Commits `CLAUDE.md` + `.scaffold/`.
 
-**Writes:**
-- `.scaffold/knowledge/YYYYMMDD-slug.md` — copy of the artifact (absorb mode)
-- `.scaffold/project.md` — requirements, scope boundaries, vision refinements
-- `.scaffold/decisions.md` — decisions extracted from the artifact
-- `CLAUDE.md` — hard constraints, tech stack
-- `.scaffold/state.md` — active focus, open questions
-- `.scaffold/roadmap.md` — phase structure changes (with approval)
-
-**Boundary:** Integrate does NOT execute work, write plan docs, or modify project files.
-
-**Modes:**
-- **Absorb** (`/scaffold:integrate path/to/artifact`) — Copy artifact to knowledge/, extract operational info, resolve conflicts, update scaffold files.
-- **Scan** (`/scaffold:integrate`) — Look for un-integrated artifacts, offer to absorb.
-- **Sync** (`/scaffold:integrate --sync`) — Reconcile all existing scaffold files and knowledge docs. Fix inconsistencies, gaps, staleness, duplication.
-
-**Conflict handling:** Compares new content against existing scaffold files. Classifies each piece as New, Consistent, Conflict, or Superseded. Presents ALL conflicts before resolving any. User approves resolutions.
-
-**When to use integrate:** After completing a spec, architecture doc, or other major artifact. After a pivot that changed project direction. Periodically with `--sync` to clean up accumulated drift.
+*(If real use shows `checkpoint` can't keep the tree coherent, the sweep is
+promoted to a standalone `sync`. Not the case today.)*
 
 ---
 
-### Utility commands (4)
+### `/scaffold:integrate`
 
-| Command | Purpose |
-|---------|---------|
-| `/scaffold:setup` | Initialize scaffold files |
-| `/scaffold:update` | Pull latest commands |
-| `/scaffold:cleanup` | Migrate formats (v1→v2→v3) |
-| `/scaffold:graduate` | Consolidate, archive, hand off |
+**Role:** Absorb. Pure ingest of an external artifact.
+
+Absorbs a spec or doc: if it scopes a milestone → that milestone's `spec/` (the
+artifact itself or a pointer); if it is cross-cutting durable knowledge →
+`knowledge/`. Extracts operational info into the truth docs. Does not execute
+work, author phase briefs, or modify project files.
+
+---
+
+### `/scaffold:cleanup`
+
+**Role:** Migrate. The cautious, interactive **migrator to this structure**.
+
+It **proposes a migration plan and confirms every non-mechanical call with
+Adam** (which doc is the plan, which decisions become ADRs, the milestone
+slug). It consults rather than predicts — it does not assume a clean prior
+format. Detecting the old layout, it:
+
+- **Splits the old `roadmap.md` by altitude** — its per-phase build plan →
+  `milestones/01-*/plan.md` (preserving the checkbox + date checklist), while
+  its `## Backlog` plus a freshly-authored `## Milestones` index remain in a
+  repurposed program-altitude `roadmap.md`. A `phase-00`-style "plan authored"
+  entry collapses into the `plan.md` checklist; it is **not** a phase brief.
+- **Moves `plans/phase-*` into `phases/`, preserving interstitial numbers
+  (`09.1`) — never renumber.**
+- Stands up `architecture.md` from `CLAUDE.md`/decisions content + durable
+  run/env facts (using the architecture-vs-knowledge tie-break).
+- **Curates decisions — does not split them.** Most legacy `decisions.md`
+  entries are build-records that don't clear the high ADR bar, so cleanup
+  *detects* a monolithic file and hands to an interactive promote-the-few
+  session — Adam gates which become ADRs; the rest retire to git. A
+  grandfathered spec's own internal decisions file is **not** cracked open.
+- **Normalizes nonconformant names** (e.g. a hyphenated investigation date
+  `2026-06-11-*` → `20260611-*`).
+- **Before moving any file, runs a reference sweep** so no
+  `state.md`/roadmap/brief pointer is left dangling.
+
+---
+
+### `/scaffold:update` (utility)
+
+**Role:** Pull the latest command files. Touches no `.scaffold/` content.
+
+---
+
+### Command × Artifact Coverage
+
+Every artifact has a command that **creates** it and a command that
+**maintains** it (updates, or retires/freezes). No orphan files, no orphan
+operations. `R` = reads, `C` = creates, `U` = updates, `×` =
+retires/freezes/closes.
+
+| Artifact | setup | status | plan | go | checkpoint | integrate | cleanup |
+|----------|-------|--------|------|----|------------|-----------|---------|
+| `CLAUDE.md` | C | R | U (rare) | — | U (rare) | — | U (migrate) |
+| `project.md` | C | R | U | — | U (rare) | U | U |
+| `architecture.md` | C (seed) | R | U (propose) | — | **U (primary)** | U | C (from old CLAUDE/decisions) |
+| `knowledge/*.md` | C (dir) | R | U | R | U + **graduate/retire-on-close** | C/U (absorb) | — |
+| `roadmap.md` | C | R | U | — | U | U (rare) | U (build milestone index) |
+| `state.md` | C | R | U | R | U + reconcile | U | U |
+| `decisions/NNNN-slug.md` | — | R (on ref) | **propose→gate** | — | **propose→gate** | — | migrate (Adam gates survivors) |
+| `investigations/YYYYMMDD-slug.md` | C (dir) | R (lists) | R | C (opportunistic) | R | — | — |
+| `milestones/NN-slug/` (container) | C (first) | R | **C** (new chunk) | — | × (close-in-place) | — | C (wrap existing roadmap) |
+| `…/plan.md` | C (seed) | R | **U** | R | U (tick checklist + sign-off) | U | C (from old roadmap body) |
+| `…/spec/` | — | R | — | R | — | **C** (absorb/pointer) | move or pointer |
+| `…/phases/NN-slug.md` | — | R | **C/U** + stale-sweep | **execute** | × (tick complete) | — | C (move old `plans/`, keep `09.1`) |
+
+`update` is omitted — it pulls command files and touches no `.scaffold/`
+content. The coherence reconcile is `checkpoint`'s job — every checkpoint plus
+on-demand `--reconcile`.
 
 ## Workflows
 
@@ -433,102 +554,105 @@ Commands are optional. These are common patterns, not mandatory sequences.
 status → work with Claude → checkpoint
 ```
 
-No plan, no scope, no do. Just collaborate and save. Checkpoint handles everything from conversation context.
+No plan, no go. Just collaborate and save. Checkpoint captures everything from
+conversation context and runs its coherence sweep.
 
-### Guided (consultation)
+### Guided (consultation + authoring)
 
 ```
 status → plan → work with Claude → checkpoint
 ```
 
-Plan helps figure out what to do and updates the roadmap. Then you just work. No formal scope needed.
+Plan figures out what to do and persists it — updating the roadmap, authoring
+phase briefs, setting `state.md` Next. Then you work and save.
 
-### Scoped (formal execution)
-
-```
-status → [plan →] scope → do → checkpoint
-```
-
-Scope writes a plan doc. Do executes it with formal scope control. For complex or multi-actor work.
-
-### Verify (USER task completion)
+### Predetermined milestone (execute from briefs)
 
 ```
-status → checkpoint
+status → go → checkpoint   (repeat per phase)
 ```
 
-USER tasks done. Checkpoint verifies and updates.
+A spec has already been absorbed and phase briefs pre-written. `go` executes
+the brief that Next points at; `checkpoint` ticks the `plan.md` checklist and
+reconciles. Repeat until the milestone closes.
+
+### Reconcile only (after hand-edits)
+
+```
+checkpoint --reconcile
+```
+
+Runs the coherence sweep with no work session — tidies the tree after manual
+edits.
 
 ### Mix and match
 
-Commands can be invoked at any point. Run plan 200k tokens into a session when you need to recalibrate. Run scope when a complex plan emerges from freeform work. Run do when you have a plan doc and want reliable execution. Run checkpoint whenever you want to save.
+Commands can be invoked at any point. Run `plan` deep into a session to
+recalibrate. Run `go` whenever a brief is ready and Next points at it. Run
+`checkpoint` whenever you want to save.
 
 ## State Determination
 
 State is content-derived, not enum-driven. Commands determine what's true by
-reading state.md and roadmap.md. This removes the drift risk of an explicit
-status field that doesn't stay in sync with reality.
-
-### Signals
+reading disk. This removes the drift risk of a status field that doesn't stay
+in sync with reality.
 
 | Signal | Detection |
 |--------|-----------|
-| Plan doc active | state.md `## Next` references a file in `.scaffold/plans/` AND that plan doc has incomplete scoped deliverables |
-| USER tasks pending | Roadmap's `[IN-PROGRESS]` phase has unchecked `[USER]` deliverables AND no other unchecked AI deliverables in that phase |
-| Blocked | state.md `## Blockers` has content other than "None." |
-| Otherwise | Continue active focus, or run `/scaffold:plan` to recalibrate |
+| Active milestone | `state.md` `## Next` names it (authority). Fallback hint only: highest `NN` folder, when Next is silent |
+| Active phase | `state.md` `## Next` names the phase brief |
+| Phase done? | the milestone `plan.md` checklist entry is checked (with a date) |
+| Milestone done? | `roadmap.md`'s `## Milestones` line reads done AND `plan.md` is fully checked |
+| Milestone mode | derived: has `spec/` + pre-written briefs → predetermined; else emergent |
+| Blocked | `state.md` `## Blockers` has content other than "None." |
+| Transient op-state present | `state.md` `## Notes` is non-empty |
 
-Signals are not mutually exclusive — a session can be blocked AND have a
-plan doc active. Status command surfaces all that apply.
+Signals are not mutually exclusive — a session can be blocked AND have an
+active phase. `status` surfaces all that apply. No status keyword is stored
+anywhere; every signal is read off disk.
 
-### Transitions (by content edit, not status flip)
+## AI Instruction Strategy
 
-```
-[no plan doc]        ── /scaffold:scope               →  [plan doc active]
-[plan doc active]    ── /scaffold:scope (replace)     →  [new plan doc active]
-[plan doc active]    ── /scaffold:plan (re-consult)   →  [no plan doc]
-[plan doc active]    ── /scaffold:do + checkpoint     →  [no plan doc]   (all done)
-[plan doc active]    ── checkpoint (pause)            →  [plan doc active]   (Active focus updated)
-[plan doc active]    ── checkpoint (partial save)     →  [plan doc active]   (progress recorded)
-[plan doc active]    ── checkpoint (abandon)          →  [no plan doc]
+### Commands inject fresh instructions at point of need
 
-[*]                  ── checkpoint (USER tasks remain) →  [USER tasks pending]
-                                                          (roadmap state, not field flip)
+At 400k tokens deep, `CLAUDE.md` rules are far away. A slash command dumps
+precise instructions into context at the moment they're needed. This is why
+commands exist alongside `CLAUDE.md` rules — not redundancy, but reliability at
+depth.
 
-[USER tasks pending] ── checkpoint (verified)         →  [no plan doc]
+### Don't tell Claude what it already knows
 
-[blocked]            ── plan (resolved)               →  [no plan doc]
-                                                          (resolution → decisions.md)
-```
+If a behavior is already covered by Claude's defaults, by a hook, or by a slash
+command's own body, `CLAUDE.md` doesn't restate it.
 
-Condition labels describe what the file content shows, not enum values
-stored in state.md.
+### Explicit boundaries prevent bleeding
 
-## Document Update Matrix
+Each command states what it does NOT do:
 
-| File | status | plan | scope | do | integrate | checkpoint |
-|------|--------|------|-------|----|-----------|------------|
-| state.md | — | ✓ | ✓ | — | ✓ | ✓ |
-| roadmap.md | — | ✓ | — | — | ✓ (rare) | ✓ |
-| decisions.md | — | ✓ | — | — | ✓ | ✓ |
-| project.md | — | ✓ (requirements) | — | — | ✓ | ✓ (rare) |
-| CLAUDE.md | — | — | — | — | ✓ | ✓ (rare) |
-| plan doc | — | — | ✓ (creates) | reads | — | ✓ (reads for routing) |
-| knowledge/ | — | reads | reads | reads | ✓ (creates) | — |
-| investigations/ | — | reads | — | ✓ | reads | — |
-| project files | — | — | — | ✓ | — | — |
+- `plan`: scaffold docs only — never code.
+- `go`: project files (and optional investigations) only — never scaffold
+  truth/execution docs.
+- `checkpoint`: scaffold write-back + commit — never code changes.
+- `integrate`: ingest only — never executes work or writes project files.
 
-**Key rules:**
-- Do writes project files. Plan, scope, integrate, and checkpoint write scaffold files. Never the reverse.
-- Scope is the only command that creates plan docs.
-- Integrate is the only command that creates knowledge docs.
-- Status writes nothing.
+### Commands present options, not directives
+
+`status` says "you can do X or Y," not "run X now." `plan` ends with options.
+The user controls what happens next.
+
+### Gates prevent premature advancement
+
+Interactive phases require explicit user response. ADR writes are the hardest
+gate of all: a command may *propose* a decision but must **stop for Adam's
+approval** before writing, superseding, or pruning anything in `decisions/`.
 
 ## CLAUDE.md Template
 
-The lean template contains only what scaffold needs to operate plus project-specific
-information that has nowhere else to live. Five sections total: Title, Command
-Reference, Core Principle, Hard constraints, Tech stack.
+The lean template contains only what scaffold needs to operate plus
+project-specific information that has nowhere else to live: Title, Command
+Reference, Core Principle, a 3–5 line product orientation + pointer into
+`.scaffold/`, and project-specific Hard constraints. Durable tech-stack and
+run/env facts now live in `architecture.md`, not here.
 
 ### Command Reference
 
@@ -536,20 +660,19 @@ Reference, Core Principle, Hard constraints, Tech stack.
 ## Command Reference
 | Command | Role |
 |---------|------|
+| `/scaffold:setup` | Initialize — scaffold the structure for a new project |
 | `/scaffold:status` | Orient — read state, present options |
-| `/scaffold:plan` | Consult — discuss direction, update roadmap |
-| `/scaffold:scope` | Formalize — write a plan doc for complex/multi-actor work |
-| `/scaffold:do` | Execute — formal scope-controlled execution from plan doc |
-| `/scaffold:checkpoint` | Save — verify, update files, commit |
-| `/scaffold:integrate` | Absorb — ingest artifacts (specs, research) into scaffold |
-| `/scaffold:cleanup` | Migrate existing project to current format |
-| `/scaffold:update` | Update scaffold commands to latest version |
-| `/scaffold:graduate` | Exit scaffold to heavier framework |
+| `/scaffold:plan` | Consult + author — discuss direction, persist into the right docs |
+| `/scaffold:go` | Execute — run the active phase brief |
+| `/scaffold:checkpoint` | Save + reconcile — verify, update files, sweep, commit |
+| `/scaffold:integrate` | Absorb — ingest an artifact (spec, research) into scaffold |
+| `/scaffold:cleanup` | Migrate an existing project to this structure |
+| `/scaffold:update` | Update scaffold commands to the latest version |
 ```
 
-Reference material — orients both Claude and the user to what's available. Claude
-infers natural-language → command mapping (e.g. "status" → `/scaffold:status`) from
-the command descriptions; no separate Session Protocol table is needed.
+Claude infers natural-language → command mapping (e.g. "status" →
+`/scaffold:status`) from the command descriptions; no separate Session Protocol
+table is needed.
 
 ### Core Principle
 
@@ -560,88 +683,63 @@ Any command could be the last thing that runs before a week-long gap.
 Commands are optional tools — the minimum ceremony is status → work → checkpoint.
 ```
 
-Sets the operating contract for what every scaffold-affecting action must guarantee.
+### Orientation + pointer, Hard constraints
 
-### Hard constraints and Tech stack
-
-Project-specific placeholders. No scaffold file owns this content, so it lives in
-CLAUDE.md.
+A 3–5 line product orientation and a pointer into `.scaffold/` (so a cold read
+knows where truth lives), plus project-specific hard constraints that no
+scaffold file owns. Everything about *how it's built* — tech stack, data
+access, run/env — belongs in `architecture.md`, referenced from here, not
+duplicated.
 
 ### What's NOT in the template (and why)
 
-Earlier versions included `## Who I am`, `## Rules`, `## Working`, `### Session
-Protocol`, and `### Key Documents`. All five were removed:
+- **Who I am / user calibration** — belongs in `~/.claude/CLAUDE.md`
+  (user-level config), not every project.
+- **Tech stack / run instructions** — now `architecture.md`'s job (living
+  technical truth), referenced from `CLAUDE.md`.
+- **Rules / Working / Session Protocol** — mostly per-user preferences or
+  behaviors Claude does by default; Claude infers command mapping from the
+  Command Reference.
+- **Key Documents** — `/scaffold:status` surfaces these on every session start.
 
-- **Who I am** — User-calibration info belongs in `~/.claude/CLAUDE.md` (user-level
-  config), not in every project.
-- **Rules** — Most were per-user preferences ("ask before code changes") or workflow
-  nudges Claude already does ("suggest checkpoint at low context"). The one
-  scaffold-specific rule ("codebase trumps scaffold") is a behavior Claude does by
-  default when it sees a contradiction.
-- **Working** — `/scaffold:status` reads the plan doc; `/scaffold:do` enforces scope.
-  Freeform scope discipline is per-user preference.
-- **Session Protocol** — Claude infers natural-language → command mapping from the
-  command descriptions in Command Reference and the available-skills list. The
-  explicit table is over-instruction.
-- **Key Documents** — `/scaffold:status` surfaces these when run, which is the manual
-  first step of every session.
-
-Users who want any of these as project-specific rules can add them back as custom
-sections below Tech stack, or push them up to `~/.claude/CLAUDE.md` for cross-project
-effect.
-
-## AI Instruction Strategy
-
-### Principle 1: Commands inject fresh instructions at point of need
-
-At 400k tokens deep, CLAUDE.md rules are far away. A slash command dumps precise instructions into context at the moment they're needed. This is why commands exist alongside CLAUDE.md rules — not redundancy, but reliability at depth.
-
-### Principle 2: Don't tell Claude what it already knows
-
-If a behavior is already covered by Claude's defaults, by a hook, or by a slash
-command's own body, CLAUDE.md doesn't restate it.
-
-### Principle 3: Explicit boundaries prevent bleeding
-
-Each command states what it does NOT do:
-- Plan: "Do NOT modify non-scaffold files. Do NOT write plan docs."
-- Scope: "Do NOT execute. Do NOT modify non-scaffold files."
-- Do: "Do NOT update scaffold files."
-- Checkpoint: "Do NOT make code changes."
-
-### Principle 4: Commands present options, not directives
-
-Status says "you can do X or Y" not "run X now." Plan ends with options. The user controls what happens next.
-
-### Principle 5: Gates prevent premature advancement
-
-Interactive phases require explicit user response. "STOP. Wait for response." Not "proceed if obvious."
+Users who want any of these as project-specific rules can add them as custom
+sections, or push them up to `~/.claude/CLAUDE.md` for cross-project effect.
 
 ## Edge Cases
 
 **Freeform work without any commands (except status/checkpoint):**
-User talks to Claude, collaborates, builds things. Checkpoint handles it — reviews conversation, captures decisions, updates roadmap from what was done. No plan doc to route. Works.
+Collaborate and build. Checkpoint reviews the conversation, captures decisions
+(proposing ADRs through the gate), updates the roadmap and state, and runs its
+coherence sweep. Works.
 
-**Scope invoked without prior plan:**
-User knows what they want. Runs scope directly. Scope reads roadmap and conversation context, writes plan doc. Works.
+**A later phase insertion stales a downstream brief:**
+`plan`, on the pivot, sweeps unexecuted briefs in the active milestone against
+the change and flags/rewrites the stale one. If it slips through, the next
+`checkpoint` coherence sweep catches the brief-vs-decision drift.
 
-**Plan invoked while scoped:**
-Plan warns: "Existing scope will be cleared. Proceed?" If yes, plan clears the plan-doc reference from Next, consults, updates roadmap. No plan doc active afterward. Old plan doc stays in `.scaffold/plans/` as history.
+**A brief depends on a not-yet-approved decision:**
+`plan` resolves the ADR gate first — it presents the draft, stops for Adam's
+approval, and only then authors the brief premised on it. It never writes a
+brief on an unratified decision.
 
-**Do without scope (user says "go ahead" instead):**
-CLAUDE.md Working rules: "If plan doc exists, read it and follow its scope." Claude reads the doc and executes. Less reliable than do at depth, but works for most sessions. Do exists for when you want guaranteed reliability.
+**A later-numbered milestone is pre-created while an earlier one runs:**
+Folder order is not the authority — `state.md` `## Next` is. `status` reads the
+active milestone off Next, not off the highest `NN`.
+
+**A milestone closes:**
+`checkpoint` graduates the spec's enduring rules into `knowledge/` (reconciling
+and retiring contradicted docs, surfaced for Adam), flips the `roadmap.md` line
+to done, and leaves the folder in place. No archive move.
+
+**A spec lives outside `.scaffold/` (shared or grandfathered):**
+The milestone's `spec/` is a pointer, not a copy. The external spec stays whole
+and is maintained in place until the milestone closes; its internals are never
+cracked open or absorbed.
 
 **Context crash mid-execution:**
-State.md's Next still references the plan doc. Plan doc survives. Status detects the active plan doc, presents scope. User continues.
-
-**Multi-actor plan in progress:**
-Plan doc has USER and AI steps interleaved. Do executes AI steps, skips USER steps. Checkpoint notes pending USER items. User completes their steps. Checkpoint verifies on next run.
-
-**Checkpoint with no commands run:**
-User chatted, made decisions, never ran plan or scope or do. Checkpoint reviews conversation, captures decisions, updates state. Works.
-
-**Deliverable takes multiple sessions:**
-Roadmap item stays unchecked. Progress tracked in sub-bullets. Plan docs across sessions reference the same deliverable. When outcome is finally achieved, checkpoint marks it done.
+`state.md` Next still points at the milestone + phase brief; the brief
+persists on disk. `status` detects the active phase and resumes.
 
 **Requirements discovered mid-session:**
-User says "that's a requirement" or it emerges from discussion. Plan adds it to project.md Requirements. Or checkpoint captures it during save. Either way, it lands in project.md.
+`plan` adds them to `project.md` Requirements, or `checkpoint` captures them
+during save. Either way they land in `project.md`.

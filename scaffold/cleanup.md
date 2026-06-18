@@ -1,303 +1,394 @@
 ---
-description: Migrate scaffold files to current format
+description: Migrate an older scaffold layout to the current structure
 ---
 
-**Precondition:** Verify that `.scaffold/` directory exists with at least
-`state.md` and `roadmap.md`. If not, stop and say:
-"No scaffold files found — run /scaffold:setup first."
+I'm the **migrator** to the current scaffold structure (contract §5). I move a
+pre-restructure scaffold — single `decisions.md`, a standalone `.scaffold/plans/`
+folder, a per-phase build plan living in `roadmap.md`, no `architecture.md`, no
+`milestones/` container — onto the new model: living-truth docs + a `decisions/`
+folder + `investigations/` + a `milestones/NN-slug/` container.
 
-This command migrates existing scaffold files to the current format. It handles
-both the old flat-section format and any intermediate formats.
+**I am cautious and interactive.** I *propose* a migration plan and *confirm
+every non-mechanical call with you* — which doc is the milestone plan, which
+legacy decisions become ADRs, the milestone slug. I consult rather than predict,
+and I do **not** assume a clean prior format. Mechanical renames I'll just do;
+anything that needs judgment, I stop and ask.
+
+**Boundary:** I touch `.scaffold/` and `CLAUDE.md` only. I move and rewrite
+scaffold files — I never modify project code, and I never crack open a
+grandfathered spec's internals (its own `DECISIONS.md`/`STATE.md` stay whole; I
+only point at it or update paths).
+
+**Safe to run at a clean phase boundary.** This is a structural move; run it when
+no phase is mid-build, so no pointer is in flux. Sibling commands
+(`status`/`plan`/`go`/`checkpoint`) already expect the new layout once installed —
+run `cleanup` *before* any of them in the install→migrate window.
 
 ---
 
-## Step 1: Read All Existing Files
+## Step 1: Detect the layout and read everything
 
-Read all scaffold files and CLAUDE.md:
-- `.scaffold/state.md`
-- `.scaffold/roadmap.md`
-- `.scaffold/project.md`
-- `.scaffold/decisions.md`
+Read all existing scaffold files and `CLAUDE.md`. Do not assume which exist —
+scan and read whatever is present:
+
 - `CLAUDE.md`
+- `.scaffold/project.md`
+- `.scaffold/roadmap.md`
+- `.scaffold/state.md`
+- `.scaffold/decisions.md` (the old single file) **and/or** `.scaffold/decisions/` (folder)
+- `.scaffold/architecture.md` (may not exist — that's the signal we're migrating)
+- everything under `.scaffold/plans/`
+- everything under `.scaffold/knowledge/`
+- everything under `.scaffold/investigations/` (note nonconformant names)
+- everything under `.scaffold/milestones/` (may not exist)
+
+**Precondition:** if `.scaffold/` doesn't exist at all, stop:
+"No scaffold files found — run `/scaffold:setup` first (setup is for fresh
+projects; cleanup migrates an existing one)."
+
+**If the layout is already current** (`architecture.md` exists, `decisions/` is a
+folder, `milestones/` exists, no `.scaffold/plans/`): say so and stop —
+"This scaffold is already on the current structure; nothing to migrate."
+
+Classify what you found and report it back as the detected starting point:
+
+> "Detected an older scaffold layout:
+> - `roadmap.md` holds a per-phase build plan (needs altitude-split)
+> - `.scaffold/plans/` has N phase briefs (incl. interstitials: 06.1, 08.1, 09.1)
+> - single `decisions.md` with N entries (needs curation to ADRs)
+> - no `architecture.md` (needs standing up)
+> - no `milestones/` container
+> - [any nonconformant names, e.g. `investigations/2026-06-11-gap-map.md`]
+>
+> Here's the migration plan I propose. I'll confirm each judgment call with you."
 
 ---
 
-## Step 1.5: Scratch Migration
+## Step 2: Propose the migration plan (consult, don't execute)
 
-Check if `.scaffold/scratch/` exists:
+Lay out the whole plan first — what moves where, and the calls I need you to make.
+Present it as a single proposal so you can see the shape before anything moves.
+The non-mechanical calls I'll need confirmed:
 
-1. If it does, read each file in the directory
-2. Present each file: "Found `.scaffold/scratch/[filename]` — [one-line summary of contents]"
-3. Propose migration: move files to `.scaffold/investigations/`, rename to match
-   `YYYYMMDD-slug.md` convention (date without dashes, brief slug)
-4. For each file, propose the new name based on content and creation date
-5. Wait for user approval
-6. Create `.scaffold/investigations/` if needed and move files with new names
-7. Remove the empty `.scaffold/scratch/` directory
+1. **The milestone slug.** The existing `plans/` + `roadmap.md` build plan become
+   the *first* milestone. Propose a slug from the work's identity
+   (e.g. `01-rebuild`). Ask: "What should this milestone be called?
+   I propose `01-<slug>`." The slug is a **sticky namespace** — get it right now.
+2. **Which doc is the milestone plan.** Confirm the old `roadmap.md` body (the
+   phase checklist) is the source for `milestones/NN-slug/plan.md`.
+3. **Which legacy decisions become ADRs** (Step 6 — the interactive promote-the-few
+   session). Flag that most will retire to git.
+4. **The spec, if any.** If a spec scoped this work and lives elsewhere
+   (e.g. `docs/…`), confirm it stays in place and I write a **pointer**, not a copy.
 
-If `.scaffold/scratch/` does not exist, skip this step.
-
----
-
-## Step 1.6: v1 Artifact Cleanup
-
-**Check for `.scaffold/quick/`:** If it exists, these are v1 quick task records.
-- Present each directory: "Found quick task [NNN]: [description from plan.md]"
-- Propose: archive to `.scaffold/archive/quick/` to preserve history
-- Wait for user approval, then move
-
-**Check for `.scaffold/continue-here.md`:** If it exists, this is a v1 pause file.
-- Read it and present the context
-- Hold the content for Step 3's state.md migration — the resume context
-  becomes part of the rebuilt Active focus paragraph there. Then delete the file.
-- Wait for user approval
-
-If neither exists, skip this step.
+Present the full proposal, then proceed step by step, pausing at each gate. Do
+**not** write anything until Step 8.
 
 ---
 
-## Step 2: Identify Format Differences
+## Step 3: Reference sweep (BEFORE any move)
 
-Check each file against the current format:
+**Before moving a single file, map every pointer** so nothing is left dangling.
+This is the capability the retired `graduate` command carried.
 
-**roadmap.md — check for:**
-- Old flat sections: "Done", "In progress", "Up next", "Later", "Current phase"
-- Old checkbox convention: `- v Item` (should be `- [x] Item`)
-- Old in-progress convention: `- >> Item` (should be `- [ ] >> Item`)
-- Missing phase grouping (should be `## Phase N — Title [STATUS]`)
-- Old status format: `[IN PROGRESS]` (should be `[IN-PROGRESS]`)
-- Plain bullets in `[PLANNED]` phases (should be `- [ ]` checkboxes; plain sub-bullets for detail only)
-- Missing `Backlog` section
+Grep across `.scaffold/` and `CLAUDE.md` for references that will break when files
+move or get renamed:
 
-**state.md — check for v1 sections:**
-- Old sections: "What's not working", "What's working well", "Parking lot",
-  "Next session"
+- `state.md` `## Next` → the phase brief / plan path it points at
+- `roadmap.md` → any `plans/phase-*` or phase references
+- phase briefs → cross-links to sibling briefs, to `decisions.md`, to investigations
+- `CLAUDE.md` → any `.scaffold/plans/`, `.scaffold/decisions.md`, or `docs/` pointer
+  to scaffold-owned content
+- knowledge docs → references to decisions by old path
 
-**state.md — check for v2 sections (current target is v3):**
-- `## Status` field (any value) — v3 removes the status enum entirely;
-  routing is content-derived.
-- `## Current Position` — v3 renames to `## Active focus`.
-- `## Next Action` — v3 renames to `## Next`.
-- `## Session Context` (with sub-fields Progress / Key context / Next step) —
-  v3 removes this section; fold its content into Active focus when migrating.
-- `## Closed` — v3 removes retrospective archives; route resolved items to
-  decisions.md / roadmap.md and delete the section.
-- Project-specific extra sections beyond Active focus / Next / Blockers /
-  Open Questions — v3 removes these; route content to its natural home or
-  drop with user approval.
+Build a **rename map** (old path → new path) covering every file that will move:
+- `plans/phase-NN-slug.md` → `milestones/NN-slug/phases/NN-slug.md`
+- nonconformant investigation names → conformant (Step 7)
+- `decisions.md` entries → `decisions/NNNN-slug.md` (only the promoted ones)
 
-**state.md — check for empty Blockers / Open Questions:**
-- v3 always has both sections present; "None." when empty (do not omit the
-  section heading).
+Report the sweep:
 
-**decisions.md — check for:**
-- Old category-grouped format (## Tech, ## Architecture, etc. as organizing headers)
-  - Should be flat chronological with `**Category:**` field per entry
+> "Reference sweep — N pointers will need repointing after the move:
+> - `state.md` Next → `plans/phase-09.1-currency-model.md` → becomes
+>   `milestones/01-rebuild/phases/09.1-currency-model.md`
+> - [each pointer, old → new]
+>
+> I'll repoint all of these in the same pass as the moves (Step 8)."
 
-**CLAUDE.md — check for:**
-
-The current lean template contains only: Title, Command Reference, Core Principle,
-Hard constraints, Tech stack. Anything else is either deprecated or custom user
-content that needs explicit user routing.
-
-*Deprecated sections to remove (do not silently strip — see Step 3 for handling):*
-- `## Who I am` — user-level concern; belongs in `~/.claude/CLAUDE.md` if anywhere
-- `## Rules` — per-user preferences and scaffold operating rules that Claude defaults
-  + slash command logic now cover
-- `## Working` — `/scaffold:status` reads the plan doc; `/scaffold:do` enforces scope;
-  freeform scope discipline is per-user preference
-- `### Session Protocol` (or `## Session Protocol`) — Claude infers natural-language
-  → command mapping from command descriptions; the explicit table is over-instruction
-- `### Key Documents` — `/scaffold:status` surfaces these
-
-*Structural fixes:*
-- If `### Command Reference` and `### Core Principle` exist as `###` subsections
-  nested under `## Working`, promote both to top-level `##` headers after Working
-  is removed
-
-*Content fixes within Command Reference:*
-- Old command references: `/scaffold:prime`, `/scaffold:pause`, `/scaffold:resume`,
-  `/scaffold:quick`, `/scaffold:quick-execute`, `/scaffold:verify` — all removed;
-  drop the corresponding rows
-- Missing `/scaffold:integrate` row — add:
-  `| /scaffold:integrate | Absorb — ingest artifacts (specs, research) into scaffold |`
-- Verify the full row set matches the current template: status, plan, scope, do,
-  checkpoint, integrate, cleanup, update, graduate
-
-*Content fixes within Core Principle (if present in old form):*
-- v2 Core Principle should say "Commands are optional tools" not "Plan updates
-  scaffold files directly" — update the wording if outdated
-
-*Stale path references anywhere in CLAUDE.md:*
-- `.scaffold/quick/` — remove
-- `docs/` pointers to scaffold-owned content — scaffold's home for specs/design docs
-  is `.scaffold/knowledge/`, not `docs/`. If the project keeps a top-level `docs/`,
-  that's the project's call; only flag references that look like scaffold-owned
-  files living outside scaffold.
-
-**roadmap.md — check for v2→v3 format:**
-- Missing phase criteria (numbered acceptance conditions per phase)
-- `>>` markers — remove (state.md is the controller, not roadmap markers)
-- Missing `[USER]` markers on human-owned deliverables
-
-**project.md — check for:**
-- Missing "Requirements" section — add with verifiable checkboxes
-
-> **Out of scope for cleanup:** content-consistency checks (tasks vs.
-> deliverables, requirements misfiled in decisions.md, cross-file drift)
-> belong to `/scaffold:integrate --sync`, not here. Cleanup transforms
-> file *shape* to the current schema; sync reconciles *meaning*.
+If a pointer references a file that doesn't exist (already dangling), flag it —
+don't invent a target.
 
 ---
 
-## Step 3: Propose Restructured Content
+## Step 4: Split `roadmap.md` by altitude
 
-For each file that needs changes, build the new content by mapping old → new:
+The old `roadmap.md` mixes two altitudes: a **program index** and a **per-phase
+build plan**. Split them.
 
-**roadmap.md migration:**
-- "Current phase" text → becomes the title of the `[IN-PROGRESS]` phase
-- "Done" items → become `[x]` tasks in completed phases or Phase 1
-  - If items suggest natural phase boundaries, group into separate phases
-  - Otherwise, group all into "Phase 1 — [inferred title] [COMPLETE]"
-- "In progress" items → become `[ ]` deliverables in the `[IN-PROGRESS]` phase
-- "Up next" items → become `[ ]` deliverables in the `[IN-PROGRESS]` or next `[PLANNED]` phase
-- "Later" items → move to `Backlog` (as `[ ]` checkbox items)
-- Old `- v Item` → `- [x] Item`
-- Old `- >> Item` → `- [ ] Item` (drop `>>` — state.md is the controller)
-- Add phase criteria if missing: `Phase complete when:` with numbered conditions
-- Add `[USER]` markers to human-owned deliverables if missing
+**The per-phase build plan body → `milestones/NN-slug/plan.md`:**
+- Preserve the **checkbox + completion-date checklist exactly** — this is the
+  disk-derivable "is it done?" signal, not a forbidden status enum. Do not
+  reformat completed-phase dates into prose.
+- Carry over the objective and the milestone's done-contract (the acceptance the
+  phases roll up to). Keep completion annotations **terse** (a date, not a
+  paragraph) so `plan.md` stays a bounded checklist, never an append-log.
+- **A `phase-00`-style "master build plan / plan authored" entry is NOT a phase
+  brief.** It collapses *into* `plan.md` as the plan's own preamble/checklist —
+  it does not become `phases/00-*.md`.
 
-**state.md migration:**
+**`## Backlog` + a freshly-authored `## Milestones` index STAY in `roadmap.md`:**
+- Repurpose `roadmap.md` to **program altitude**. Keep `## Backlog` (future
+  features, someday/never) — this is its permanent home; losing it would retire
+  the backlog.
+- Author a `## Milestones` index: one line per milestone with status
+  (done / active / planned) pointing at its folder. For a single-milestone
+  migration that's one line: `**NN-slug** — [active] [one-line] → milestones/NN-slug/`.
+- **Rewrite any backlog line that the migration makes stale** — e.g. a "multi-user
+  / tenancy" line should point at the relevant ADR + a future milestone number
+  rather than implying debt the current architecture doesn't carry. Surface each
+  such rewrite for confirmation.
 
-Target shape (v3, four sections, forward-looking only):
+Target `roadmap.md` shape after the split:
 
 ```markdown
-<!-- Last updated: YYYY-MM-DD -->
-# State
+<!-- Last updated: [today's date] -->
+# Roadmap
 
-## Active focus
-[One paragraph. Plain-language synopsis + forward-look.]
+## Milestones
+- **NN-slug** — [active] [what this chunk delivers] → `milestones/NN-slug/`
 
-## Next
-[Concrete action when resuming. 1-2 sentences or short bullets.]
-
-## Blockers
-[Always present. "None." when empty.]
-
-## Open Questions
-[Always present. "None." when empty.]
+## Backlog
+- [future features, one line each]
 ```
-
-Migration steps:
-
-1. **Drop the `## Status` field entirely.** v3 derives routing from content.
-2. **Rename `## Current Position` → `## Active focus`.** Trim to one paragraph
-   if it has bullets, sub-headings, or code blocks. Keep the synopsis;
-   drop retrospective journaling.
-3. **Rename `## Next Action` → `## Next`.** Trim prose to a concrete action;
-   drop embedded prompts, narrative paragraphs.
-4. **Fold `## Session Context` into Active focus.** The Progress / Key
-   context / Next step content gets absorbed into the Active focus
-   paragraph (or its sub-bullets into Next, where appropriate). Then
-   delete the Session Context section.
-5. **Delete any `## Closed` section.** Route the items inside it to their
-   natural home: resolved blockers → decisions.md (Category: Resolved
-   Blocker); answered questions → wherever the answer was captured (often
-   decisions.md or knowledge docs); completed work → roadmap.md.
-6. **Delete project-specific extra sections** (e.g., calendars, schedules).
-   Route content to its natural home — roadmap, plan doc, or knowledge
-   doc — or surface in Active focus if genuinely status-level.
-7. **Ensure Blockers and Open Questions are present.** Add "None." if empty.
-
-Legacy v1 sections:
-- "What's not working" → Blockers (with current-state content; resolved items dropped)
-- "What's working well" → Drop (preferences route to CLAUDE.md)
-- "Parking lot" / "Future Ideas" → move to roadmap.md Backlog
-- "Next session" → Next (rewrite as concrete resume action)
-
-**decisions.md migration:**
-- Extract entries from category sections (## Tech, ## Architecture, ## Design, ## Scope)
-- Add `**Category:** [section name]` field to each entry
-- Flatten into single chronological list, newest first (sort by date in ### header)
-- Drop the `**Status:**` field from every entry — v3 has no status enum
-- Dissolve any `## Archived` section: prune reversed/superseded entries (git
-  keeps the history). If the project has no git, fold each archived entry back
-  inline as a one-line "superseded by …" note rather than keeping a graveyard.
-
-**CLAUDE.md migration:**
-
-Target shape (lean template, 5 sections only):
-1. Title + one-line description
-2. `## Command Reference` (top-level)
-3. `## Core Principle` (top-level)
-4. `## Hard constraints` (project-specific)
-5. `## Tech stack` (project-specific)
-
-Migration steps:
-
-1. **Promote nested subsections.** If `### Command Reference` and `### Core Principle`
-   exist as children of `## Working`, lift them to top-level `##`.
-
-2. **Identify deprecated sections.** For each of `## Who I am`, `## Rules`, `## Working`
-   (body bullets, not the subsections you already promoted), `### Session Protocol`
-   (or `## Session Protocol`), `### Key Documents`:
-   - If section is empty or matches the old template defaults verbatim, mark for silent removal.
-   - If section contains custom user content (anything beyond the boilerplate), do NOT
-     silently drop it. Present each one to the user in Step 4 with three options:
-     (a) drop, (b) move to `~/.claude/CLAUDE.md`, (c) keep in this CLAUDE.md as a
-     custom section below Tech stack.
-
-3. **Fix the surviving Command Reference table:**
-   - Drop rows referencing removed commands (`prime`, `pause`, `resume`, `quick`,
-     `quick-execute`, `verify`)
-   - Add the `/scaffold:integrate` row if absent
-   - Verify the full row set matches: status, plan, scope, do, checkpoint, integrate,
-     cleanup, update, graduate
-
-4. **Fix the surviving Core Principle:**
-   - If outdated wording ("Plan updates scaffold files directly" or similar), update
-     to: "Every command leaves ALL state documents accurate and self-consistent. Any
-     command could be the last thing that runs before a week-long gap. Commands are
-     optional tools — the minimum ceremony is status → work → checkpoint."
-
-5. **Hard constraints and Tech stack:** preserve as-is (project-specific content).
-
-**project.md migration:**
-- Add "Requirements" section if missing (empty section is fine — populating
-  it from misfiled content is sync's job, not cleanup's)
 
 ---
 
-## Step 4: Present Changes for Review
+## Step 5: Move phase briefs into the milestone
 
-For EACH file that needs changes, show before/after:
+Move every `.scaffold/plans/phase-*.md` into
+`.scaffold/milestones/NN-slug/phases/`.
+
+- **Preserve interstitial numbers — NEVER renumber.** `phase-09.1-currency-model.md`
+  → `phases/09.1-currency-model.md`. The `NN` is the roadmap ordinal; `09.1` is a
+  surgical phase inserted after a frozen plan and must keep its place.
+- Strip the `phase-` filename prefix if the new convention drops it
+  (`phases/NN-slug.md`), but keep the number and slug intact.
+- `phase-00` (master build plan) does **not** move here — it folded into `plan.md`
+  in Step 4.
+- Use `git mv` where git is present so history follows the file.
+- Repoint every reference caught in the Step 3 sweep to the new path.
+
+If any phase brief is a pre-written *downstream* brief that a later change has
+**staled** (e.g. a Phase 10 brief written before a Phase 9.1 insertion), don't
+fix the staleness here — that's `plan`/`checkpoint`'s job. Just **flag it** in
+the summary so it's visible:
+
+> "Note: `phases/10-*.md` was written before the 09.1 insertion and may be stale.
+> Migration preserves it as-is; run `/scaffold:plan` to re-sweep downstream briefs."
+
+---
+
+## Step 6: Stand up `architecture.md`
+
+Create `.scaffold/architecture.md` by sorting durable technical truth out of where
+it currently hides — `CLAUDE.md`'s tech-stack section, any architectural content
+in `decisions.md`, and the **durable run/env facts** (how to run the app, dev DB,
+deployment) that were living in `state.md` or `CLAUDE.md`.
+
+**Routing tiebreak (contract §6) — apply it per fact:**
+- A fact that would change if you **re-platform** but the business rule stays →
+  `architecture.md` (tenancy/isolation, auth, stack, data-access, deployment,
+  cross-cutting conventions).
+- A fact that changes only when the **business rule** changes → `knowledge/`
+  (not cleanup's job to populate; flag it for a later `integrate`/`plan`).
+
+Target shape:
+
+```markdown
+<!-- Last updated: [today's date] -->
+# Architecture
+
+## Stack
+[from CLAUDE.md tech stack]
+
+## Data & storage
+[database, ORM, data-access, tenancy/isolation model]
+
+## Auth & access
+[authn/authz model]
+
+## Deployment & runtime
+[where it runs, how it's deployed, how to run it locally — the durable run/env
+facts pulled out of state.md/CLAUDE.md]
+
+## Conventions
+[cross-cutting patterns]
+
+## Decisions
+[each truth statement above references the ADR that established it — wired in
+**Step 7**, after decision curation, since ADR numbers don't exist until the
+decisions are promoted. e.g. "single-tenant — see decisions/0001-...". The
+decisions/ folder + these references ARE the index. Stand up the truth
+statements here; leave the ADR references as placeholders to fill in Step 7.]
+```
+
+**Coupling rule:** if a promoted ADR establishes an architectural truth, the
+matching statement in `architecture.md` references it by its new
+`decisions/NNNN-slug.md` path — wire these references in **Step 7**, when the
+ADRs are promoted and numbered (not here; the numbers don't exist yet).
+
+After standing up `architecture.md`, **strip the now-migrated content from
+CLAUDE.md** (tech stack moves out; CLAUDE.md keeps orientation + pointer +
+Command Reference + Core Principle + Hard constraints). Update the CLAUDE.md
+Command Reference to the current command set (`status`, `plan`, `go`,
+`checkpoint`, `integrate`, `cleanup`, `update`) and the pointer block to name
+`architecture.md`. Present CLAUDE.md changes for confirmation — don't silently
+drop custom sections; offer (a) drop, (b) move to `~/.claude/CLAUDE.md`,
+(c) keep below Hard constraints.
+
+---
+
+## Step 7: Curate decisions — promote the few (Adam-gated)
+
+**Decisions are *curated, not split.*** Most legacy `decisions.md` entries are
+build-records — routine guardrails that don't clear the high ADR bar (the rare,
+architecturally-significant, cross-cutting choices you'd want the *why* of in a
+year). So detect the monolithic `decisions.md` and run an **interactive
+promote-the-few session**.
+
+**Detect:**
+- A single `.scaffold/decisions.md` with many entries → curate.
+- An existing `.scaffold/decisions/NNNN-slug.md` folder → already-promoted ADRs;
+  leave them, renumber nothing, and only fold in survivors from `decisions.md`
+  *after* the existing ones (preserve their numbers).
+- A **grandfathered spec's own internal decisions file** (e.g. inside a
+  `docs/…/spec/` the milestone points at) → **never cracked open or absorbed.**
+  Leave it whole.
+
+**Promote-the-few session (gate every promotion):**
+
+Walk the `decisions.md` entries and classify each as a proposed ADR or a
+build-record. Present them grouped:
+
+> "## Decision curation — N entries in `decisions.md`
+>
+> **Proposed ADRs** (clear the high bar — durable, cross-cutting *why*):
+> 1. [date — title] → `decisions/NNNN-slug.md` — [one line: why it qualifies]
+> 2. ...
+>
+> **Retire to git** (build-records below the ADR bar — git keeps them):
+> - [date — title], [date — title], ...
+>
+> No ADR is written without your approval. Which of the proposed do you
+> confirm? Anything in the retire list you want to keep as an ADR instead?"
+
+**STOP. Wait for explicit approval.** This is stricter than every other scaffold
+file by design — the decision log is curated by Adam, not by my judgment.
+
+For each **approved** ADR, write `.scaffold/decisions/NNNN-slug.md` in ADR shape:
+`Status` / `Context` / `Decision` / `Why` / `Alternatives considered` /
+`Consequences`. Number sequentially, zero-padded, **continuing after any existing
+ADRs** (if `0001` already exists, the first promotion is `0002`).
+
+The rest **retire to git** — they leave with the deleted `decisions.md`; git
+retains the history. (No git in this project? Don't delete blindly — fold each
+retired entry as a one-line "superseded/retired" note rather than losing it.)
+
+Wire architectural ADRs into `architecture.md`'s references (the coupling rule
+from Step 6) in this same pass — filling the placeholders left when
+`architecture.md` was stood up.
+
+---
+
+## Step 8: Normalize nonconformant names
+
+As part of migration, fix names that don't match the conventions:
+
+- **Investigations** use `YYYYMMDD-slug` (date, no dashes). A hyphenated date
+  `investigations/2026-06-11-gap-map.md` → `investigations/20260611-gap-map.md`.
+- **Decisions** use `NNNN-slug` (4-digit, continuing the existing sequence);
+  **phases** use `NN-slug` (2-digit, ordered) — preserve interstitials.
+- Use `git mv` to preserve history; repoint every reference from the Step 3 sweep.
+
+Report each rename; these are mechanical, but list them so the sweep is auditable.
+
+---
+
+## Step 9: Repoint `state.md` and reconcile
+
+- Repoint `state.md`'s `## Next` to the new path
+  (`milestones/NN-slug/phases/NN-slug.md`) per the rename map.
+- Ensure `state.md` has the four sections (Active focus / Next / Blockers /
+  Open Questions); add "None." where Blockers/Open Questions are empty.
+- **Preserve transient operational state as `## Notes`** if `state.md` carried any
+  (a dirty dev DB, a temp env swap) — that's legitimate now. Durable run/env facts
+  went to `architecture.md` in Step 6; only the transient stuff stays in `## Notes`.
+- Confirm no pointer from the Step 3 sweep is still dangling.
+
+---
+
+## Step 10: Present the full migration for review
+
+Present the **complete** set of changes at once so it can be reviewed
+holistically — file moves, new files, renames, rewrites, and the deletions
+(`decisions.md`, the now-empty `plans/`):
 
 ```
-### [filename]
+## Migration plan
 
-**Current format issues:** [list what's wrong]
+**Milestone:** milestones/NN-slug/ (created)
+  plan.md          ← roadmap.md build-plan body (checklist preserved)
+  phases/          ← N briefs moved from plans/ (interstitials preserved)
+  spec/            ← pointer to [path] (if any)
 
-**Proposed new content:**
-[full new content]
+**roadmap.md** → repurposed to program altitude (Milestones index + Backlog)
+**architecture.md** → NEW (from CLAUDE.md stack + decisions + run/env facts)
+**decisions/** → N ADRs promoted (Adam-approved); M build-records retired to git
+**investigations/** → K names normalized to YYYYMMDD
+**state.md** → Next repointed; [## Notes preserved if any]
+**CLAUDE.md** → stack removed (→ architecture.md); Command Reference updated
+
+**Reference sweep:** N pointers repointed, 0 dangling
+**Staleness flags:** [downstream briefs to re-sweep with /scaffold:plan, if any]
 ```
 
-Present ALL proposed changes at once so the user can review holistically.
-
-**Wait for explicit approval before writing any changes.**
+**STOP. Wait for explicit approval before writing anything.**
 
 If the user wants modifications, incorporate them and re-present.
 
 ---
 
-## Step 5: Write Approved Changes
+## Step 11: Execute and commit
 
-Write all approved changes to their respective files.
+Apply the approved migration in one pass:
+1. Create `milestones/NN-slug/{plan.md, phases/}` and (if applicable) the `spec/`
+   pointer.
+2. `git mv` the phase briefs and renamed investigations (preserve history).
+3. Write `architecture.md`; write approved `decisions/NNNN-slug.md` ADRs.
+4. Rewrite `roadmap.md` to program altitude; update `state.md`, `CLAUDE.md`.
+5. Repoint every reference from the sweep.
+6. Delete the migrated `decisions.md` and remove the now-empty `.scaffold/plans/`
+   directory.
+
+Re-read the moved/rewritten files and confirm no pointer dangles.
+
+If git is initialized:
+`git add -A .scaffold/ CLAUDE.md && git commit -m "scaffold: migrate to milestone structure"`
+
+Show a summary: what moved, what was promoted vs retired, what was renamed, and
+any staleness flags to address next with `/scaffold:plan`.
 
 ---
 
-## Step 6: Commit
+## Boundaries
 
-If git is initialized:
-`git add CLAUDE.md .scaffold/ && git commit -m "scaffold: migrate to current format"`
-
-Show a summary of what was migrated.
+Cleanup does NOT:
+- **Modify project code** — it migrates scaffold files only
+- **Promote an ADR without approval** — `decisions/` is hard-gated to Adam
+- **Renumber phases or interstitials** — `09.1` stays `09.1`
+- **Crack open a grandfathered spec's internals** — it points at the spec or
+  updates paths; the spec's own decisions/state files stay whole
+- **Fix stale downstream briefs** — it flags them; `/scaffold:plan` and
+  `/scaffold:checkpoint` own re-sweeping
+- **Populate `knowledge/`** — durable rules graduate at milestone close
+  (`checkpoint`) or via `integrate`, not during a structural migration
