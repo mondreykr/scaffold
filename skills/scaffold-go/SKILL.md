@@ -87,7 +87,9 @@ For single-item briefs, combine completion and routing: "Done: [what was done]. 
 
 If the work produces a research/analysis output worth keeping (a spike, a gap map, a
 security investigation), write it to `.scaffold/investigations/YYYYMMDD-slug.md` (date as
-`YYYYMMDD`, no hyphens). Opportunistic — nothing obligates you to create one. If that
+`YYYYMMDD`, no hyphens). **Stamp it with `type: investigation` / `schema_version: 1` /
+`updated: <today>` frontmatter** — it is the one scaffold doc `go` writes, and it must be
+born conformant. Opportunistic — nothing obligates you to create one. If that
 research yields a candidate ruling, leave the analysis here and let `/scaffold-checkpoint`
 *propose* the ADR (decisions are Adam-gated; `go` never writes one).
 

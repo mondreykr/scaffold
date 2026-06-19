@@ -10,8 +10,9 @@ Save and reconcile a work session: verify what was actually done, update the
 Any checkpoint could be the last thing that runs before a long gap, so it leaves the
 whole tree accurate and self-consistent.
 
-**Precondition.** `CLAUDE.md`, `.scaffold/state.md`, `.scaffold/roadmap.md` exist. If
-any is missing, stop: "Scaffold files missing — run /scaffold-setup first."
+**Precondition.** `CLAUDE.md` and the four `.scaffold/` truth docs (`project.md`,
+`architecture.md`, `roadmap.md`, `state.md`) exist. If any is missing, stop: "Scaffold
+files missing or incomplete — run /scaffold-setup first."
 
 **Boundary.** No code changes, no project files. Checkpoint updates `.scaffold/` (+
 `CLAUDE.md`) and commits. Code is `scaffold-go`'s job; strategy and authoring are
@@ -121,7 +122,8 @@ session changed. The shape each doc must keep:
   when the *business rule* changes belongs in `knowledge/`, not here.)
 - **5e `project.md`** — only if scope/identity evolved. Identity + scope boundaries only
   (including "what we're NOT building"); state durable constraints as plain truth — **no
-  checkboxes.**
+  checkboxes.** A verifiable invariant routes to where it's tested (a phase brief's
+  `## Acceptance`, the milestone done-contract, or a `knowledge/` doc), not here.
 - **5f `roadmap.md`** — add a surfaced future-feature one-liner to `## Backlog` (its
   permanent home). `## Milestones` lines use the fixed tokens `[done] | [active] |
   [planned]`; the status flip to `[done]` happens in Step 6b.
@@ -199,9 +201,11 @@ Runs on every checkpoint, and is the *whole* job when there's no work to save. S
 Fix what's **mechanical and unambiguous** (a broken back-reference path, a stray dated
 entry folded back into truth, a resolved `## Notes` line, a missing/refreshable
 frontmatter field) and note it in Step 8. **Surface** anything needing judgment (a brief
-needing a real rewrite, a two-way contradiction, an ADR that should change, or
-collapsing a duplicate / re-homing content between `architecture.md` and `knowledge/`)
-and route — do not guess. Moving durable content between truth docs is an authoring call
+needing a real rewrite, a two-way contradiction, an ADR that should change, collapsing a
+duplicate / re-homing content between `architecture.md` and `knowledge/`, or a requirement
+checkbox in `project.md` — the `[ ]` syntax is the anti-pattern, but its *content* is a
+requirement to re-home to where it's tested, so surface it, never silently delete the
+content) and route — do not guess. Moving durable content between truth docs is an authoring call
 (`scaffold-plan`/`scaffold-integrate`), not a sweep fix.
 
 The inline sweep *samples*; for the deep, independent grading — hard conformance over the

@@ -14,9 +14,9 @@ coherence sweep or write back build results (`scaffold-checkpoint`); migrate an 
 repo (`scaffold-cleanup`); create/supersede/prune a decision (`decisions/` is Adam-gated —
 surface a ruling and hand to `plan`/`checkpoint`, never write one here); or change code.
 
-**Precondition.** `CLAUDE.md`, `.scaffold/project.md`, `.scaffold/state.md`,
-`.scaffold/roadmap.md` exist. If any is missing, stop: "Scaffold files missing — run
-/scaffold-setup first."
+**Precondition.** `CLAUDE.md` and the four `.scaffold/` truth docs (`project.md`,
+`architecture.md`, `roadmap.md`, `state.md`) exist. If any is missing, stop: "Scaffold
+files missing or incomplete — run /scaffold-setup first."
 
 **Frontmatter.** Any `.scaffold/` doc you create or touch carries `type` /
 `schema_version: 1` / `updated:` (set to today). `CLAUDE.md` is exempt.
@@ -36,8 +36,7 @@ Read enough to classify — purpose, scope, shape:
 1. The artifact itself (the file, or a directory's entry/index doc plus its structure —
    note any `references/`, `DECISIONS.md`, `STATE.md` it carries).
 2. `roadmap.md` — does this scope an existing milestone, or a new one?
-3. `architecture.md` (skip if absent) — to spot operational facts it carries that the
-   truth docs lack.
+3. `architecture.md` — to spot operational facts it carries that the truth docs lack.
 
 Don't read all of `knowledge/` or every milestone — only what you need to place it.
 
@@ -143,7 +142,8 @@ Set `updated:` on every truth doc you touch.
 Run `git diff .scaffold/ CLAUDE.md` to show exact changes (the original artifact is
 untouched and won't appear unless it lives under `.scaffold/`). **STOP for confirmation
 before committing.** With git: `git add .scaffold/ CLAUDE.md && git commit -m "integrate:
-[artifact]"`.
+[artifact]"`. If the artifact implies a milestone or backlog item, route forward: "Run
+/scaffold-plan to author it" — integrate proposes, never authors.
 
 ---
 

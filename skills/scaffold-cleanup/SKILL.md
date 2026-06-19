@@ -194,8 +194,25 @@ promoted and numbered (the numbers don't exist yet).
 After standing it up, **strip the migrated content from `CLAUDE.md`** (tech stack moves
 out; `CLAUDE.md` keeps the Skill Reference + Core Principle + About-this-project pointer +
 Hard constraints). **Replace the old Command Reference with the current `## Skill
-Reference` table** (the 9 `/scaffold-[skill]` skills) and point the orientation block at
-`architecture.md`. Present `CLAUDE.md` changes for confirmation — don't silently drop a
+Reference` table** — embed it verbatim (the same 9 rows `setup` writes):
+
+```markdown
+## Skill Reference
+| Skill | Role |
+|-------|------|
+| `/scaffold-setup` | Initialize — scaffold the structure for a new project |
+| `/scaffold-status` | Orient — read state, present options |
+| `/scaffold-plan` | Consult + author — discuss direction, persist into the right docs |
+| `/scaffold-go` | Execute — run the active phase brief |
+| `/scaffold-checkpoint` | Save + reconcile — verify, update files, sweep, commit |
+| `/scaffold-audit` | Audit — deep conformance + reality check (on demand) |
+| `/scaffold-integrate` | Absorb — ingest an artifact (spec, research) into scaffold |
+| `/scaffold-cleanup` | Migrate an existing project to this structure |
+| `/scaffold-update` | Update scaffold skills to the latest version |
+```
+
+Point the orientation block at `architecture.md`. Present `CLAUDE.md` changes for
+confirmation — don't silently drop a
 custom section; offer (a) drop, (b) move to `~/.claude/CLAUDE.md`, (c) keep below Hard
 constraints.
 

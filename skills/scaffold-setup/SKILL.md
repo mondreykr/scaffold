@@ -37,8 +37,9 @@ into ADRs (`scaffold-integrate`/`scaffold-cleanup` own the ADR-promotion gate).
   - hard constraints that govern how Claude works here → `CLAUDE.md` `## Hard constraints`
   - **anything else** (preferences, "who I am", communication notes) does not map
     cleanly — do NOT silently merge. Present each section and ask: "(a) drop — Claude
-    defaults cover it, (b) move to `~/.claude/CLAUDE.md` (user-level), (c) keep as a
-    custom section here." Wait for the choice per section.
+    defaults cover it, (b) move to `~/.claude/CLAUDE.md` (user-level — read it first and
+    *append*, never overwrite; it's shared across every project), (c) keep as a custom
+    section here." Wait for the choice per section.
   Then report what was preserved, where it landed, and what was dropped or relocated.
 - **Other context-bearing files** (`README.md`, `TODO.md`, `ARCHITECTURE.md`,
   `NOTES.md`, …) are context sources — read in Step 2.
@@ -53,8 +54,10 @@ If the project has existing code, do these before creating files:
 2. **Scan for context-bearing files** (`TODO.md`, `ARCHITECTURE.md`, `DECISIONS.md`,
    `CONTRIBUTING.md`, `CHANGELOG.md`, `.cursor/rules`, …). For each, report: filename,
    which scaffold doc its content maps to, a one-line summary, and whether it'll be
-   archived or left in place. **A `DECISIONS.md` is NOT curated here** — note it and
-   recommend `/scaffold-integrate` after setup (the ADR-promotion gate lives there).
+   archived or left in place. **A `DECISIONS.md` is NOT curated here** — note it and surface
+   its rulings via `/scaffold-plan`, which proposes them as ADRs (Adam-gated). (`cleanup`'s
+   promote-the-few handles a legacy monolith during old-layout migration; `integrate` is
+   pure-ingest and never writes decisions.)
 3. **Incorporate and archive by default.** Pull content into the right scaffold doc.
    **With git:** move originals to `.scaffold/archive/` (git retains history — reversible).
    **No git:** *copy* content out and leave originals in place (no undo point); say so.
@@ -155,9 +158,8 @@ updated: [today]
 ```
 
 Answers *what the product is* — not *how it's built* (`architecture.md`). No
-requirements/acceptance checkboxes — verifiable invariants live where they're tested. If
-`project.md` would hold nothing more than `CLAUDE.md`'s one-line "what this is", drop it
-rather than keep it for symmetry.
+requirements/acceptance checkboxes — verifiable invariants live where they're tested.
+Always created (one of the four mandatory truth docs), even when sparse.
 
 ### .scaffold/architecture.md — how it's built (living)
 
@@ -263,7 +265,7 @@ schema_version: 1
 updated: [today]
 ---
 
-# Milestone 01 — [name]
+# Milestone 01 — <slug>
 
 ## Objectives
 [What this chunk of work delivers. One or two sentences.]
@@ -309,7 +311,8 @@ briefs. To rename `01-main` → `01-<newslug>` (do it early, before briefs accru
   `git add CLAUDE.md .scaffold/ && git add -u && git commit -m "init: scaffold"`.
 - Summarize what was set up, what content was incorporated (and from where), what was
   archived, and what the user should fill in or verify — especially the seed milestone
-  slug (rename it now if the work has a real name).
+  slug (rename it now if the work has a real name). Then route forward: "Run
+  /scaffold-status to orient, or /scaffold-plan to scope the first milestone."
 
 ---
 
@@ -317,6 +320,6 @@ briefs. To rename `01-main` → `01-<newslug>` (do it early, before briefs accru
 
 Setup does NOT: author phase briefs or set up a full milestone plan beyond the seed
 (`scaffold-plan`); execute any work or write project code (`scaffold-go`); curate a
-legacy `DECISIONS.md` into ADRs (`scaffold-integrate`/`scaffold-cleanup` own that gate);
-or overwrite an existing scaffold (collision → stop; old layout → route to
-`scaffold-cleanup`).
+legacy `DECISIONS.md` into ADRs (that's `cleanup`'s migration job, or surface via `plan`
+for an Adam-gated proposal); or overwrite an existing scaffold (collision → stop; old
+layout → route to `scaffold-cleanup`).

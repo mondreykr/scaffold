@@ -216,8 +216,9 @@ checkpoint.
 Two structural boundaries hold across the set:
 
 - **`go` writes code (and optional investigations); never scaffold truth or execution
-  docs.** All scaffold write-back is owned by `plan` and `checkpoint`. Never the
-  reverse — truth-writing skills never touch project code.
+  docs.** All *runtime* scaffold write-back is owned by `plan` and `checkpoint`; `setup`
+  creates the initial set and `cleanup` migrates it. Never the reverse — truth-writing
+  skills never touch project code.
 - **`decisions/` is propose-only.** Skills may draft an ADR and stop; **Adam approves**
   before anything is written.
 
@@ -230,8 +231,8 @@ flags. Instead, two tiers:
   living docs — automatically, every time, no flag. Fast enough to run at every session
   end.
 - **`audit` is the deep, independent review** — on demand, spins up fresh agents,
-  grades conformance hard against the contracts *and* checks docs against actual code.
-  It always does both (see below).
+  grades conformance hard against the contracts, checks docs against actual code, and
+  verifies no durable rule is stranded. It always does all three (see below).
 
 ---
 
@@ -248,7 +249,9 @@ sticky namespace, setup documents the rename procedure. Writes `CLAUDE.md` per t
 **Stamps frontmatter** on every doc it creates. On an **existing codebase**, setup
 automatically gives it careful treatment — a thorough Explore pass seeds
 `architecture.md`/`project.md` from the real code (no flag). It does **not** curate
-decisions into ADRs (that is `cleanup`/`integrate`'s job).
+decisions into ADRs — a legacy monolith is `cleanup`'s migration job; a stray decisions
+doc is surfaced and proposed via `plan`/`checkpoint` (Adam-gated). `integrate` is
+pure-ingest and never writes decisions.
 
 ---
 
@@ -403,10 +406,10 @@ Every artifact has a skill that **creates** it and a skill that **maintains** it
 | `CLAUDE.md` | C | R | U (rare) | — | U (rare) | R | — | U (migrate) |
 | `project.md` | C | R | U | — | U (rare) | R | U | U |
 | `architecture.md` | C (seed) | R | U (propose) | — | **U (primary)** | R | U | C (from old CLAUDE/decisions) |
-| `knowledge/*.md` | C (dir) | R | U | R | U + **graduate/retire-on-close** | R | C/U (absorb) | — |
-| `roadmap.md` | C | R | U | — | U | R | U (rare) | U (build milestone index) |
+| `knowledge/*.md` | C (dir) | R | C/U | R | C/U + **graduate/retire-on-close** | R | C/U (absorb) | — |
+| `roadmap.md` | C | R | U | — | U | R | R (classify) | U (build milestone index) |
 | `state.md` | C | R | U | R | U + reconcile | R | U | U |
-| `decisions/NNNN-slug.md` | — | R (on ref) | **propose→gate** | — | **propose→gate** | R | — | migrate (Adam gates survivors) |
+| `decisions/NNNN-slug.md` | C (dir) | R (on ref) | **propose→gate** | — | **propose→gate** | R | — | migrate (Adam gates survivors) |
 | `investigations/YYYYMMDD-slug.md` | C (dir) | R (lists) | R | C (opportunistic) | R | R | — | — |
 | `milestones/NN-slug/` (container) | C (first) | R | **C** (new chunk) | — | × (close-in-place) | R | — | C (wrap existing roadmap) |
 | `…/plan.md` | C (seed) | R | **U** | R | U (tick checklist + sign-off) | R | U | C (from old roadmap body) |
@@ -477,7 +480,7 @@ reality.
 | Active milestone | `state.md` `## Next` names it (authority). Fallback hint only: highest `NN` folder, when Next is silent |
 | Active phase | `state.md` `## Next` names the phase brief |
 | Phase done? | the milestone `plan.md` checklist entry is checked (with a date) |
-| Milestone done? | `roadmap.md`'s `## Milestones` line reads done AND `plan.md` is fully checked |
+| Milestone ready to close? | `plan.md` fully checked AND its done-contract met (emergent: only when Adam says the chunk is done). The `roadmap.md` `[done]` flip is the *output* of closing, not a precondition |
 | Milestone mode | derived: has `spec/` + pre-written briefs → predetermined; else emergent |
 | Blocked | `state.md` `## Blockers` has content other than "None." |
 | Transient op-state present | `state.md` `## Notes` is non-empty |

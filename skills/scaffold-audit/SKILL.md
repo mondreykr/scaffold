@@ -33,6 +33,13 @@ List every doc in scope: `CLAUDE.md`, the four `.scaffold/` truth docs, all of
 authoritative and selects which conformance rules apply (filename/location is only a
 fallback). Ignore `.gitkeep` placeholders.
 
+**Two gates before grading.** (1) If the tree *wholesale* lacks `type`/`schema_version`
+frontmatter (a pre-current-format / un-migrated layout), stop and report: "This scaffold
+predates the current format — run /scaffold-cleanup to migrate, then re-audit," rather
+than flooding per-doc 'missing frontmatter' findings. (2) A *missing* mandatory truth doc
+(`project` / `architecture` / `roadmap` / `state`) is itself a conformance finding — the
+four are always present in a current scaffold.
+
 ## Step 2: Conformance pass (runs FIRST — gates the rest)
 
 Grade each doc hard against the rules for its `type`. Score: required sections present,
@@ -95,6 +102,10 @@ Verify the scaffold's claims against the actual code:
   Deployment reflect the manifests and code, not an aspiration.
 - **ADRs match reality** — an `Accepted` ADR's ruling is actually what the code does (a
   contradiction means the ADR is stale or silently violated).
+- **Standing blockers are real** — each `state.md` Blocker is corroborated by the code /
+  state, not stale or already resolved.
+- **In-flight / uncommitted work** — flag uncommitted changes or recent edits the docs
+  don't yet reflect (a checkpoint may be overdue).
 
 **The gate (hard):** if a doc is malformed enough that its state can't be read reliably
 (e.g. `## Next` doesn't resolve, a `plan.md` checklist is unparseable), report the reality

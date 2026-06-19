@@ -24,7 +24,9 @@ npx degit mondreykr/scaffold/skills $HOME/.claude/skills --force
 ```
 
 This overwrites the `scaffold-*` skill folders in place and leaves any unrelated skills in
-`~/.claude/skills/` untouched.
+`~/.claude/skills/` untouched. After the pull, confirm all nine `scaffold-*/SKILL.md`
+landed (setup, status, plan, go, checkpoint, audit, integrate, cleanup, update); if any is
+missing the copy was truncated — re-run the command.
 
 ## Step 2: Retire command-era installs
 

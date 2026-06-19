@@ -1,6 +1,6 @@
 ---
 name: scaffold-plan
-description: Persist an agreed direction into the scaffold docs — the single authoring skill. Routes each thing to its one home: a backlog idea to roadmap, a new chunk to a milestone + plan.md, how-to-build-it to phase briefs, a cross-cutting truth shift to architecture.md, and always updates state.md's Next cursor. Proposes ADRs (Adam-gated) and sweeps stale briefs on a pivot. Use whenever the user wants to plan, scope, decide what to build next, add a milestone or phase, capture a decision or requirement, or write down a direction you've agreed on — even if they only say "plan this", "let's scope it", "what's next", or "write that down". Writes scaffold docs only, never code.
+description: Persist an agreed direction into the scaffold docs — the single authoring skill. Routes each thing to its one home: a backlog idea to roadmap, a new chunk to a milestone + plan.md, how-to-build-it to phase briefs, a cross-cutting truth shift to architecture.md, and always updates state.md's Next cursor. Proposes ADRs (Adam-gated) and sweeps stale briefs on a pivot. Use whenever the user wants to plan, scope, decide what to build next, add a milestone or phase, capture a decision or requirement, or write down a direction you've agreed on — even if they only say "plan this", "let's scope it", or "write that down". Writes scaffold docs only, never code.
 ---
 
 # scaffold-plan
@@ -14,9 +14,9 @@ the post-build coherence sweep / write-back of build results (that's
 `scaffold-checkpoint`). You only ever *propose* an ADR — never write to `decisions/`
 without Adam's explicit approval.
 
-**Precondition.** `CLAUDE.md`, `.scaffold/project.md`, `.scaffold/state.md`,
-`.scaffold/roadmap.md`, `.scaffold/architecture.md` exist. If any is missing, stop:
-"Scaffold files missing — run /scaffold-setup first."
+**Precondition.** `CLAUDE.md` and the four `.scaffold/` truth docs (`project.md`,
+`architecture.md`, `roadmap.md`, `state.md`) exist. If any is missing, stop: "Scaffold
+files missing or incomplete — run /scaffold-setup first."
 
 **Frontmatter.** Every `.scaffold/` doc you create or touch carries `type` /
 `schema_version: 1` / `updated:`; set `updated:` to today on every file you write.
@@ -151,12 +151,12 @@ Write only what the direction calls for.
   # Phase NN — <slug>
 
   ## Objective
-  [What this phase delivers and why — 1–3 sentences.]
+  [What this phase delivers, in a sentence or two.]
 
   ## Scope
-  [What's in — the deliverables. `scaffold-go` reads THIS to bound execution; keep it
-  crisp and self-contained. Mark human-owned items `[USER]`. Out-of-scope discoveries
-  route to checkpoint, never silent expansion.]
+  [The deliverables `scaffold-go` executes — crisp and self-contained. Number them, and
+  mark human-owned items `[USER]` (e.g. `2. [USER] Create the OAuth app — client ID in
+  .env`). Out-of-scope discoveries route to checkpoint, never silent expansion.]
 
   ## Approach
   [Key decisions, strategy, what to watch out for. Reference the live spec/references or

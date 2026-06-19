@@ -9,9 +9,10 @@ Brief the session: read the living truth, locate the active milestone and phase 
 disk, surface open threads and history, and end with options — not directives. State is
 **derived from what the docs say**, never from a status keyword.
 
-**Precondition.** `CLAUDE.md`, `.scaffold/project.md`, `.scaffold/state.md`,
-`.scaffold/roadmap.md` exist. If any is missing, stop: "Scaffold files missing — run
-/scaffold-setup first."
+**Precondition.** `CLAUDE.md` and the four `.scaffold/` truth docs (`project.md`,
+`architecture.md`, `roadmap.md`, `state.md`) exist — a scaffold project always has all
+four. If any is missing, stop: "Scaffold files missing or incomplete — run
+/scaffold-setup first (or /scaffold-cleanup if this is an older layout)."
 
 **Boundary.** Read-only. Status presents and orients; it writes nothing, decides
 nothing, runs nothing. It tells you what's available.
@@ -24,7 +25,7 @@ Read these in order — always-current truth, never a log:
 
 1. `CLAUDE.md`
 2. `.scaffold/project.md`
-3. `.scaffold/architecture.md` (skip if absent — small projects may not have one yet)
+3. `.scaffold/architecture.md`
 4. `.scaffold/state.md`
 5. `.scaffold/roadmap.md`
 

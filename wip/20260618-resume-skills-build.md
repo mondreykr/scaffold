@@ -63,15 +63,31 @@ Body: the workflow (steps/gates/boundaries) + the format guidance the skill need
 in at its altitude (writers carry doc shapes; `audit` carries the full grading checklist;
 read-only skills carry almost none). Self-contained; no pointers to non-shipping files.
 
-## 4. Remaining work
+## 4. Adversarial review — DONE (2026-06-19)
 
-1. **Adversarial review (next).** A red-team / independent check over all 9 skills + spec.
-   **The #1 risk to probe: conformance drift** — skills were authored from the contracts,
-   but the contracts don't ship, so a skill's inlined doc-shape could silently diverge
-   from its `contracts/` master. Also check: cross-skill coherence (every doc has a
-   creator + maintainer; routing/ownership boundaries agree; no contradictions), lost
-   capability vs the old commands, gates/preconditions, naming.
-2. **Deferred:** the milestone-close rule-distillation skill (old §3f) — still parked.
+Ran 4 independent read-only reviewers (conformance-drift, cross-skill coherence,
+lost-capability+breakage, spec↔skill alignment). No state-corrupting blockers shipped.
+Fixes applied this pass:
+
+- **The mandatory-four standard** (Adam's call — "one rule set, no vibes"): every scaffold
+  project always has `CLAUDE.md` + `project`/`architecture`/`roadmap`/`state`. Removed the
+  "may be dropped"/"skip if absent" optionality from `contracts/project.md`, `setup`,
+  `status`, `integrate`; standardized preconditions across status/plan/checkpoint/integrate.
+- **Real bugs fixed:** `go` now stamps `type: investigation` frontmatter (was born
+  non-conformant); `plan`/`status` "what's next" trigger collision resolved (left to
+  read-only `status`); `cleanup` now embeds the Skill Reference table verbatim;
+  `setup`/`integrate` route forward instead of dead-ending.
+- **audit hardened:** detects an un-migrated (frontmatter-less) tree → routes to cleanup;
+  re-added the lost reality checks (standing-blockers-real, uncommitted-work); flags a
+  missing mandatory truth doc.
+- **DECISIONS curation (Adam approved):** a stray `DECISIONS.md` is surfaced + proposed
+  via `plan` (Adam-gated); `cleanup` owns the legacy-monolith path; `integrate` stays
+  pure-ingest. Fixed `setup` + the spec to say so.
+- **Spec back-propagated:** matrix (integrate roadmap = R; setup decisions = C(dir);
+  plan/checkpoint knowledge = C/U), runtime-write-back wording, two-tier "all three",
+  "Milestone ready to close?" detection row.
+
+**Remaining / deferred:** the milestone-close rule-distillation skill (old §3f) — parked.
 
 ## 5. State of the tree
 

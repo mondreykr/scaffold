@@ -53,8 +53,9 @@ updated: YYYY-MM-DD
   orientation.
 - Verifiable invariants are NOT kept here — they live where they're tested (a spec,
   phase acceptance, or a `knowledge/` invariants doc).
-- **May be dropped:** if `project.md` would hold nothing more than `CLAUDE.md`'s
-  one-line "what this is" already says, drop it rather than keep it for symmetry.
+- **Mandatory:** one of the four living-truth docs every scaffold project always carries
+  (`setup` creates it); never dropped, even when sparse. A missing `project.md` means an
+  incomplete or pre-current-format scaffold, not a valid minimal one.
 
 ## Anti-patterns
 
