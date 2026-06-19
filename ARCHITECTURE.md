@@ -132,8 +132,10 @@ Every document type has one canonical **format contract** in `contracts/`. This 
 defines the *concepts*; the contract defines the *exact form* (required sections,
 skeleton, rules, anti-patterns) and is the oracle `/scaffold-audit` grades against. The
 format detail lives in the contract, not here — so there is one master per format, not
-two. Each skill bundles copies of the contracts it touches; the factory's self-check
-keeps those copies equal to these masters.
+two. **Contracts are factory-only:** we author each skill *from* the contracts it
+touches, and `/scaffold-audit` grades a user's docs against them — but no contract is
+ever bundled into a skill or shipped. Each skill carries, written in at the altitude it
+needs, whatever format guidance it requires.
 
 **Frontmatter convention.** Every `.scaffold/` document carries minimal YAML
 frontmatter: **`type` · `schema_version` · `updated`**. `type` is authoritative for
@@ -207,7 +209,7 @@ Deterministic. Resolve by the two laws when in doubt.
 
 The skill set is **9**: `setup`, `status`, `plan`, `go`, `checkpoint`, `audit`,
 `integrate`, `cleanup`, and the `update` utility — each named `/scaffold-[skill]` and
-each a self-contained artifact that bundles the reference content it needs. Skills are
+each a self-contained artifact that carries the format guidance it needs, written in. Skills are
 tools you reach for when you need them; the minimum session is status → work →
 checkpoint.
 
