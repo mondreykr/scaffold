@@ -1,3 +1,9 @@
+> **⚠ DESIGN HISTORY — not the resume doc.** To resume, read
+> `20260618-resume-skills-build.md` (authoritative + current). This file is kept for the
+> full design rationale, decisions, and audit findings. Its **§3c/§4/§5 describe a
+> bundling model that was DROPPED** (see the CORRECTION in §0) — trust the resume doc
+> where they differ.
+
 # Handoff — Conformance Auditing, Skills Migration, and Schema Hardening
 
 **Date:** 2026-06-18 (updated — session 2)
@@ -28,6 +34,30 @@ distorted some of it. The correction:
      we're about to release are internally consistent (embedded contract copies ==
      masters == architecture). A release gate — closer to `make test`/lint than a skill.
   Keep them separate.
+
+### CORRECTION (later in session 2) — bundling model DROPPED, model simplified
+
+An earlier part of this session over-built a bundling/drift apparatus and got tangled
+in it repeatedly. The settled, simpler model (this **supersedes** the bundling language
+in §3c/§4/§5 and the "self-check verifies embedded copies" framing just above):
+
+- **The spec = `ARCHITECTURE.md` (whole-system design) + `contracts/` (per-doc
+  formats).** We build skills FROM it. **One-way:** spec is the source, skills are
+  derived; never hack a skill and let the spec rot. `/scaffold-audit` is the drift
+  backstop.
+- **Contracts are factory-only.** Never bundled into a skill, never shipped, never read
+  at runtime — the only link is "we read the contract while authoring the skill." A
+  shipped skill = `SKILL.md` (plus its own `references/`/`scripts/` only if that one
+  skill is long enough to warrant splitting), with whatever it needs written in.
+- **A contract earns its place** when a format is used by >1 skill or by audit; a
+  single-skill format just lives in that skill. (All 11 current contracts qualify —
+  every doc type is touched by multiple skills and/or audit.)
+- **Dropped:** the `skills/*/references/` contract copies and `scripts/sync_contracts.py`
+  (the copy-and-byte-compare self-check). They solved a problem the bundling itself
+  created. There is **no copy-comparison gate**; factory QA = authoring discipline +
+  audit.
+- The two-tier audit split still holds for the *product* (`checkpoint` light sweep vs
+  `/scaffold-audit` deep), but the "factory self-check" tier above is gone.
 
 ### Decisions resolved this session
 - **§3c (where contracts live): R2+.** Contracts are standalone **build inputs** — one

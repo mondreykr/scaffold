@@ -19,26 +19,33 @@ Two consequences, and they override any instinct to the contrary:
 Scaffold is a context-persistence system for Claude Code: a family of skills that
 maintain a small set of living docs in a user's repo so work survives across sessions.
 Skills are named in a flat, hyphenated family — **`/scaffold-[skill]`** (e.g.
-`/scaffold-status`, `/scaffold-checkpoint`, `/scaffold-audit`) — and each is
-**self-contained**: it bundles every reference file it needs, so it works on its own once
-installed.
+`/scaffold-status`, `/scaffold-checkpoint`, `/scaffold-audit`). A skill is a folder
+(`SKILL.md`, plus its own `references/`/`scripts/` only when that skill is big enough to
+warrant splitting — a per-skill pragmatic call). Whatever a skill needs to do its job is
+written *into the skill*. The factory `contracts/` are **never** bundled into or shipped
+with a skill.
 
 ## The factory (this repo)
 
-- `ARCHITECTURE.md` — the design doc. Concepts, the two Laws, the bands
-  (truth/history/execution), the routing model. Human-readable authority for *why* the
-  system is shaped as it is. Does not ship; links to the contracts rather than restating
-  them.
-- `contracts/` — the canonical per-document-type format specs (one master per doc type).
-  **Build inputs**: copied into each skill's own reference folder at build time, used as
-  the conformance oracle by `/scaffold-audit`, and verified by the self-check. *(Target
-  structure — being established during the current migration; see `wip/`.)*
-- `scaffold/` — the skill sources that get published as `/scaffold-[skill]`.
-- `wip/` — design notes and handoffs. Does not ship.
-- **self-check** — factory QA (a release gate, not a skill) that verifies every skill's
-  embedded contract copy matches its master in `contracts/`, and that masters stay
-  consistent with `ARCHITECTURE.md`. Self-contained copies are a drift machine without
-  it.
+The **spec** is `ARCHITECTURE.md` + `contracts/`. We build the skills from it.
+
+- `ARCHITECTURE.md` — the whole-system design: the two Laws, the bands
+  (truth/history/execution), routing, and how the skills fit together. The single
+  coherent view that **no individual skill holds** (each skill knows only its slice).
+  This is why it earns its place and never becomes a double-up. Doesn't ship.
+- `contracts/` — the per-document-type format specs. **Factory-only**: we author skills
+  *from* them, and `/scaffold-audit` is built to check a user's files *against* them.
+  Never bundled into a skill, never shipped, never read at runtime — the connection to a
+  skill is "we read it while building the skill," nothing more. A contract earns its
+  place when a format is needed by more than one skill (or by audit); a format used by a
+  single skill just lives in that skill.
+- `skills/` — the skill sources that ship as `/scaffold-[skill]` (being built during the
+  migration). `scaffold/` holds the old command files still being migrated.
+- `wip/` — design notes and handoffs. Doesn't ship.
+
+**Direction is one-way: the spec is the source; skills are derived from it.** Change the
+design in the spec, then propagate to the skills — never hack a skill and let the spec
+rot into stale parallel notes. `/scaffold-audit` is the backstop that catches drift.
 
 ## Active work
 
