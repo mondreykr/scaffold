@@ -1,11 +1,64 @@
 # Handoff — Conformance Auditing, Skills Migration, and Schema Hardening
 
-**Date:** 2026-06-18
-**Status:** Design discussion — decisions mostly settled, ready to execute next session.
+**Date:** 2026-06-18 (updated — session 2)
+**Status:** Decisions settled. Foundational reframe applied (see §0). Ready to execute
+step 1 (reshape `ARCHITECTURE.md` + extract `contracts/`).
 **Origin:** Adam asked whether scaffold has any mechanism to audit itself for
 *format/structure conformance* against an enumerated standard, and if not, how to
 build one cleanly. The conversation expanded into a schema-hardening +
 commands→skills migration effort.
+
+---
+
+## 0. Foundational reframe (session 2 — read this first)
+
+Everything below was written before this framing was made explicit, and it subtly
+distorted some of it. The correction:
+
+- **This repo is the factory, not the product.** Its only purpose is to *produce* the
+  scaffold skills. Nothing here ships except the skills. `ARCHITECTURE.md`,
+  `contracts/`, the self-check = factory equipment users never see. The repo's structure
+  is **not sacred** — optimize it for building good skills, nothing else. Now captured in
+  a new project `CLAUDE.md` (the missing keystone — its absence is why the framing kept
+  needing re-explaining).
+- **There are two different audits, not one** (the handoff fused them):
+  1. **Product audit** = `/scaffold-audit` skill, ships to users. Grades *the user's*
+     scaffold docs vs. the contracts AND vs. their code. A feature.
+  2. **Factory QA** = the "self-check" / "meta-audit", never ships. Verifies the skills
+     we're about to release are internally consistent (embedded contract copies ==
+     masters == architecture). A release gate — closer to `make test`/lint than a skill.
+  Keep them separate.
+
+### Decisions resolved this session
+- **§3c (where contracts live): R2+.** Contracts are standalone **build inputs** — one
+  master file per doc type in `contracts/`. `ARCHITECTURE.md` shrinks to concepts/Laws/
+  routing and *links* to them. Rationale: a standalone file is trivially copyable (into
+  skills) and diffable (by the self-check); a section buried in a 35KB narrative must be
+  parsed out every time. Repo-not-sacred makes this an easy call.
+- **§2.4: drop `project.md` verifiable-checkbox Requirements — CONFIRMED.** `project.md`
+  = identity + scope (incl. "what we're NOT building"). Invariants live where tested.
+- **§3e frontmatter — CONFIRMED, minus `band`.** Minimal set: **`type` /
+  `schema_version` / `updated`** (fold `Last updated` comment into `updated`).
+  `band` dropped: it's a total function of `type` (state→living, decision→history,
+  phase-brief→execution), so storing it = a derivable enum that can drift — a
+  violation of Principle 7. Band stays a concept (Information Model, contract bodies),
+  not a stored field. *(Applied the "simplify where possible" principle.)*
+- **§7 open #4 (does audit always check reality?): audit ALWAYS does both, no asking.**
+  The no-flags principle recurses — "audit asks whether to also check reality" is the
+  same forgettable-friction one level down. Depth is already chosen by *which* command
+  (`checkpoint` light/always vs `audit` deep/deliberate). Refinement: **conformance runs
+  first and gates reality** — the reality pass must read the docs to know what's built,
+  so malformed docs make it unreliable; if format is badly broken, report that and flag
+  the reality pass as unreliable.
+
+### Naming convention (new)
+- Skills are a **flat, hyphenated family: `/scaffold-[skill]`** (e.g.
+  `/scaffold-status`, `/scaffold-checkpoint`, `/scaffold-audit`) — NOT the
+  plugin-namespaced `scaffold:checkpoint` form they currently surface as. Implies
+  individually-installable self-contained skills, not one plugin bundle.
+- **Distribution mechanism also changes:** today they install as *commands* (`npx degit
+  mondreykr/scaffold/scaffold $HOME/.claude/commands/scaffold`). Target: self-contained
+  skills. README + install model need updating (downstream of the skill build).
 
 ---
 
@@ -196,15 +249,24 @@ integrate. This is the master-copy distribution map.
 
 ## 6. Sequence of work (do in this order — checklist derives from the schema)
 
-1. **Perfect `ARCHITECTURE.md`** — apply §2 fixes; regularize every artifact into
-   a uniform contract shape: **Purpose · Band · Owner(s) · Required structure
-   (skeleton, incl. frontmatter) · Rules · Anti-patterns.** Resolve §3c R1-vs-R2.
-2. **Produce the canonical per-doc-type contract reference files** (these double
-   as the conformance oracle / exact-form templates).
-3. **Resolve `project.md` Requirements** (§2.4) and `CLAUDE.md`/`project.md`
-   boundary (§2.3).
-4. **Migrate commands → skills** via skill-creator; bundle the contract slices per
-   §4.
+1. **[DONE]** **Perfect `ARCHITECTURE.md`** — reshaped: concepts kept, per-artifact
+   format prose + CLAUDE.md template extracted out, Commands→Skills (9, `/scaffold-`
+   naming), flags removed, two-tier audit model + frontmatter + Document Types index
+   added. Contract shape settled: **Purpose · Band · Owner(s) · Required frontmatter ·
+   Required structure · Rules · Anti-patterns** (don't-pad trivial types).
+2. **[DONE]** **Produce the canonical per-doc-type contract files** — 11 in
+   `contracts/` (claude-md, project, architecture, roadmap, state, knowledge, decision,
+   investigation, milestone-plan, spec-pointer, phase-brief). Double as oracle +
+   templates.
+3. **[DONE]** **Resolve `project.md` Requirements + `CLAUDE.md`/`project.md` boundary**
+   — checkboxes dropped, boundary pinned, "may be dropped for symmetry" license kept.
+   - *Audit-after (2 independent agents) ran on steps 1–2: consistency CLEAN; recovered
+     4 load-bearing items lost in extraction (ADR pruning rule, ID-convention rationale,
+     project.md drop-license, knowledge "always a living home" invariant) — all
+     restored.*
+4. **[NEXT]** **Migrate commands → skills** via skill-creator; bundle the contract
+   slices per §4. *(Delta: `scaffold/` still holds the 8 OLD command files; ARCHITECTURE
+   now describes the 9-skill target incl. the not-yet-built `audit`.)*
 5. **Build the dev-repo self-check** (skill copies == masters == architecture).
    Non-negotiable (§3c).
 6. **Build `audit` skill** (deep conformance + reality + stranded-rules) and fold
@@ -213,15 +275,15 @@ integrate. This is the master-copy distribution map.
 
 ---
 
-## 7. Open decisions for Adam (next session)
+## 7. Open decisions for Adam — ALL RESOLVED (see §0)
 
-- [ ] §3c: R1 (contracts inside ARCHITECTURE.md) vs **R2 (contracts as standalone
-      master files, architecture indexes them — Claude's rec).**
-- [ ] §2.4: confirm dropping `project.md` verifiable-checkbox Requirements;
-      decide what `project.md` should contain (identity + scope only?).
-- [ ] Frontmatter field set (§3e) — minimal set confirmation.
-- [ ] Whether `audit` runs reality-vs-code every time it's invoked, or that stays
-      a heavier sub-mode (no flags — maybe audit always does both, or audit asks).
+- [x] §3c: **R2+** — contracts as standalone master files in `contracts/`; architecture
+      links them.
+- [x] §2.4: **drop** `project.md` verifiable-checkbox Requirements; `project.md` =
+      identity + scope only.
+- [x] Frontmatter field set (§3e) — minimal set confirmed (`type`/`band`/
+      `schema_version`/`updated`).
+- [x] `audit` reality-check: **always does both, conformance-gates-reality, no asking.**
 
 ---
 
