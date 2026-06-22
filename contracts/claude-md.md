@@ -42,6 +42,9 @@ frontmatter would be surprising noise. This is the only doc type exempt.
 Every skill leaves ALL state documents accurate and self-consistent.
 Any skill could be the last thing that runs before a week-long gap.
 Skills are optional tools — the minimum ceremony is status → work → checkpoint.
+Scaffold works like a state machine: every piece of information has exactly one home a
+skill can compute — so never add a catch-all / open-ended / "misc" section to any doc;
+that's where dumping and drift start. New information routes to its existing home.
 
 ## About this project
 [3–5 line product orientation + a pointer into `.scaffold/` so a cold read knows where

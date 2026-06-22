@@ -57,9 +57,10 @@ verification and routing. Determine the checkpoint kind:
 Wait for the response.
 
 - **Pause:** ask "Anything to note for next time? (context, gotchas, where you left off
-  — or 'no')." Then fold it into `state.md` Active focus (one paragraph), set Next to the
-  concrete resume action preserving the milestone + brief reference, and put any
-  transient op-state in `## Notes`. Skip Steps 3–6; go to Step 7.
+  — or 'no')." Then fold it into `state.md` Active focus (one paragraph) and set Next to
+  the concrete resume action preserving the milestone + brief reference. A precondition on
+  resuming (e.g. "reseed the dev DB first") rides in `## Next`; a durable run/env condition
+  goes to `architecture.md` — there is no `## Notes` section. Skip Steps 3–6; go to Step 7.
 - **Partial save:** do NOT tick the phase. Update Active focus to reflect progress;
   preserve milestone + brief in Next. Skip Step 3; go to Step 5.
 - **Abandon:** do NOT tick the phase. Clear the brief reference in Next, replace with a
@@ -93,9 +94,14 @@ session changed. The shape each doc must keep:
 - **5a `milestones/NN-slug/plan.md`** — tick the phase checklist for any phase completed
   this session: `- [x] NN-slug (YYYY-MM-DD)`. The checkbox + date IS the "done?" signal
   (no status enum). Keep annotations terse — a date, not prose; verbose narrative goes to
-  git, never accreting here. If a *plan* shifted (phases reordered/scope changed), that's
+  git, never accreting here. **Groom `## Deferred`** (add the section if the milestone
+  needs it): add a terse `- [ ]` line for any work tied to this milestone that this session
+  surfaced but deferred (a bug, cleanup, debt, residual), and **remove any `## Deferred`
+  item this session actually shipped** (you have the diff — that's your evidence). Items are removed,
+  never ticked `- [x]`. If a *plan* shifted (phases reordered/scope changed), that's
   `scaffold-plan`'s job — note and route.
-- **5b `state.md` (always)** — four core sections plus optional `## Notes`:
+- **5b `state.md` (always)** — exactly four sections (Active focus / Next / Blockers /
+  Open Questions), no others:
   - **Active focus** — one paragraph, rewritten to reflect this session's outcome.
     Forward-looking, ELI5 (plain words, short sentences); no bullets, code blocks, or
     quoted prompts.
@@ -104,9 +110,11 @@ session changed. The shape each doc must keep:
   - **Blockers** / **Open Questions** — always present; literal `None.` when empty. When
     one resolves, remove the line and route the resolution to its home (a decision, the
     roadmap, a commit, a knowledge doc) — state never accumulates resolved items.
-  - **`## Notes`** (optional) — transient operational state only (dirty dev DB, temp env
-    swap), cleared when it resolves. Durable run/env facts go to `architecture.md`, not
-    here.
+  - **No `## Notes` section** — `state.md` has only the four headings above. Transient
+    operational state routes to its real home: a resume precondition → `## Next`; a durable
+    run/env condition → `architecture.md`; a blocker → `## Blockers`. If a `## Notes` (or
+    any catch-all) section exists from an older tree, drain it this checkpoint — re-home
+    each line, then delete the section.
 - **5c `knowledge/*.md`** — only if the build changed how a durable domain/behavioral
   rule actually works. Living truth, maintained in place, never a log. During a
   predetermined milestone the spec's `references/` are the living rulebook; emergent
@@ -124,9 +132,12 @@ session changed. The shape each doc must keep:
   (including "what we're NOT building"); state durable constraints as plain truth — **no
   checkboxes.** A verifiable invariant routes to where it's tested (a phase brief's
   `## Acceptance`, the milestone done-contract, or a `knowledge/` doc), not here.
-- **5f `roadmap.md`** — add a surfaced future-feature one-liner to `## Backlog` (its
-  permanent home). `## Milestones` lines use the fixed tokens `[done] | [active] |
-  [planned]`; the status flip to `[done]` happens in Step 6b.
+- **5f `roadmap.md`** — add a surfaced future-work one-liner to `## Backlog` as a terse
+  `- [ ]` **only if it's not tied to the active milestone** (work tied to the active
+  milestone — its scope/code — goes to `plan.md` `## Deferred`, not here; the test is
+  tied-ness, not altitude). **Remove any `## Backlog` item this session shipped** (removed,
+  never ticked `- [x]`). `## Milestones` lines use the fixed tokens `[done] | [active] | [planned]`; the
+  status flip to `[done]` happens in Step 6b.
 - **5g `CLAUDE.md` (rare)** — only if orientation/working instructions genuinely changed;
   durable technical truth goes to `architecture.md`, not here.
 
@@ -163,9 +174,14 @@ confirmation:
    milestone's spec `references/` (or accrued emergent rules), **reconciling against
    existing knowledge docs** (retire/supersede contradicted ones). **Surface the
    graduation + retire set for Adam's confirmation; don't curate silently.**
-2. **Flip the roadmap line** to `[done]` in `roadmap.md`'s `## Milestones`.
-3. **Leave the folder in place** — no archive move; git is the history.
-4. A pointer'd/external spec is **not cracked open** — only its enduring rules graduate.
+2. **Resolve the `## Deferred` list (backstop).** No milestone closes with un-handled
+   deferred items: for each, confirm shipped (remove it), promote it (surface for
+   `scaffold-plan` to re-home into the next milestone's `plan.md` `## Deferred` or
+   `roadmap.md` `## Backlog`), or drop it with Adam's nod. The list retires with the
+   folder — it must not graveyard.
+3. **Flip the roadmap line** to `[done]` in `roadmap.md`'s `## Milestones`.
+4. **Leave the folder in place** — no archive move; git is the history.
+5. A pointer'd/external spec is **not cracked open** — only its enduring rules graduate.
 
 ## Step 7: Conformance + coherence sweep (EVERY checkpoint)
 
@@ -178,7 +194,11 @@ Runs on every checkpoint, and is the *whole* job when there's no work to save. S
    exempt).
 3. No format anti-patterns — an append-log/dated entries in a living doc, checkboxes in
    `project.md`, a hyphenated investigation date (`2026-06-11-*` should be `20260611-*`),
-   a status token outside `[done] | [active] | [planned]`.
+   a status token outside `[done] | [active] | [planned]`, a `## Notes` (or any catch-all)
+   section in `state.md`, a multi-line or `- [x]`-checked item in `roadmap.md` `## Backlog`
+   or `plan.md` `## Deferred`, work tied to the active milestone sitting in `## Backlog`
+   (belongs in `## Deferred`), or work not tied to any active milestone sitting in
+   `## Deferred` (belongs in `## Backlog`).
 
 **Coherence** — read across `project.md`, `architecture.md`, `roadmap.md`, `state.md`,
 `knowledge/*.md`, the active `plan.md` + briefs, and `decisions/`:
@@ -187,8 +207,11 @@ Runs on every checkpoint, and is the *whole* job when there's no work to save. S
    current statement. No dangling/stale back-references (the coupling rule, audited).
 2. **Law 1** — no living-truth doc has grown an append-log; fold current truth back into
    place, history belongs in git.
-3. **Law 2** — no work-tracking in truth docs; no durable truth stranded in a brief or
-   `## Notes`; no strategy that belongs in cortex; no project docs drifted into `docs/`.
+3. **Law 2** — no work-tracking in truth docs; no durable truth, deferred work, or to-do
+   list stranded where it doesn't belong (durable run/env → `architecture.md`; deferred
+   work → `plan.md` `## Deferred` / `roadmap.md` `## Backlog`; an undecided question →
+   `## Open Questions`); no strategy that belongs in cortex; no project docs drifted into
+   `docs/`.
 4. **Duplication** — the same fact in two living docs; collapse to the single owner per
    the routing tiebreak.
 5. **Brief-vs-decision staleness** — any unexecuted brief premised on a changed or
@@ -197,10 +220,19 @@ Runs on every checkpoint, and is the *whole* job when there's no work to save. S
    exist; the named phase is consistent with `plan.md`'s checklist.
 7. **Stale dates** — any living doc whose `updated:` is over a week old while its content
    clearly moved.
+8. **Deferred/Backlog grooming nudge** — staleness removal (is an item already built or
+   moot?) needs the code, so it's `audit`'s job, not this sweep's — but a discretionary
+   check nobody's reminded to run isn't a safety net. So the always-on sweep *surfaces the
+   signal*: if the active milestone's `## Deferred` (or `roadmap.md` `## Backlog`) has grown
+   large (rule of thumb: >~12 items) or clearly hasn't been groomed in a long while, flag
+   it — "`## Deferred` is at N items; run `/scaffold-audit` to do the deep already-built/
+   stale check, then `/scaffold-plan` to act on the flags." Checkpoint nudges; audit
+   determines. This keeps a long-lived milestone's list from silently accreting.
 
 Fix what's **mechanical and unambiguous** (a broken back-reference path, a stray dated
-entry folded back into truth, a resolved `## Notes` line, a missing/refreshable
-frontmatter field) and note it in Step 8. **Surface** anything needing judgment (a brief
+entry folded back into truth, a shipped `## Backlog`/`## Deferred` item removed, a
+leftover `## Notes` section drained and removed, a missing/refreshable frontmatter field)
+and note it in Step 8. **Surface** anything needing judgment (a brief
 needing a real rewrite, a two-way contradiction, an ADR that should change, collapsing a
 duplicate / re-homing content between `architecture.md` and `knowledge/`, or a requirement
 checkbox in `project.md` — the `[ ]` syntax is the anti-pattern, but its *content* is a

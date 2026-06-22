@@ -114,15 +114,24 @@ updated: [today]
 
 ## Done-contract
 [the acceptance the phases roll up to]
+
+## Deferred
+[OPTIONAL — only if the old layout carried ground-level deferred work. One `- [ ]` line
+each. See the backlog-split note below for what routes here vs. to roadmap Backlog.]
 ```
 
 **`## Backlog` + a freshly-authored `## Milestones` index STAY in `roadmap.md`:**
-repurpose it to program altitude; keep `## Backlog` (its permanent home — losing it
-retires the backlog); author a `## Milestones` index, one line per milestone with a
-`[done] | [active] | [planned]` token + folder pointer. **Rewrite any backlog line the
+repurpose it to program altitude; author a `## Milestones` index, one line per milestone
+with a `[done] | [active] | [planned]` token + folder pointer. **Split the old backlog by
+the tied-to-the-active-milestone test** (this is where most legacy bloat hides): work
+**not tied** to the active milestone (a standalone future feature) stays in `## Backlog` as
+one terse `- [ ]` line; work **tied** to the active milestone (a bug, cleanup, debt,
+residual in its code) moves to that milestone's `plan.md` `## Deferred`. Make each surviving
+line **one line** — if a legacy entry is a multi-line paragraph, compress it to a pointer
+(detail stays in git). Drop `someday / never` entries. **Rewrite any backlog line the
 migration makes stale** (e.g. a "multi-user/tenancy" line should point at the relevant ADR
 + a future milestone number rather than imply debt the current architecture doesn't carry)
-— surface each rewrite. Target shape (stamp frontmatter):
+— surface each rewrite and each backlog→deferred move. Target shape (stamp frontmatter):
 
 ```markdown
 ---
@@ -137,7 +146,7 @@ updated: [today]
 - [active] NN-slug — [what this chunk delivers] → milestones/NN-slug/
 
 ## Backlog
-- [future features, one line each]
+- [ ] [program-altitude future feature, one line each]
 ```
 
 ## Step 5: Move phase briefs into the milestone
@@ -259,12 +268,13 @@ same pass (the coupling rule — filling the Step 6 placeholders).
 ## Step 9: Repoint `state.md` and reconcile
 
 Stamp `type: state` frontmatter. Repoint `## Next` to the new path per the rename map.
-Ensure the four sections exist in order (Active focus / Next / Blockers / Open Questions),
-with literal `None.` where Blockers/Open Questions are empty. **Preserve transient
-operational state as `## Notes`** if `state.md` carried any (durable run/env facts went to
-`architecture.md` in Step 6 — only transient stuff stays). Stamp `type: project` on
-`project.md` and any `knowledge/*.md` (`type: knowledge`) it carries. Confirm no swept
-pointer still dangles.
+Ensure exactly the four sections exist in order (Active focus / Next / Blockers / Open
+Questions), with literal `None.` where Blockers/Open Questions are empty. **There is no
+`## Notes` section** — if the old `state.md` carried one, **drain it**: durable run/env
+facts went to `architecture.md` in Step 6; a deferred work item → the milestone's `plan.md`
+`## Deferred`; a precondition on resuming → folded into `## Next`; a blocker → `##
+Blockers`. Surface each re-home. Stamp `type: project` on `project.md` and any
+`knowledge/*.md` (`type: knowledge`) it carries. Confirm no swept pointer still dangles.
 
 ## Step 10: Present the full migration, then execute
 
@@ -281,7 +291,7 @@ deletions (`decisions.md`, the now-empty `plans/`):
 **architecture.md** → NEW (from CLAUDE.md stack + decisions + run/env)
 **decisions/** → N ADRs promoted (Adam-approved); M build-records retired to git
 **investigations/** → K names normalized to YYYYMMDD; frontmatter stamped
-**state.md / project.md / knowledge/** → frontmatter stamped; Next repointed; [## Notes kept]
+**state.md / project.md / knowledge/** → frontmatter stamped; Next repointed; [old ## Notes drained → re-homed]
 **CLAUDE.md** → stack removed (→ architecture.md); Skill Reference table updated
 **Reference sweep:** N pointers repointed, 0 dangling
 **Staleness flags:** [downstream briefs to re-sweep with /scaffold-plan, if any]

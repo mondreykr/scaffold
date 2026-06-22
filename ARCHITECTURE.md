@@ -18,6 +18,17 @@ context intact.
 
 ## Design Principles
 
+**Scaffold runs like code.** It is a deterministic state machine whose *data is the
+document structure itself*: skills compute what's active, what's done, and what to do
+next by reading sections off disk (`## Next`, the `plan.md` checkbox, a brief's
+`## Scope`). That is the load-bearing invariant behind every principle below, and it has
+one sharp consequence — **every piece of information must have exactly one *computable*
+home, so a catch-all or open-ended section is forbidden.** A soft bucket is a
+non-deterministic home: the place ambiguous data silently piles up, which is how the
+machine starts misreading its own state (and how the docs bloat). When you change
+Scaffold, preserve determinism — a new kind of datum gets a section with a membership
+rule a skill can apply, never a dumping ground.
+
 1. **State machine.** Every skill leaves all state documents accurate and
    self-consistent. Any skill could be the last thing that runs before a long gap.
 2. **Skills are optional tools, not mandatory gates.** The minimum ceremony is
@@ -27,8 +38,9 @@ context intact.
 4. **Ceremony scales with the user.** You decide how much structure you want per
    session. The system supports freeform collaboration and formal scoped execution
    equally.
-5. **A place for everything.** Every piece of information has exactly one canonical
-   home. Documents don't duplicate each other.
+5. **A place for everything — and it's computable.** Every piece of information has
+   exactly one canonical home, decidable by a rule a skill can apply. Documents don't
+   duplicate each other, and no section is a catch-all.
 6. **Don't tell Claude what it already knows.** Skills and rules only instruct
    behaviors Claude wouldn't do by default.
 7. **Content-derived state, no enums.** What's active, what's done, and what mode a
@@ -76,7 +88,7 @@ and retire with their milestone.
 | Active state | Where we are now / next / blockers / open questions | `.scaffold/state.md` | living (churns) |
 | Decisions | Load-bearing *why* + rejected alternatives (ADRs) | `.scaffold/decisions/NNNN-slug.md` | frozen; **Adam-gated** |
 | Research | Investigations / analyses produced while working | `.scaffold/investigations/YYYYMMDD-slug.md` | frozen |
-| Milestone plan | The phases + objectives + acceptance for one chunk | `.scaffold/milestones/NN-slug/plan.md` | temporal |
+| Milestone plan | The phases + objectives + acceptance + deferred work for one chunk | `.scaffold/milestones/NN-slug/plan.md` | temporal |
 | Milestone contract | The spec, if the chunk needed heavy scoping | `.scaffold/milestones/NN-slug/spec/` | temporal |
 | Phase brief | Atomic execution unit: one phase's scope/approach/acceptance | `.scaffold/milestones/NN-slug/phases/NN-slug.md` | temporal |
 
@@ -107,7 +119,7 @@ CLAUDE.md                         orientation + instructions + pointer into .sca
   # ── EXECUTION (temporal; retires with its milestone) ──
   milestones/
     NN-slug/
-      plan.md                     this milestone's phase plan + objectives + acceptance
+      plan.md                     this milestone's phase plan + objectives + acceptance + deferred work
       spec/                       OPTIONAL — the contract, if heavy scoping was needed
       phases/
         NN-slug.md                phase briefs
@@ -184,7 +196,22 @@ A few concepts span the execution docs and don't belong to any single contract:
 - **Milestone lifecycle.** Active = wherever `state.md` Next points (not folder
   order). On close, the folder rests in place (no archive move); durable rules graduate
   to `knowledge/` (reconciled, surfaced for Adam); `roadmap.md`'s milestone line flips
-  to `[done]`.
+  to `[done]`. Any remaining `## Deferred` items are resolved, promoted, or dropped at
+  close — they retire with the milestone, never silently graveyarded.
+- **Deferred work (`plan.md` `## Deferred`).** Work *tied to* a milestone — surfaced
+  inside it, in its scope or code, but not scheduled into a phase: a bug, a cleanup,
+  deferred debt, a review residual. **The Backlog↔Deferred discriminator is one computable
+  test — "is it tied to the active milestone?"** Tied → here (it's moot or owned elsewhere
+  once the milestone closes); not tied, or no milestone is active → `roadmap.md`
+  `## Backlog` (it outlives any current milestone). It is groomed **continuously, not only
+  at close** (close is too rare to be the drain — milestones can run a long time): `plan`
+  promotes an item into a phase brief (and removes the line) or leaves it; `checkpoint`
+  removes items shipped that session **and, on its always-on sweep, surfaces a nudge to run
+  `/scaffold-audit` once the list grows large or hasn't been groomed in a while**; `audit`'s
+  reality pass does the expensive "already built / no longer applies" determination and
+  flags items for removal. Accumulation of one-liners is tolerable *because* the sweep
+  nudges grooming before it bloats — the discipline is one line per item plus prompted
+  grooming, not a guaranteed-empty list, and not a drain you must remember to run unprompted.
 
 ## Routing — "Where Does This Go?"
 
@@ -192,15 +219,16 @@ Deterministic. Resolve by the two laws when in doubt.
 
 | The thing | Home |
 |-----------|------|
-| A new feature idea, one line | `roadmap.md` → Backlog |
+| Future work NOT tied to the active milestone (a feature/capability that outlives it; or anything surfaced while no milestone is active) | `roadmap.md` → `## Backlog` |
+| Deferred work tied to the active milestone (a bug, cleanup, debt, residual in its scope/code) | that milestone's `plan.md` → `## Deferred` |
 | A significant, durable choice + its why | `decisions/NNNN-slug.md` (+ reference it from `architecture.md` if architectural) |
 | Research / analysis output | `investigations/YYYYMMDD-slug.md` |
-| Current technical truth (how it's built) | `architecture.md` |
+| Current technical truth (how it's built, incl. durable run/env) | `architecture.md` |
 | A durable business/behavioral rule | `knowledge/*.md` |
 | How to build phase X of the active milestone | `milestones/NN-active/phases/X-slug.md` |
 | The contract that scoped a milestone | `milestones/NN-slug/spec/` (the spec, or a pointer to a shared/external one) |
 | Where we are right now | `state.md` (`## Next` is the active-cursor authority) |
-| Transient operational state (dirty DB, temp env) | `state.md` → `## Notes` |
+| Transient operational state (dirty DB, temp env) | resolve it; else route — a resume precondition → `state.md` `## Next`; a durable run/env condition → `architecture.md`; a blocker → `## Blockers`. **No catch-all section.** |
 | What the product is / scope boundaries | `project.md` |
 | A code-adjacent reference asset (design bundle) | repo `docs/` |
 | What happened (history) | git (no `log.md`) |
@@ -407,12 +435,12 @@ Every artifact has a skill that **creates** it and a skill that **maintains** it
 | `project.md` | C | R | U | — | U (rare) | R | U | U |
 | `architecture.md` | C (seed) | R | U (propose) | — | **U (primary)** | R | U | C (from old CLAUDE/decisions) |
 | `knowledge/*.md` | C (dir) | R | C/U | R | C/U + **graduate/retire-on-close** | R | C/U (absorb) | — |
-| `roadmap.md` | C | R | U | — | U | R | R (classify) | U (build milestone index) |
-| `state.md` | C | R | U | R | U + reconcile | R | U | U |
+| `roadmap.md` | C | R | U (add/remove Backlog) | — | U (+ remove shipped) | R (flag stale) | R (classify) | U (build milestone index) |
+| `state.md` | C | R | U | R | U + sweep | R | U | U |
 | `decisions/NNNN-slug.md` | C (dir) | R (on ref) | **propose→gate** | — | **propose→gate** | R | — | migrate (Adam gates survivors) |
 | `investigations/YYYYMMDD-slug.md` | C (dir) | R (lists) | R | C (opportunistic) | R | R | — | — |
 | `milestones/NN-slug/` (container) | C (first) | R | **C** (new chunk) | — | × (close-in-place) | R | — | C (wrap existing roadmap) |
-| `…/plan.md` | C (seed) | R | **U** | R | U (tick checklist + sign-off) | R | U | C (from old roadmap body) |
+| `…/plan.md` | C (seed) | R | **U** (+ groom/promote Deferred) | R | U (tick + groom Deferred) | R (flag stale Deferred) | U | C (from old roadmap body) |
 | `…/spec/` | — | R | — | R | — | R | **C** (absorb/pointer) | move or pointer |
 | `…/phases/NN-slug.md` | — | R | **C/U** + stale-sweep | **execute** | × (tick complete) | R | — | C (move old `plans/`, keep `09.1`) |
 
@@ -483,7 +511,7 @@ reality.
 | Milestone ready to close? | `plan.md` fully checked AND its done-contract met (emergent: only when Adam says the chunk is done). The `roadmap.md` `[done]` flip is the *output* of closing, not a precondition |
 | Milestone mode | derived: has `spec/` + pre-written briefs → predetermined; else emergent |
 | Blocked | `state.md` `## Blockers` has content other than "None." |
-| Transient op-state present | `state.md` `## Notes` is non-empty |
+| Deferred work parked | the active milestone's `plan.md` `## Deferred` is non-empty |
 
 Signals are not mutually exclusive — a session can be blocked AND have an active phase.
 `status` surfaces all that apply. No status keyword is stored anywhere; every signal is

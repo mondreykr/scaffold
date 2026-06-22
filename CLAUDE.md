@@ -18,6 +18,17 @@ Two consequences, and they override any instinct to the contrary:
 
 Scaffold is a context-persistence system for Claude Code: a family of skills that
 maintain a small set of living docs in a user's repo so work survives across sessions.
+
+**The essence — hold this while editing anything here.** The product is a *deterministic
+state machine, and its data is the document structure itself.* Skills compute state by
+reading sections off disk (`## Next` = what's active, the `plan.md` checkbox = what's
+done, a brief's `## Scope` = what to build). The whole thing works only because **every
+piece of information has exactly one *computable* home.** The corollary is a hard
+guardrail on every change you make: **never add an open-ended or catch-all section.** A
+soft bucket is a non-deterministic home — ambiguous data piles up there, the docs bloat,
+and the machine starts misreading its own state. A new kind of datum earns a section with
+a membership rule a skill can apply, or it routes to an existing home — never a dumping
+ground. (Full statement: `ARCHITECTURE.md` → Design Principles.)
 Skills are named in a flat, hyphenated family — **`/scaffold-[skill]`** (e.g.
 `/scaffold-status`, `/scaffold-checkpoint`, `/scaffold-audit`). A skill is a folder
 (`SKILL.md`, plus its own `references/`/`scripts/` only when that skill is big enough to

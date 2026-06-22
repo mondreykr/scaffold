@@ -55,4 +55,5 @@ as sections until architecture exceeds a screen.
 
 - A separate ADR index file (drifts).
 - Business/behavioral rules that belong in `knowledge/`.
-- Run/env facts duplicated into `state.md` (only *transient* op-state lives there).
+- Run/env facts parked in `state.md` — durable run/env truth lives **here**; `state.md`
+  has no transient-state section (a resume precondition rides in its `## Next`).

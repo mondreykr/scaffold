@@ -49,7 +49,7 @@ decision → proceed to Phase 2.
 
 Read, absorbing context (don't present yet):
 
-1. `state.md` — Active focus, Next, Blockers, Open Questions, Notes
+1. `state.md` — Active focus, Next, Blockers, Open Questions
 2. `roadmap.md` — `## Milestones` index + `## Backlog`
 3. `project.md` — identity, scope boundaries
 4. `architecture.md` — current technical truth + referenced ADRs
@@ -57,7 +57,7 @@ Read, absorbing context (don't present yet):
 
 Then the **active milestone** (per `state.md` Next — *not* folder order; highest `NN` is
 only a fallback when Next is silent): its `plan.md` (checklist, objectives,
-done-contract); the phase brief Next points at, if any; its `spec/` if present (follow a
+done-contract, `## Deferred` list); the phase brief Next points at, if any; its `spec/` if present (follow a
 pointer to an external/shared spec; don't crack open its internals); and any
 `knowledge/` doc relevant to the direction. Scan `decisions/` and `investigations/` by
 filename; read any directly relevant.
@@ -125,10 +125,24 @@ Wait for approval. Adjust if Adam changes anything.
 
 ## Phase 5: Author (route by the model — one home each)
 
-Write only what the direction calls for.
+Write only what the direction calls for. **Every datum has exactly one home below — never
+invent a catch-all / "misc" / "notes" section to park something that doesn't obviously
+fit.** Route it to its real home; if it genuinely seems to need a new kind of section,
+that's a system-design question to raise with Adam, not a bucket to add mid-session.
 
-- **New feature idea, one line** → `roadmap.md` `## Backlog` (permanent home; doesn't
-  retire with a milestone).
+- **The Backlog↔Deferred test (one computable rule):** *is this tied to the active
+  milestone — its scope, its code, or its goal?* **Not tied (or no milestone is active) →
+  `roadmap.md` `## Backlog`** (it outlives any current milestone — typically a future
+  feature/capability). **Tied → the active milestone's `plan.md` `## Deferred`** (it's moot
+  or owned elsewhere once the milestone closes — typically a bug, cleanup, debt, residual,
+  or doc/spec-reconciliation surfaced inside the work). "Altitude" is not the rule; tied-ness
+  is. Either way: one terse `- [ ]` line, never ticked — an item leaves by removal when
+  promoted or shipped.
+- **Grooming Deferred + Backlog (when the direction touches them).** You own *promotion*:
+  pull a `## Deferred` or `## Backlog` item into a phase brief (authoring it per below) and
+  **remove the promoted line in the same write**, or leave the item if Adam decides not to
+  schedule it yet. Don't delete an item as "done" on your own judgment — shipped-removal is
+  `checkpoint`'s (it has the diff) and stale-detection is `audit`'s (it checks the code).
 - **A new milestone** → create `.scaffold/milestones/NN-slug/` (`NN` = milestone counter;
   slug is a sticky namespace — choose deliberately). Seed `plan.md` (frontmatter
   `type: milestone-plan`; `# Milestone NN — <slug>`; `## Objectives`; `## Phases`
@@ -190,8 +204,9 @@ Write only what the direction calls for.
     or run /scaffold-go." **This is the authority for what's active.**
   - **Blockers / Open Questions** — update only if the discussion resolved or surfaced
     one; remove resolved lines (history is git).
-  - **Notes** — leave transient operational notes intact unless the discussion cleared
-    them.
+  - **No `## Notes` section** — `state.md` has no transient-state bucket. A precondition on
+    resuming (reseed the DB first) rides in `## Next`; a durable run/env condition goes to
+    `architecture.md`; a blocker to `## Blockers`.
 
 ## Phase 6: Pivot — stale-brief sweep
 

@@ -77,8 +77,14 @@ State is derived from what the documents say, not from status keywords. Compute:
   author the next phase (`/scaffold-plan`); close only if the chunk is genuinely done.
 - **Blocked?** `state.md`'s `## Blockers` has content other than "None."
 - **Open questions?** `state.md`'s `## Open Questions` has content other than "None."
-- **Operational note?** `state.md` has a `## Notes` section with transient state (dirty
-  dev DB, temp env swap) — surface it; it affects how work resumes.
+- **Deferred work parked?** The active milestone's `plan.md` has a non-empty `## Deferred`
+  list — surface the count; these are known items not yet scheduled. If it has grown large
+  (rule of thumb: >~12 items), nudge: "`## Deferred` is at N items — consider
+  `/scaffold-audit` to groom it (the deep already-built/stale check), then `/scaffold-plan`
+  to act." This puts the grooming signal on the session-**entry** path too, so a resuming
+  user sees it even if last session ended without a checkpoint. (A precondition on resuming,
+  e.g. "reseed the dev DB first," lives in `## Next` and is surfaced with it — there is no
+  `## Notes` section.)
 
 Signals are not mutually exclusive (you can be blocked AND mid-phase) — surface all that
 apply. They drive routing in Step 6.
@@ -91,8 +97,8 @@ Keep it short — a briefing, not a report:
 2. **Milestone + phase** — which milestone is active (per `## Next`), which phase brief is
    current, and how many phases in its `plan.md` are checked vs remaining.
 3. **Active focus** — the one-paragraph synopsis from `state.md`.
-4. **Open threads** — Blockers and Open Questions (skip if both "None."). Surface `##
-   Notes` operational state if present.
+4. **Open threads** — Blockers and Open Questions (skip if both "None."). Note the active
+   milestone's `## Deferred` count if non-empty.
 5. **Knowledge** — `knowledge/` filenames + one-liners (Step 3). Skip if empty.
 6. **Investigations** — `investigations/` filenames (Step 3). Skip if empty.
 7. **Next action** — route per Step 6.

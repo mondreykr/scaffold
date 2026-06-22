@@ -109,8 +109,10 @@ Beyond its primary home, lift operational facts — and only these:
 
 - **Durable run/env facts** (how to run it, env vars, deployment shape, data-access) →
   `architecture.md`. If it doesn't exist and the facts are slim, propose creating it.
-- **Transient operational state** (dirty dev DB, temp env swap) → `state.md` `## Notes`
-  (add the section if absent).
+- **A durable run/env *condition*** the artifact sets (e.g. "runs against a dev DB until
+  cutover") → `architecture.md` `## Run / env` — it's durable truth, not transient.
+  `state.md` has no `## Notes` section; a one-off precondition on resuming is flagged for
+  `plan`/`checkpoint` to fold into `## Next`, not written here.
 - **A scope-boundary the artifact makes explicit** → `project.md`, as **plain truth** in
   `## Scope` or `## Not building` — **never a checkbox** (checkboxes are a `project.md`
   anti-pattern). A *verifiable invariant* the artifact states routes to where it's tested
@@ -124,10 +126,10 @@ a `plan.md` (`plan`). Present the extraction set before writing, and **STOP for
 confirmation** if there's anything beyond the primary placement:
 
 > "Extracting into truth docs:
-> - architecture.md: [run/env facts]
-> - state.md ## Notes: [transient state]
+> - architecture.md: [run/env facts + any durable run/env condition]
 > - project.md: [scope boundary made explicit]
-> Flagging for /scaffold-plan (not authored here): [implied milestone/backlog]."
+> Flagging for /scaffold-plan (not authored here): [implied milestone/backlog; any resume
+>   precondition for state.md ## Next]."
 
 Set `updated:` on every truth doc you touch.
 

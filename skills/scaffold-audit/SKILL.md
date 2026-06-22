@@ -61,14 +61,21 @@ append-log). The criteria, by type:
   inline references *are* the index); ✗ business/behavioral rules that belong in
   `knowledge/`; ✗ run/env duplicated into `state.md`.
 - **`roadmap`** — `# Roadmap`, `## Milestones` (each line a `[done] | [active] |
-  [planned]` token + one-liner + folder pointer), `## Backlog`. ✗ per-phase build detail
-  (belongs in a `plan.md`); ✗ a status token outside the fixed set; ✗ a dangling folder
-  pointer.
-- **`state`** — `# State`, then `## Active focus` / `## Next` / `## Blockers` /
-  `## Open Questions` in that order (mandatory), `## Notes` optional. `## Next` is the
-  active cursor; `Blockers`/`Open Questions` carry literal `None.` when empty. ✗ an
-  append-log / dated history in any section; ✗ bullets/code/quoted prompts in Active
-  focus; ✗ resolved Blockers/Questions left in place; ✗ a status keyword as the cursor.
+  [planned]` token + one-liner + folder pointer), `## Backlog` (future work **not tied to
+  the active milestone** — typically features — one terse `- [ ]` line each). ✗ per-phase
+  build detail (belongs in a `plan.md`); ✗ work **tied to the active milestone** — a
+  bug/cleanup/residual in its code (belongs in `plan.md` `## Deferred`; the test is
+  tied-ness, not altitude); ✗ a multi-line / paragraph backlog item; ✗ a `- [x]`-checked
+  item or a shipped feature still listed; ✗ a `someday / never` / rejected-idea entry; ✗ a
+  status token outside the fixed set; ✗ a dangling folder pointer.
+- **`state`** — `# State`, then exactly `## Active focus` / `## Next` / `## Blockers` /
+  `## Open Questions` in that order — all four mandatory, **no other sections.** `## Next`
+  is the active cursor (and carries any resume precondition); `Blockers`/`Open Questions`
+  carry literal `None.` when empty. ✗ a `## Notes` (or any catch-all / "misc" / "scratch")
+  section — removed by design, a non-deterministic home; ✗ durable truth, deferred work,
+  or a to-do list parked in any section; ✗ an append-log / dated history in any section;
+  ✗ bullets/code/quoted prompts in Active focus; ✗ resolved Blockers/Questions left in
+  place; ✗ a status keyword as the cursor.
 - **`knowledge`** — a prose rulebook titled for its rule area; living truth, maintained
   in place. ✗ a dated append-log; ✗ a fact that belongs in `architecture.md`.
 - **`decision`** — `# NNNN — <title>`, a `**Status:**` line (`Accepted` | `Superseded by
@@ -80,8 +87,11 @@ append-log). The criteria, by type:
   edited later as if living truth; ✗ strategic cross-project analysis (belongs outside
   the repo).
 - **`milestone-plan`** — `# Milestone NN — <slug>`, `## Objectives`, `## Phases` (checkbox
-  + completion date), `## Done-contract`. ✗ per-phase narrative accreting (append-log); ✗
-  a status enum substituting for the checkbox+date; ✗ renumbered interstitials.
+  + completion date), `## Done-contract`, optional `## Deferred` (work **tied to** this
+  milestone, deferred — one terse `- [ ]` line each). ✗ per-phase narrative accreting
+  (append-log); ✗ a status enum substituting for the checkbox+date; ✗ renumbered
+  interstitials; ✗ work **not tied to the active milestone** in `## Deferred` (belongs in
+  `roadmap.md` `## Backlog`); ✗ a multi-line or `- [x]`-checked `## Deferred` item.
 - **`phase-brief`** — `# Phase NN — <slug>`, `## Objective` / `## Scope` / `## Approach` /
   `## Acceptance`. ✗ a brief premised on an unratified ADR; ✗ renumbered interstitials.
 - **`spec-pointer`** — a short file naming + linking the external/shared spec and why it
@@ -104,6 +114,12 @@ Verify the scaffold's claims against the actual code:
   contradiction means the ADR is stale or silently violated).
 - **Standing blockers are real** — each `state.md` Blocker is corroborated by the code /
   state, not stale or already resolved.
+- **Deferred / backlog items aren't already done** — this is the deliberate, expensive
+  check the lighter skills can't do: for each `plan.md` `## Deferred` and `roadmap.md`
+  `## Backlog` item, verify against the actual code whether it's already built or no longer
+  applies. Flag every item that looks shipped or stale for removal (route to
+  `checkpoint`/`plan`) — audit reports, never deletes. This is the housekeeping pass that
+  keeps the lists from silently accreting done work.
 - **In-flight / uncommitted work** — flag uncommitted changes or recent edits the docs
   don't yet reflect (a checkpoint may be overdue).
 

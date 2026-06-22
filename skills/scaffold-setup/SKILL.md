@@ -114,6 +114,9 @@ special file, no frontmatter. For existing projects, fill templates from Step 2 
 Every skill leaves ALL state documents accurate and self-consistent.
 Any skill could be the last thing that runs before a week-long gap.
 Skills are optional tools — the minimum ceremony is status → work → checkpoint.
+Scaffold works like a state machine: every piece of information has exactly one home a
+skill can compute — so never add a catch-all / open-ended / "misc" section to any doc;
+that's where dumping and drift start. New information routes to its existing home.
 
 ## About this project
 [3–5 line product orientation: what this is, who it's for, and the one thing to know
@@ -216,11 +219,15 @@ updated: [today]
 - [active] 01-<slug> — [one line: what this chunk delivers] → milestones/01-<slug>/
 
 ## Backlog
-- [Future features and someday/never, one line each. Permanent home — does not retire.]
+- [ ] [Future feature — program-altitude, one terse line]
 ```
 
 Program altitude only. The status token is exactly one of `[done] | [active] |
-[planned]`. The phases *inside* a milestone live in its `plan.md`, never here.
+[planned]`. The phases *inside* a milestone live in its `plan.md`, never here. `## Backlog`
+holds future work **not tied to the active milestone** (typically features), one `- [ ]`
+line each (never ticked — an item leaves by removal when promoted into a milestone or
+shipped); work **tied to** an active milestone (a bug/cleanup/residual in its code) goes to
+that milestone's `plan.md` `## Deferred`, not here. The test is tied-ness, not altitude.
 
 ### .scaffold/state.md — where we are NOW (living, churns)
 
@@ -249,9 +256,11 @@ None.
 ```
 
 `## Next` is the single authority for what's active — not folder order, not a status enum.
-`Blockers`/`Open Questions` always present with literal `None.` when empty. Add an
-optional `## Notes` section only for *transient* operational state (dirty dev DB, temp env
-swap), cleared when it resolves — durable run/env facts go to `architecture.md`.
+`Blockers`/`Open Questions` always present with literal `None.` when empty. These four
+headings are the whole document — **there is no `## Notes` section.** Transient operational
+state routes to its real home: a precondition on resuming (reseed the DB first) rides in
+`## Next`; a durable run/env condition goes to `architecture.md`; a blocker to
+`## Blockers`.
 
 ### .scaffold/milestones/01-<slug>/plan.md — the first milestone's phase plan (temporal)
 
@@ -279,9 +288,12 @@ updated: [today]
 
 The `## Phases` checklist (each phase a checkbox + a completion date when done) is the
 disk-derivable "is it done?" signal — `checkpoint` ticks it. Keep annotations terse (a
-date, not prose) so it stays a bounded checklist, never an append-log. No `spec/` and no
-`phases/*.md` brief yet — those appear only if the work warrants heavy scoping (via
-`/scaffold-integrate` or `/scaffold-plan`) or once `plan` authors the first brief.
+date, not prose) so it stays a bounded checklist, never an append-log. An optional
+`## Deferred` section (ground-level work surfaced inside the milestone but not yet
+scheduled — bugs, cleanups, debt) is added by `plan`/`checkpoint` when there's something to
+park; the seed omits it while empty. No `spec/` and no `phases/*.md` brief yet — those
+appear only if the work warrants heavy scoping (via `/scaffold-integrate` or
+`/scaffold-plan`) or once `plan` authors the first brief.
 
 ## Step 4: Existing-codebase deep analysis (automatic — no flag)
 

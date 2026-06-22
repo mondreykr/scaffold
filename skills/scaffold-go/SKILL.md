@@ -29,8 +29,9 @@ phase complete, is `/scaffold-checkpoint`'s job.
 current phase brief. Read these in order:
 
 1. The phase brief referenced in `## Next` — its `## Scope` is what you execute.
-2. `.scaffold/state.md` — Active focus context and any `## Notes` (transient operational
-   state, e.g. "dev DB is dirty, re-seed first").
+2. `.scaffold/state.md` — Active focus context and `## Next` (which carries any
+   precondition on resuming, e.g. "reseed the dev DB first"). There is no `## Notes`
+   section.
 3. The active milestone's `plan.md` — objectives and the phase's place in the checklist.
 4. `.scaffold/architecture.md` — technical truth (stack, tenancy, data-access,
    conventions, how to run).
@@ -99,9 +100,10 @@ When all scope items are done:
 > "Phase scope complete. Run /scaffold-checkpoint."
 
 Do NOT tick the `plan.md` checklist yourself — checkpoint marks the phase complete after
-verifying. If you resolved a `## Notes` operational item during execution (e.g. re-seeded
-the dirty dev DB it warned about), surface it so `checkpoint` can clear that note — you
-don't write `state.md` yourself.
+verifying. If you resolved a resume precondition that `## Next` warned about (e.g.
+re-seeded the dirty dev DB), surface it so `checkpoint` can update `## Next` — you don't
+write `state.md` yourself. Likewise surface any ground-level issue you hit but left alone,
+so `checkpoint` can log it in the milestone's `## Deferred`.
 
 ---
 
