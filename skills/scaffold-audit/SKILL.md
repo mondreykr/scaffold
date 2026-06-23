@@ -18,7 +18,8 @@ audit never edits, proposes ADRs, or touches code.
 dispatch **fresh read-only subagents** (Explore / general-purpose) rather than judging
 from memory: one (or more) for the conformance pass over the doc tree, and — only after
 conformance clears — one or more for the reality pass against the code. Synthesize their
-findings here. Each agent is told it is grading, not fixing.
+findings here. Each agent is told it is grading, not fixing, and grades against the
+**bundled contracts** (Step 2), not from recollection.
 
 **Precondition.** `.scaffold/` exists with truth docs. If not: "No scaffold here — run
 /scaffold-setup (fresh) or /scaffold-cleanup (migrate an old layout)."
@@ -42,65 +43,35 @@ four are always present in a current scaffold.
 
 ## Step 2: Conformance pass (runs FIRST — gates the rest)
 
-Grade each doc hard against the rules for its `type`. Score: required sections present,
-correctly named, in order; frontmatter valid (`type`/`schema_version`/`updated`;
-`CLAUDE.md` exempt); anti-patterns absent; brevity (no bloat that signals a Law-1
-append-log). The criteria, by type:
+Grade each doc **against its contract.** This skill bundles a verbatim copy of every
+format contract in `references/` — one file per `type` (`references/roadmap.md`,
+`references/state.md`, `references/claude-md.md`, …). The contract is the oracle: grade
+against the file, never from memory or a remembered paraphrase. (The copies are kept
+identical to the factory masters by `scripts/sync-contracts.sh`; they are the authority
+here.)
 
-- **`claude-md`** (CLAUDE.md, no frontmatter) — has `## Skill Reference` (the 9 skills),
-  `## Core Principle`, `## About this project` (orientation + pointer into `.scaffold/`),
-  optional `## Hard constraints`. ✗ tech-stack/run-env inline (belongs in
-  `architecture.md`); ✗ user-identity/personal calibration (belongs in `~/.claude/`); ✗ a
-  "Key Documents" list.
-- **`project`** — `# <Product>` then `## What it is` / `## Who it's for` / `## Why` /
-  `## Scope` / `## Not building`. ✗ requirement/acceptance **checkboxes**; ✗ restating
-  *how it's built*; ✗ duplicating `CLAUDE.md`'s orientation.
-- **`architecture`** — `# Architecture` + the topic sections that apply (Stack, Tenancy/
-  isolation, Auth, Data access, Deployment, Conventions, Run/env); each significant truth
-  references the ADR that set it (`[[NNNN-…]]`). ✗ a **separate ADR index file** (the
-  inline references *are* the index); ✗ business/behavioral rules that belong in
-  `knowledge/`; ✗ run/env duplicated into `state.md`.
-- **`roadmap`** — `# Roadmap`, `## Milestones` (each line a `[done] | [active] |
-  [planned]` token + one-liner + folder pointer), `## Backlog` (future work **not tied to
-  the active milestone** — typically features — one terse `- [ ]` line each). ✗ per-phase
-  build detail (belongs in a `plan.md`); ✗ work **tied to the active milestone** — a
-  bug/cleanup/residual in its code (belongs in `plan.md` `## Deferred`; the test is
-  tied-ness, not altitude); ✗ a multi-line / paragraph backlog item; ✗ a `- [x]`-checked
-  item or a shipped feature still listed; ✗ a `someday / never` / rejected-idea entry; ✗ a
-  status token outside the fixed set; ✗ a dangling folder pointer.
-- **`state`** — `# State`, then exactly `## Active focus` / `## Next` / `## Blockers` /
-  `## Open Questions` in that order — all four mandatory, **no other sections.** `## Next`
-  is the active cursor (and carries any resume precondition); `Blockers`/`Open Questions`
-  carry literal `None.` when empty. ✗ a `## Notes` (or any catch-all / "misc" / "scratch")
-  section — removed by design, a non-deterministic home; ✗ durable truth, deferred work,
-  or a to-do list parked in any section; ✗ an append-log / dated history in any section;
-  ✗ bullets/code/quoted prompts in Active focus; ✗ resolved Blockers/Questions left in
-  place; ✗ a status keyword as the cursor.
-- **`knowledge`** — a prose rulebook titled for its rule area; living truth, maintained
-  in place. ✗ a dated append-log; ✗ a fact that belongs in `architecture.md`.
-- **`decision`** — `# NNNN — <title>`, a `**Status:**` line (`Accepted` | `Superseded by
-  [[NNNN-…]]` | `Proposed`), then Context / Decision / Why / Alternatives considered /
-  Consequences. **4-digit** numbering. ✗ an edited (vs superseded) ruling; ✗ a
-  build-record dressed up as an ADR; ✗ 2-digit numbering (collides with `NN`).
-- **`investigation`** — a titled, dated analysis (no fixed skeleton). Filename
-  `YYYYMMDD-slug` — **no hyphens in the date**. ✗ a hyphenated date (`2026-06-11-*`); ✗
-  edited later as if living truth; ✗ strategic cross-project analysis (belongs outside
-  the repo).
-- **`milestone-plan`** — `# Milestone NN — <slug>`, `## Objectives`, `## Phases` (checkbox
-  + completion date), `## Done-contract`, optional `## Deferred` (work **tied to** this
-  milestone, deferred — one terse `- [ ]` line each). ✗ per-phase narrative accreting
-  (append-log); ✗ a status enum substituting for the checkbox+date; ✗ renumbered
-  interstitials; ✗ work **not tied to the active milestone** in `## Deferred` (belongs in
-  `roadmap.md` `## Backlog`); ✗ a multi-line or `- [x]`-checked `## Deferred` item.
-- **`phase-brief`** — `# Phase NN — <slug>`, `## Objective` / `## Scope` / `## Approach` /
-  `## Acceptance`. ✗ a brief premised on an unratified ADR; ✗ renumbered interstitials.
-- **`spec-pointer`** — a short file naming + linking the external/shared spec and why it
-  lives outside. ✗ absorbing the external spec's internals into `.scaffold/`; ✗ treating
-  a still-live spec as frozen. (An embedded full spec keeps its own convention — don't
-  grade it against scaffold frontmatter.)
+**Grade one rule at a time — never a holistic verdict.** A whole-doc "this looks fine"
+judgment is exactly how a real violation slips through: the grader skims, the doc reads
+clean, and a present-but-ignored rule is never checked. To prevent that, for each doc:
 
-Report each doc as **conforms / minor / malformed**, with the specific rule for each
-finding.
+1. **Select the contract** from the doc's frontmatter `type:` (authoritative;
+   filename/location is only a fallback). `CLAUDE.md` → `references/claude-md.md`.
+2. **Walk the contract line by line** — every item in its **Required structure**, every
+   bullet in **Rules**, and every entry in **Anti-patterns**. For *each* one, emit an
+   explicit verdict — **pass / fail / n-a** — with the evidence (the doc line or section
+   that satisfies or violates it). Every anti-pattern is checked **by name**; you may not
+   drop one because the doc "seems clean." This per-rule table is the deliverable.
+3. **Also check** frontmatter (`type` / `schema_version` / `updated`; `CLAUDE.md` exempt)
+   and brevity (no bloat that signals a Law-1 append-log). For `knowledge/` specifically,
+   flag **form-drift**: an entry that restates code (a value/constant with a single code
+   home) or has grown past a concise *invariant + why + pointer*.
+
+Dispatch the fresh grading subagent(s) with the absolute path to this skill's
+`references/` directory and the instructions above, so they grade against the bundled
+contracts rather than recalling rules. A doc's overall grade — **conforms / minor /
+malformed** — is *derived* from its table: **conforms only if every rule passed.** A
+contract whose `type` doesn't apply to a given file (e.g. an embedded full spec, which
+keeps its own authoring convention) is marked n-a, not force-graded.
 
 ## Step 3: Reality pass (gated by conformance)
 
@@ -112,6 +83,10 @@ Verify the scaffold's claims against the actual code:
   Deployment reflect the manifests and code, not an aspiration.
 - **ADRs match reality** — an `Accepted` ADR's ruling is actually what the code does (a
   contradiction means the ADR is stale or silently violated).
+- **Knowledge invariants hold in the code** — for each `knowledge/` entry, the code
+  site(s) it points to exist and still implement the invariant. Flag a pointer that no
+  longer resolves, or a rule the code now violates (route to `checkpoint`). This is the
+  payoff of the pointer form and the backstop for a thin milestone-close graduation.
 - **Standing blockers are real** — each `state.md` Blocker is corroborated by the code /
   state, not stale or already resolved.
 - **Deferred / backlog items aren't already done** — this is the deliberate, expensive
@@ -139,8 +114,10 @@ graduation pass.
 ## Step 5: Report
 
 Return findings **prioritized** (malformed/blocking first, then reality contradictions,
-then minor conformance), each naming the doc, the specific rule, and **which skill owns
-the fix**:
+then minor conformance). Conformance findings come straight from the Step 2 per-rule
+tables — surface **every failed rule** (doc → the exact contract rule → evidence); do not
+collapse them into a single per-doc grade. Each finding names the doc, the specific rule,
+and **which skill owns the fix**:
 
 - format / section / frontmatter drift → `scaffold-checkpoint` (sweep) or
   `scaffold-cleanup` (structural)

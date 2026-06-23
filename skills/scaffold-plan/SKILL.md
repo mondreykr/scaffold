@@ -193,9 +193,12 @@ that's a system-design question to raise with Adam, not a bucket to add mid-sess
   changes only when the *business rule* changes → `knowledge/`. `checkpoint` is the
   primary owner (it sees the diff); `plan` touches it only on a discussed truth shift, and
   applies the ADR coupling rule when relevant.
-- **A durable business/behavioral rule settled in discussion** → `knowledge/*.md`, in
-  place. (Most rules graduate at milestone close via `checkpoint`; `plan` writes one here
-  only when the discussion itself settled a durable rule with no code to wait on.)
+- **A durable cross-cutting invariant settled in discussion** → `knowledge/*.md`, in place,
+  in the contract's form (invariant + why + a pointer to where code enforces it). Only when
+  it is load-bearing AND has no single code home (a localized value belongs in code; a
+  re-platform fact in `architecture.md`). `checkpoint` is the band's primary owner and most
+  rules graduate at close; `plan` writes one here only when the discussion itself settled a
+  durable invariant with no code to wait on.
 - **Where we are now** → always update `state.md`:
   - **Active focus** — one paragraph reflecting the new plan. ELI5: plain words, short
     sentences, no jargon, no officialese.

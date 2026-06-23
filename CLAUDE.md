@@ -33,8 +33,11 @@ Skills are named in a flat, hyphenated family — **`/scaffold-[skill]`** (e.g.
 `/scaffold-status`, `/scaffold-checkpoint`, `/scaffold-audit`). A skill is a folder
 (`SKILL.md`, plus its own `references/`/`scripts/` only when that skill is big enough to
 warrant splitting — a per-skill pragmatic call). Whatever a skill needs to do its job is
-written *into the skill*. The factory `contracts/` are **never** bundled into or shipped
-with a skill.
+written *into the skill*. Skills carry format guidance as an inline paraphrase of the
+contracts — **except `/scaffold-audit`, which bundles verbatim contract copies in its
+`references/`** because it grades against the exact contract. That is the one place a
+contract ships inside a skill; the copies are generated from `contracts/` by
+`scripts/sync-contracts.sh`, never hand-edited.
 
 ## The factory (this repo)
 
@@ -44,12 +47,14 @@ The **spec** is `ARCHITECTURE.md` + `contracts/`. We build the skills from it.
   (truth/history/execution), routing, and how the skills fit together. The single
   coherent view that **no individual skill holds** (each skill knows only its slice).
   This is why it earns its place and never becomes a double-up. Doesn't ship.
-- `contracts/` — the per-document-type format specs. **Factory-only**: we author skills
-  *from* them, and `/scaffold-audit` is built to check a user's files *against* them.
-  Never bundled into a skill, never shipped, never read at runtime — the connection to a
-  skill is "we read it while building the skill," nothing more. A contract earns its
-  place when a format is needed by more than one skill (or by audit); a format used by a
-  single skill just lives in that skill.
+- `contracts/` — the per-document-type format specs, the **master** of each format. We
+  author skills *from* them. For most skills the connection is "we read it while building
+  the skill" — the skill ships an inline paraphrase, not the contract. **`/scaffold-audit`
+  is the exception:** it grades against the exact contract, so `scripts/sync-contracts.sh`
+  copies all contracts verbatim into `skills/scaffold-audit/references/` (regenerated from
+  here, drift-guarded by `--check`). A contract earns its place when a format is needed by
+  more than one skill (or by audit); a format used by a single skill just lives in that
+  skill.
 - `skills/` — the skill sources that ship as `/scaffold-[skill]` (being built during the
   migration). `scaffold/` holds the old command files still being migrated.
 - `wip/` — design notes and handoffs. Doesn't ship.

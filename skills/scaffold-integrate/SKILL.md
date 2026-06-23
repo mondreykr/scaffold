@@ -1,6 +1,6 @@
 ---
 name: scaffold-integrate
-description: Absorb an external artifact (a spec, design doc, or research) into a scaffold project and route it to its one home — a milestone's spec/ (copy or pointer) or knowledge/ — then lift operational facts into the truth docs. Pure ingest; never authors plans, briefs, or ADRs, and never touches code. Use whenever the user wants to integrate, absorb, ingest, bring in, or pull in an external doc/spec/research — even if they only say "integrate this", "absorb that spec", or "add this doc to the scaffold". To migrate an old scaffold layout, use /scaffold-cleanup instead.
+description: Absorb an external artifact (a spec or design doc) into a scaffold project and route it to its one home — a milestone's spec/ (copy or pointer) or knowledge/ — then lift operational facts into the truth docs. Pure ingest; never authors plans, briefs, or ADRs, and never touches code. Use whenever the user wants to integrate, absorb, ingest, bring in, or pull in an external doc/spec — even if they only say "integrate this", "absorb that spec", or "add this doc to the scaffold". To migrate an old scaffold layout, use /scaffold-cleanup instead.
 ---
 
 # scaffold-integrate
@@ -56,6 +56,13 @@ spec's enduring rules graduate to `knowledge/` later, but that graduation is
 `checkpoint`'s milestone-close job, not integrate's. State the classification and
 destination before writing.
 
+**These two bins are exhaustive.** A research/analysis doc routes by the same test — a
+durable rulebook → `knowledge/`, a milestone-scoping doc → `spec/`. Integrate never writes
+`investigations/` (that band is for records *produced while working*, owned by `go`). Raw
+external analysis that is neither a durable rule nor a milestone spec is **not absorbed** —
+scaffold points outward; it stays in its own home (or cortex), and any durable rule it
+yields graduates to `knowledge/` while any decision becomes a proposed ADR.
+
 ## Step 4a: Route a milestone spec to `spec/`
 
 Identify the target milestone from `roadmap.md` (confirm if ambiguous or the folder
@@ -101,7 +108,10 @@ Place the artifact at `.scaffold/knowledge/<slug>.md` (slug from its subject —
 knowledge` frontmatter. **If a knowledge doc on the same topic exists,** don't silently
 overwrite or blind-append — show the overlap and ask: (a) merge into the existing doc, (b)
 save as a distinct doc, (c) replace. Reconciling *contradictions* across the whole set is
-`checkpoint`'s sweep — integrate handles only the doc it's placing.
+`checkpoint`'s sweep — integrate handles only the doc it's placing. A sprawling external
+rulebook is placed as-is (ingest does not dissect); conforming it to the knowledge
+contract's concise *invariant + why + pointer* form is `checkpoint`'s graduation/maintenance
+job as the band's primary owner, not integrate's.
 
 ## Step 5: Extract operational facts into the truth docs
 

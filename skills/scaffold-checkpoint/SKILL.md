@@ -1,12 +1,12 @@
 ---
 name: scaffold-checkpoint
-description: Save session progress in a scaffold project — verify work, update the .scaffold/ truth and execution docs, run the conformance + coherence sweep, and commit. Use whenever the user wants to checkpoint, save progress, wrap up or pause a session, record what was done, reconcile or tidy the scaffold docs after hand-edits, or close out a milestone — even if they only say "save", "commit my work", "let's stop here", or "wrap up". Runs the light always-on sweep; for the deep independent review use /scaffold-audit.
+description: Save session progress in a scaffold project — verify work, update the .scaffold/ truth and execution docs, run the light structural + coherence sweep, and commit. Use whenever the user wants to checkpoint, save progress, wrap up or pause a session, record what was done, reconcile or tidy the scaffold docs after hand-edits, or close out a milestone — even if they only say "save", "commit my work", "let's stop here", or "wrap up". Runs the light always-on sweep; for the deep independent review use /scaffold-audit.
 ---
 
 # scaffold-checkpoint
 
 Save and reconcile a work session: verify what was actually done, update the
-`.scaffold/` truth + execution docs, run the conformance + coherence sweep, and commit.
+`.scaffold/` truth + execution docs, run the light structural + coherence sweep, and commit.
 Any checkpoint could be the last thing that runs before a long gap, so it leaves the
 whole tree accurate and self-consistent.
 
@@ -115,11 +115,14 @@ session changed. The shape each doc must keep:
     run/env condition → `architecture.md`; a blocker → `## Blockers`. If a `## Notes` (or
     any catch-all) section exists from an older tree, drain it this checkpoint — re-home
     each line, then delete the section.
-- **5c `knowledge/*.md`** — only if the build changed how a durable domain/behavioral
-  rule actually works. Living truth, maintained in place, never a log. During a
-  predetermined milestone the spec's `references/` are the living rulebook; emergent
-  milestones accrue rules here directly. Cross-milestone graduation happens at close
-  (Step 6b).
+- **5c `knowledge/*.md` (PRIMARY OWNER)** — checkpoint owns the knowledge band: keep it
+  coherent, reconcile, and graduate at close (Step 6b). Write here only if the build
+  changed how a durable *cross-cutting* invariant works — one with no single code home.
+  State it in the contract's form: **the invariant + why + a pointer to where the code
+  enforces it** (and the test/constraint that guards it, if any). Stay brief — point at
+  code, don't restate it; a localized value/constant belongs in code, not here. Living
+  truth, maintained in place, never a log. During a predetermined milestone the spec's
+  `references/` are the living rulebook; emergent milestones accrue rules here directly.
 - **5d `architecture.md` (PRIMARY OWNER)** — you see the diff, so you keep technical
   truth current. Update *in place* when *how it's built* changed (tenancy, auth, stack,
   data-access, deployment, conventions, durable run/env). It **indexes the
@@ -170,10 +173,16 @@ signal. For an **emergent** milestone, all-phases-ticked is the normal steady st
 a close signal — close only when Adam explicitly says the chunk is done. When the
 condition holds, confirm: "Milestone `NN-slug` — done-contract met. Close it?" On
 confirmation:
-1. **Graduate durable rules into `knowledge/`** — lift enduring rules from the retiring
-   milestone's spec `references/` (or accrued emergent rules), **reconciling against
-   existing knowledge docs** (retire/supersede contradicted ones). **Surface the
-   graduation + retire set for Adam's confirmation; don't curate silently.**
+1. **Graduate durable rules into `knowledge/`** — lift enduring *cross-cutting invariants*
+   from the retiring milestone's spec `references/` (or accrued emergent rules) and write
+   each in the contract's form: invariant + why + a pointer to where the code enforces it.
+   First triage each candidate: a single-code-home value (constant/enum) → leave it in
+   code, graduate nothing; an invariant a single test/constraint could enforce → prefer
+   writing that, graduate nothing; only a genuinely homeless cross-cutting invariant
+   graduates. **Reconcile against existing knowledge docs** (retire/supersede contradicted
+   ones). **Surface the graduation + retire set for Adam's confirmation; don't curate
+   silently.** After graduating, tell the user: *"graduated N rules into `knowledge/` — run
+   `/scaffold-audit` to verify them against the code."*
 2. **Resolve the `## Deferred` list (backstop).** No milestone closes with un-handled
    deferred items: for each, confirm shipped (remove it), promote it (surface for
    `scaffold-plan` to re-home into the next milestone's `plan.md` `## Deferred` or
@@ -183,22 +192,24 @@ confirmation:
 4. **Leave the folder in place** — no archive move; git is the history.
 5. A pointer'd/external spec is **not cracked open** — only its enduring rules graduate.
 
-## Step 7: Conformance + coherence sweep (EVERY checkpoint)
+## Step 7: Structural + coherence sweep (EVERY checkpoint)
 
 Runs on every checkpoint, and is the *whole* job when there's no work to save. Sweep
 **all living docs**, not just the touched ones.
 
-**Conformance** — check each living doc is well-formed:
+**Structural (the deep per-rule grade is `/scaffold-audit`'s).** Check each living doc is
+well-formed at the *stable, Law-level* shape. The detailed per-contract format rules live
+in exactly one drift-guarded place — audit's bundled contract copies — so **don't
+re-enumerate them here; route them to audit.** Check only:
 1. Required sections present, correctly named, and in order (per the shapes in Step 5).
 2. Frontmatter present and valid (`type` / `schema_version` / `updated`; `CLAUDE.md`
    exempt).
-3. No format anti-patterns — an append-log/dated entries in a living doc, checkboxes in
-   `project.md`, a hyphenated investigation date (`2026-06-11-*` should be `20260611-*`),
-   a status token outside `[done] | [active] | [planned]`, a `## Notes` (or any catch-all)
-   section in `state.md`, a multi-line or `- [x]`-checked item in `roadmap.md` `## Backlog`
-   or `plan.md` `## Deferred`, work tied to the active milestone sitting in `## Backlog`
-   (belongs in `## Deferred`), or work not tied to any active milestone sitting in
-   `## Deferred` (belongs in `## Backlog`).
+3. No Law violations — an append-log / dated entries in a living-truth doc (Law 1); a
+   `## Notes` / any catch-all / open-ended section (the one-home rule); or a checkbox in
+   `project.md` (Law 2 — a truth doc never carries work-tracking). Fix these on sight. The
+   genuinely driftable per-contract details (e.g. investigation date format, status-token
+   set, `## Backlog`↔`## Deferred` item shape) are audit's deep pass — flag for
+   `/scaffold-audit`, don't grade them here.
 
 **Coherence** — read across `project.md`, `architecture.md`, `roadmap.md`, `state.md`,
 `knowledge/*.md`, the active `plan.md` + briefs, and `decisions/`:

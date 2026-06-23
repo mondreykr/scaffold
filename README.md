@@ -100,7 +100,7 @@ Mark deliverables that require human action with `[USER]` in a phase brief or th
 | `/scaffold-status` | Reads scaffold files, gives a session briefing with health checks. Read-only. | Every session start, or after `/clear` |
 | `/scaffold-plan` | Discusses direction and persists it — roadmap, phase briefs, milestone creation, active cursor. Proposes ADRs (you approve). | When you need to recalibrate or author the next chunk |
 | `/scaffold-go` | Executes the active phase brief. Writes code (and optional research records); never scaffold docs. | When a brief is ready and Next points at it |
-| `/scaffold-checkpoint` | Verifies work, updates scaffold docs, runs a conformance + coherence sweep, commits. Auto-detects a no-work run and just sweeps. | End of every session, or whenever you want to save |
+| `/scaffold-checkpoint` | Verifies work, updates scaffold docs, runs a light structural + coherence sweep, commits. Auto-detects a no-work run and just sweeps. | End of every session, or whenever you want to save |
 | `/scaffold-audit` | Deep, independent review — grades every doc against its format and checks the docs against the real code. Read-only; reports drift, changes nothing. | Before a release, after a long gap, or after heavy hand-editing |
 | `/scaffold-integrate` | Absorbs an artifact (spec, doc) into the scaffold — to a milestone's `spec/` (copy or pointer) or `knowledge/`. Pure ingest. | After producing a spec or major artifact |
 | `/scaffold-cleanup` | Migrates an older scaffold layout to the current structure. Cautious and interactive. | After updating from an older version |
@@ -108,7 +108,7 @@ Mark deliverables that require human action with `[USER]` in a phase brief or th
 
 Two boundaries hold across the set: **`go` writes code, never scaffold docs** (all scaffold write-back is `plan`/`checkpoint`'s job), and **`decisions/` is propose-only** — a skill may draft an ADR but stops for your approval before writing it.
 
-**Two tiers of checking.** `checkpoint` runs a light conformance + coherence sweep on every save, automatically — no flag. `audit` is the deep, independent version you run on demand: it grades every doc hard against its format *and* verifies the docs against the actual code. You never have to remember a flag; the depth is chosen by which skill you run.
+**Two tiers of checking.** `checkpoint` runs a light structural + coherence sweep on every save, automatically — no flag. `audit` is the deep, independent version you run on demand: it is the sole grader of every doc hard against its format *and* verifies the docs against the actual code. You never have to remember a flag; the depth is chosen by which skill you run.
 
 ## Files
 

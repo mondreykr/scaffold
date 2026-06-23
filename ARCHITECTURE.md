@@ -83,7 +83,7 @@ and retire with their milestone.
 | Orientation + instructions | How Claude should work here + a one-line "what this is" | `CLAUDE.md` (auto-read) | living |
 | Product identity | What this is, who for, why, scope boundaries | `.scaffold/project.md` | living |
 | **Architecture truth** | How it's built — tenancy, auth, stack, data-access, deployment, conventions | `.scaffold/architecture.md` | living |
-| Domain/behavioral truth | How the rules work — the durable residue of specs | `.scaffold/knowledge/*.md` | living |
+| Domain/behavioral truth | Durable cross-cutting invariants (each: the rule + why + a pointer to where code enforces it) | `.scaffold/knowledge/*.md` | living |
 | Program | Milestones (done/active/planned) + backlog | `.scaffold/roadmap.md` | living |
 | Active state | Where we are now / next / blockers / open questions | `.scaffold/state.md` | living (churns) |
 | Decisions | Load-bearing *why* + rejected alternatives (ADRs) | `.scaffold/decisions/NNNN-slug.md` | frozen; **Adam-gated** |
@@ -144,10 +144,14 @@ Every document type has one canonical **format contract** in `contracts/`. This 
 defines the *concepts*; the contract defines the *exact form* (required sections,
 skeleton, rules, anti-patterns) and is the oracle `/scaffold-audit` grades against. The
 format detail lives in the contract, not here — so there is one master per format, not
-two. **Contracts are factory-only:** we author each skill *from* the contracts it
-touches, and `/scaffold-audit` grades a user's docs against them — but no contract is
-ever bundled into a skill or shipped. Each skill carries, written in at the altitude it
-needs, whatever format guidance it requires.
+two. **Contracts are factory-authored masters.** We write each skill's format guidance
+*from* them, at the altitude that skill needs — for most skills that guidance is an inline
+paraphrase, never the contract itself. **One exception:** `/scaffold-audit` grades docs
+against the *exact* contract, so it ships a verbatim copy of every contract in its own
+`references/` — the single place a contract is bundled into a skill. Those copies are
+**derived**: `scripts/sync-contracts.sh` regenerates them from `contracts/` and its
+`--check` mode guards the drift, so the direction stays one-way (master → copy). No other
+skill bundles a contract.
 
 **Frontmatter convention.** Every `.scaffold/` document carries minimal YAML
 frontmatter: **`type` · `schema_version` · `updated`**. `type` is authoritative for
@@ -255,12 +259,22 @@ Two structural boundaries hold across the set:
 A safety check you must remember to invoke isn't a safety net, so there are no audit
 flags. Instead, two tiers:
 
-- **`checkpoint` always runs a light, inline conformance + coherence sweep** over the
-  living docs — automatically, every time, no flag. Fast enough to run at every session
-  end.
-- **`audit` is the deep, independent review** — on demand, spins up fresh agents,
-  grades conformance hard against the contracts, checks docs against actual code, and
-  verifies no durable rule is stranded. It always does all three (see below).
+- **`checkpoint` always runs a light, inline structural + coherence sweep** over the
+  living docs — automatically, every time, no flag. It checks the *stable* structural
+  invariants (frontmatter present, required sections present, no catch-all / no
+  append-log) and cross-doc coherence, then **defers the deep per-rule grading to audit**.
+  Fast enough to run at every session end.
+- **`audit` is the deep, independent review** — on demand, spins up fresh agents. It is
+  the **sole grader of per-contract format rules** (it owns the bundled contract copies in
+  its `references/` — the one drift-guarded place those rules live), checks docs against
+  actual code, and verifies no durable rule is stranded. It always does all three (see
+  below).
+
+  *Why the split:* the detailed per-contract format rules change as contracts evolve, so
+  keeping them in exactly one drift-guarded place (audit's bundled copies) is what stops
+  the rules from being hand-copied into multiple skills and silently rotting. Checkpoint's
+  always-on net stays cheap by checking only the Law-level structural invariants, which
+  don't drift.
 
 ---
 
@@ -332,10 +346,12 @@ routes out-of-scope discoveries to checkpoint rather than expanding silently.
 Updates the truth docs + the active milestone's `plan.md` (tick the phase checklist +
 date) + `state.md` + `knowledge/` (when behavior changed).
 
-- **Always runs a light, inline conformance + coherence sweep** over *all* living docs
+- **Always runs a light, inline structural + coherence sweep** over *all* living docs
   (not just the touched ones), no flag:
-  - *Conformance* — each living doc against its contract: required sections present and
-    in order, frontmatter correct, anti-patterns absent.
+  - *Structural* — each living doc well-formed at the stable, Law-level shape: required
+    sections present and in order, frontmatter correct, no catch-all / no append-log, no
+    `project.md` checkbox (Law 2). The deep per-contract rule grading is deferred to audit
+    (the sole grader).
   - *Coherence* — cross-reference integrity (architecture ↔ decisions), Law-1/Law-2
     violations, duplication, brief-vs-decision staleness, `## Next` resolves, stale
     dates.
@@ -361,9 +377,12 @@ Spins up fresh read-only agents to do thoroughly what `checkpoint`'s inline swee
 samples. **It always does all three, no asking** — depth is already chosen by invoking
 `audit` at all:
 
-- **Conformance (runs first, gates the rest):** grade every `.scaffold/` doc hard
-  against its `contracts/` master — required sections present and ordered, frontmatter
-  correct, anti-patterns absent, brevity. Frontmatter `type` selects the contract.
+- **Conformance (runs first, gates the rest):** grade every `.scaffold/` doc against its
+  contract — the audit skill bundles a verbatim copy of each in `references/` — and grade
+  **one rule at a time**: every Required-structure item, Rule, and Anti-pattern gets an
+  explicit pass/fail/n-a verdict with evidence, so a present-but-ignored rule can't be
+  waved through by a holistic glance. The per-doc grade is derived (conforms only if every
+  rule passed). Frontmatter `type` selects the contract.
 - **Reality:** verify scaffold claims against actual code — ticked phases really built,
   `architecture.md` matches the real stack, ADRs match reality.
 - **Stranded-rules check:** no retired milestone holds an un-graduated durable rule.
@@ -429,12 +448,19 @@ Every artifact has a skill that **creates** it and a skill that **maintains** it
 (updates, or retires/freezes). No orphan files, no orphan operations. `R` = reads,
 `C` = creates, `U` = updates, `×` = retires/freezes/closes.
 
+**"Single owner per band" means single owner of *maintenance*, not single writer.** A band
+may be *written* at several distinct lifecycle moments (e.g. `knowledge/` is written at
+ingest by `integrate`, at discussion-settle by `plan`, and at milestone-close by
+`checkpoint`) — that is correct, not a smell, because each write is owned by the skill
+that owns *that moment*. What must be single is the skill accountable for the band staying
+coherent over time; that owner is marked **(primary)** below.
+
 | Artifact | setup | status | plan | go | checkpoint | audit | integrate | cleanup |
 |----------|-------|--------|------|----|------------|-------|-----------|---------|
 | `CLAUDE.md` | C | R | U (rare) | — | U (rare) | R | — | U (migrate) |
 | `project.md` | C | R | U | — | U (rare) | R | U | U |
 | `architecture.md` | C (seed) | R | U (propose) | — | **U (primary)** | R | U | C (from old CLAUDE/decisions) |
-| `knowledge/*.md` | C (dir) | R | C/U | R | C/U + **graduate/retire-on-close** | R | C/U (absorb) | — |
+| `knowledge/*.md` | C (dir) | R | C/U | R | **C/U (primary)** + graduate/retire-on-close | R | C/U (absorb) | — |
 | `roadmap.md` | C | R | U (add/remove Backlog) | — | U (+ remove shipped) | R (flag stale) | R (classify) | U (build milestone index) |
 | `state.md` | C | R | U | R | U + sweep | R | U | U |
 | `decisions/NNNN-slug.md` | C (dir) | R (on ref) | **propose→gate** | — | **propose→gate** | R | — | migrate (Adam gates survivors) |
@@ -459,7 +485,7 @@ status → work with Claude → checkpoint
 ```
 
 No plan, no go. Just collaborate and save. Checkpoint captures everything from
-conversation context and runs its conformance + coherence sweep.
+conversation context and runs its light structural + coherence sweep.
 
 ### Guided (consultation + authoring)
 
@@ -541,6 +567,12 @@ Each skill states what it does NOT do:
 - `audit`: read-only — grades and reports, never writes.
 - `integrate`: ingest only — never executes work or writes project files.
 
+`integrate` is the thinnest skill, and that is deliberate: it owns the *ingest-vs-author*
+boundary. A thin skill that holds a clean boundary is worth more than folding its job into
+an authoring skill — placing an external artifact as-is (and never cracking a pointer'd
+spec open) is the opposite instinct from `plan`, whose job is to dissect and compose. The
+thinness reads as intentional, not vestigial.
+
 ### Skills present options, not directives
 
 `status` says "you can do X or Y," not "run X now." `plan` ends with options. The user
@@ -557,7 +589,7 @@ writing, superseding, or pruning anything in `decisions/`.
 **Freeform work without any skills (except status/checkpoint):**
 Collaborate and build. Checkpoint reviews the conversation, captures decisions
 (proposing ADRs through the gate), updates the roadmap and state, and runs its
-conformance + coherence sweep. Works.
+light structural + coherence sweep. Works.
 
 **A later phase insertion stales a downstream brief:**
 `plan`, on the pivot, sweeps unexecuted briefs in the active milestone against the
