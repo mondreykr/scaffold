@@ -55,9 +55,8 @@ The **spec** is `ARCHITECTURE.md` + `contracts/`. We build the skills from it.
   here, drift-guarded by `--check`). A contract earns its place when a format is needed by
   more than one skill (or by audit); a format used by a single skill just lives in that
   skill.
-- `skills/` — the skill sources that ship as `/scaffold-[skill]` (being built during the
-  migration). `scaffold/` holds the old command files still being migrated.
-- `wip/` — design notes and handoffs. Doesn't ship.
+- `skills/` — the skill sources that ship as `/scaffold-[skill]`, one folder each, derived
+  from the spec. This is the only thing that ships.
 
 **Direction is one-way: the spec is the source; skills are derived from it.** Change the
 design in the spec, then propagate to the skills — never hack a skill and let the spec
@@ -65,6 +64,7 @@ rot into stale parallel notes. `/scaffold-audit` is the backstop that catches dr
 
 ## Active work
 
-A migration is in flight: commands → self-contained skills, schema hardening, and a new
-`/scaffold-audit`. The current authoritative handoff is the newest file under `wip/`.
-Read it before building on the design.
+None in flight. The commands → self-contained skills migration — schema hardening and the
+new `/scaffold-audit` included — is **complete**: all 9 `/scaffold-[skill]` skills ship
+from `skills/`. There is no separate handoff file; `ARCHITECTURE.md` + `contracts/` are the
+authority, and the skills are derived from them.
