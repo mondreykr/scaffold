@@ -20,15 +20,22 @@ into ADRs (`scaffold-integrate`/`scaffold-cleanup` own the ADR-promotion gate).
 
 - **Git.** If git isn't initialized, warn: "No git repo. Scaffold works without it, but
   git gives you undo for checkpoint. Consider `git init` first." Don't block on it.
-- **Collision (already set up).** If any `.scaffold/` *truth doc* exists
-  (`project.md`, `architecture.md`, `roadmap.md`, `state.md`), stop: "This project is
-  already set up." A root `CLAUDE.md` on its own is **not** a collision — that's the
-  adopt case below.
-- **Old-format layout → route to cleanup.** Signs of a pre-restructure scaffold: a
-  single-file `.scaffold/decisions.md`, a `.scaffold/plans/` folder, a per-phase
-  `roadmap.md`, `CLAUDE-*.md` files in root, or `.scaffold/` docs lacking
-  `type`/`schema_version` frontmatter. Do NOT overwrite. Stop: "Found an older scaffold
-  layout. Run /scaffold-cleanup to migrate it — setup is for fresh projects only."
+- **Already present → conformant, or route to cleanup.** If any `.scaffold/` *truth doc*
+  exists (`project.md`, `architecture.md`, `roadmap.md`, `state.md`), this is **not** a
+  fresh project — decide by conformance, and **never overwrite:**
+  - **Fully conformant** (all four truth docs present, `decisions/`/`investigations/` as
+    folders, a `milestones/` container, no `plans/`, and every doc stamped with
+    `type`/`schema_version` frontmatter) → stop: "Already set up — run /scaffold-status."
+  - **Anything else** — an older layout *or* a partial/hand-edited/ambiguous state (signs:
+    a single-file `.scaffold/decisions.md`, a `.scaffold/plans/` folder, a per-phase
+    `roadmap.md`, `CLAUDE-*.md` files in root, docs lacking frontmatter, or any mix that
+    isn't cleanly current) → stop and route: "Found an existing scaffold that isn't fully
+    current. Run /scaffold-cleanup — it inventories whatever's there and migrates any prior
+    or partial state (and no-ops if it turns out current). Setup is for fresh projects
+    only." Don't try to judge which legacy shape it is — that's cleanup's job.
+
+  A root `CLAUDE.md` on its own (no `.scaffold/`) is **not** a collision — that's the adopt
+  case below.
 - **Adopt an existing `CLAUDE.md`** (exists in root, no `.scaffold/`): read it, archive
   the original to `.scaffold/archive/CLAUDE.md.pre-scaffold`, then sort its content:
   - product / what-it-is → the new `CLAUDE.md` "About this project" + `project.md`
@@ -333,5 +340,5 @@ briefs. To rename `01-main` → `01-<newslug>` (do it early, before briefs accru
 Setup does NOT: author phase briefs or set up a full milestone plan beyond the seed
 (`scaffold-plan`); execute any work or write project code (`scaffold-go`); curate a
 legacy `DECISIONS.md` into ADRs (that's `cleanup`'s migration job, or surface via `plan`
-for an Adam-gated proposal); or overwrite an existing scaffold (collision → stop; old
-layout → route to `scaffold-cleanup`).
+for an Adam-gated proposal); or overwrite an existing scaffold (fully
+conformant → stop; anything else already present → route to `scaffold-cleanup`).

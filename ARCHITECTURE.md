@@ -409,30 +409,43 @@ briefs, or modify project files.
 
 **Role:** Migrate. The cautious, interactive **migrator to this structure.**
 
-It **proposes a migration plan and confirms every non-mechanical call with Adam** (which
-doc is the plan, which decisions become ADRs, the milestone slug). It consults rather
-than predicts — it does not assume a clean prior format. Detecting the old layout, it:
+**Cleanup is the one skill whose input is unknown by design.** Every other skill assumes a
+conformant repo and computes from it; cleanup faces an old format, a half-finished
+migration, a hand-edited mess, or something unfamiliar — and you cannot write fixed steps
+for unknown input. So cleanup is **objective-driven, not shape-driven**: it fixes the
+*target end-state* (what `setup` produces + the contracts), reads whatever is on disk
+**without assuming a shape**, and works with Adam to map what it finds onto that target.
+The flexibility is bounded by two *fixed* ends — the known objective, and a structural
+self-check at the end that proves the result reached it. It **migrates the gap, not a
+presumed whole**, so it is safe to re-run and safe on a partially-migrated repo.
 
-- **Splits the old `roadmap.md` by altitude** — its per-phase build plan →
-  `milestones/01-*/plan.md` (preserving the checkbox + date checklist), while its
-  `## Backlog` plus a freshly-authored `## Milestones` index remain in a repurposed
-  program-altitude `roadmap.md`. A `phase-00`-style "plan authored" entry collapses into
-  the `plan.md` checklist; it is **not** a phase brief.
-- **Moves `plans/phase-*` into `phases/`, preserving interstitial numbers (`09.1`) —
-  never renumber.**
-- Stands up `architecture.md` from `CLAUDE.md`/decisions content + durable run/env
-  facts (using the architecture-vs-knowledge tie-break).
-- **Curates decisions — does not split them.** Most legacy `decisions.md` entries are
-  build-records that don't clear the high ADR bar, so cleanup *detects* a monolithic
-  file and hands to an interactive promote-the-few session — Adam gates which become
-  ADRs; the rest retire to git. A grandfathered spec's own internal decisions file is
-  **not** cracked open.
-- **Stamps frontmatter** on migrated docs and records each doc's `schema_version`, so
-  future format migrations are detectable.
-- **Normalizes nonconformant names** (e.g. a hyphenated investigation date
-  `2026-06-11-*` → `20260611-*`).
-- **Before moving any file, runs a reference sweep** so no `state.md`/roadmap/brief
-  pointer is left dangling.
+Its flow: **inventory** (read everything, assume nothing; hard-stop if there's no
+`.scaffold/` → `setup`, or if it's already fully conformant → nothing to do) → **triage**
+every gap into *mechanical* (just do), *judgment* (gate with Adam — the milestone slug,
+which decisions become ADRs, which doc is the plan), or **ambiguous / partial /
+contradictory → STOP and surface, never guess** (this is the safety valve for the unknown
+repo) → **propose the full plan** → **reference sweep before any move** → **map** what the
+inventory found → **execute in one pass** → **verify against the target**.
+
+The mapping playbook (applied only to patterns the inventory actually turns up): splits an
+old per-phase `roadmap.md` by altitude (build plan → `milestones/NN-*/plan.md` with the
+checkbox+date checklist preserved; `## Backlog` + a fresh `## Milestones` index stay at
+program altitude; a `phase-00` "plan authored" entry folds into `plan.md`, not a brief);
+moves `plans/phase-*` into `phases/` **preserving interstitials (`09.1`) — never renumber**;
+stands up `architecture.md` from `CLAUDE.md`/decisions + run/env (architecture-vs-knowledge
+tiebreak); **curates decisions — does not split them** (a monolithic `decisions.md` → an
+Adam-gated promote-the-few session; the rest retire to git; a grandfathered spec's internal
+decisions file is never cracked open); normalizes nonconformant names
+(`2026-06-11-*` → `20260611-*`); drains a legacy `state.md` `## Notes` to each item's real
+home; and **stamps frontmatter** (`schema_version`) so future format migrations are
+detectable.
+
+**Verify + hand-off (the fixed back end):** before committing, cleanup runs the *same
+light structural + coherence self-check `checkpoint` runs* — proving the mechanical result
+is well-formed and no pointer dangles. It does **not** grade docs rule-by-rule against the
+contracts; that is `audit`'s sole job, and duplicating those rules here would re-create the
+drift the system prevents. After committing, it **recommends `/scaffold-audit`** for the
+independent deep conformance + reality pass.
 
 ---
 
