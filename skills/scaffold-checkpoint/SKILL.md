@@ -74,8 +74,8 @@ Wait for the response.
 
 ## Step 3: USER task check
 
-*Skip on pause/partial.* Scan the active plan and `milestone.md` objectives for unchecked
-human-owned (`[USER]`) tasks. For each, one at a time: present what was expected; if
+*Skip on pause/partial.* Scan the active plan's `## Scope` and the milestone's `## Phases`
+for unchecked human-owned (`[USER]`) items. For each, one at a time: present what was expected; if
 criteria name file paths, report Found/Missing; ask "Did you complete this? What
 happened?"; then route — **Pass** (note for the tick), **Issue** (ask blocker vs
 follow-up, route accordingly), **Not done** (leave it; phase can't be ticked).

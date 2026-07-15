@@ -10,7 +10,8 @@ spikes, security investigations.
 **Band.** History — dated, immutable, written once.
 
 **Owner(s).** Created opportunistically by `scaffold-go` (and any work that warrants a
-record). Read by `scaffold-status` (lists filenames) and `scaffold-plan`.
+record). Read by `scaffold-status` (lists filenames) and `scaffold-plan`. Names normalized
++ frontmatter stamped on migration by `scaffold-cleanup`.
 
 ## Required frontmatter
 

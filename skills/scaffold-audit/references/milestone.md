@@ -57,6 +57,9 @@ reconciliation. One line each.]
   bounded checklist, never an append-log (Law 1). Verbose narrative → git.
 - Phase numbers reset per milestone; the slug namespaces them. `NN` admits
   interstitials (`09.1`); migration never renumbers.
+- A wholly human-owned phase may carry a `[USER]` tag on its `## Phases` line;
+  `scaffold-checkpoint` verifies it with the user before ticking. (Item-level `[USER]`
+  deliverables live in the phase plan's `## Scope`.)
 - **`## Deferred` membership — the one computable test.** Ask: *is this work tied to the
   active milestone — its scope, its code, or its goal?* **Tied → it belongs here** (it's
   moot or owned elsewhere once this milestone closes): a bug, cleanup, debt, residual, or

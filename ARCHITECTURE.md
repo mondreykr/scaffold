@@ -512,16 +512,16 @@ coherent over time; that owner is marked **(primary)** below.
 |----------|-------|--------|------|----|------------|-------|-----------|---------|
 | `CLAUDE.md` | C | R | U (rare) | — | U (rare) | R | — | U (migrate) |
 | `project.md` | C | R | U | — | U (rare) | R | U | U |
-| `architecture.md` | C (seed) | R | U (propose) | — | **U (primary)** | R | U | C (from old CLAUDE/decisions) |
+| `architecture.md` | C (seed) | R | U (propose) | R | **U (primary)** | R | U | C (from old CLAUDE/decisions) |
 | `knowledge/*.md` | C (dir) | R | C/U | R | **C/U (primary)** + graduate/retire-on-close | R | C/U (absorb) | — |
 | `roadmap.md` | C | R | U (add/remove Backlog) | — | U (+ remove shipped) | R (flag stale) | R (classify) | U (build milestone index) |
-| `state.md` | C | R | U | R | U + sweep | R | U | U |
+| `state.md` | C | R | U | R | U + sweep | R | — | U |
 | `decisions/NNNN-slug.md` | C (dir) | R (on ref) | **propose→gate** | — | **propose→gate** | R | — | migrate (Adam gates survivors) |
-| `investigations/YYYYMMDD-slug.md` | C (dir) | R (lists) | R | C (opportunistic) | R | R | — | — |
+| `investigations/YYYYMMDD-slug.md` | C (dir) | R (lists) | R | C (opportunistic) | R | R | — | U (rename + stamp) |
 | `milestones/NN-slug/` (container) | C (first) | R | **C** (new chunk) | — | × (close-in-place) | R | — | C (wrap existing roadmap) |
-| `…/milestone.md` | C (seed) | R | **U** (+ groom/promote Deferred) | R | U (tick + groom Deferred) | R (flag stale Deferred) | U | C (from old roadmap body) |
+| `…/milestone.md` | C (seed) | R | **U** (+ groom/promote Deferred) | R | U (tick + groom Deferred) | R (flag stale Deferred) | — | C (from old roadmap body) |
 | `…/spec/` | — | R | — | R | — | R | **C** (absorb/pointer) | move or pointer |
-| `…/phases/NN-slug.md` | — | R (state) | **C/U** + finalize + stale-sweep | **execute (final&fresh only)** | × (tick complete) | R (grade `## Targets`) | — | C (move old `plans/`, keep `09.1`) |
+| `…/phases/NN-slug.md` | — | R (state) | **C/U** + finalize + stale-sweep | **execute (final&fresh only)** | × (done; tick lands in `milestone.md`) | R (grade `## Targets`) | — | C (move old `plans/`, keep `09.1`) |
 
 `update` is omitted — it pulls skill files and touches no `.scaffold/` content. `audit`
 is read-only — it grades and reports across every artifact, never writes. The coherence

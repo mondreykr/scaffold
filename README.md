@@ -145,8 +145,8 @@ Two altitudes, two documents:
 - [planned] 02-multi-user — Real auth + tenant isolation → milestones/02-multi-user/
 
 ## Backlog
-- Mobile app
-- Public API
+- [ ] Mobile app
+- [ ] Public API
 ```
 
 The milestone status token is exactly one of `[done] | [active] | [planned]`.

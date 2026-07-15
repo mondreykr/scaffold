@@ -10,8 +10,9 @@ Authored by `scaffold-plan`, executed by `scaffold-go`, persists as the record.
 **Band.** Execution — temporal; persists in place (may go stale; see Rules).
 
 **Owner(s).** Created/updated by `scaffold-plan` (+ stale-sweep on pivot), executed by
-`scaffold-go`, ticked complete by `scaffold-checkpoint`, moved by `scaffold-cleanup`
-(preserving interstitials).
+`scaffold-go`; on completion `scaffold-checkpoint` ticks the milestone's `## Phases`
+checklist (this file itself isn't modified); moved by `scaffold-cleanup` (preserving
+interstitials).
 
 ## Required frontmatter
 
@@ -32,7 +33,8 @@ updated: YYYY-MM-DD
 [What this phase delivers, in a sentence or two.]
 
 ## Scope
-[What's in — the deliverables. `scaffold-go` reads THIS to bound execution.
+[What's in — the numbered deliverables. `scaffold-go` reads THIS to bound execution.
+Mark any human-owned deliverable `[USER]` (e.g. `2. [USER] create the OAuth app`).
 Out-of-scope discoveries route to checkpoint, never silent expansion.]
 
 ## Approach
@@ -69,6 +71,9 @@ no conformance break.
 
 - `## Scope` is load-bearing: `scaffold-go` executes exactly what it names. Keep it
   crisp.
+- **`[USER]` marks a human-owned deliverable.** A scope item the user must do (not the
+  AI) carries a `[USER]` tag; `scaffold-go` does not execute it, and `scaffold-checkpoint`
+  verifies each `[USER]` item with the user before ticking the phase.
 - `NN` is the roadmap ordinal and admits interstitials (`09.1`); never renumber.
 - **`## Targets` requires its `as of <sha>` stamp.** Bare section-presence is not a valid
   signal — the sha is the grounding evidence (audit checks it resolves to a real commit)
