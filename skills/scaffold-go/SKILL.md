@@ -1,14 +1,15 @@
 ---
 name: scaffold-go
-description: Execute the active phase brief in a scaffold project — load the scope that state.md's Next points at, research, propose an approach, and build it under tight scope control. Writes project files (and optionally an investigation record) only; never scaffold truth or execution docs. Use whenever the user wants to execute a phase, implement the current brief, build the next thing, or resume in-progress work — even if they only say "go", "build it", "run the phase", or "let's implement this".
+description: Execute the active phase brief in a scaffold project — a thin executor. Requires a FINALIZED brief (validated against current code); refuses a draft or a stale brief and routes you to finalize. Loads the scope that state.md's Next points at and builds it under tight scope control. Writes project files (and optionally an investigation record) only; never scaffold truth or execution docs. Use whenever the user wants to execute a phase, implement the current brief, build the next thing, or resume in-progress work — even if they only say "go", "build it", "run the phase", or "let's implement this".
 ---
 
 # scaffold-go
 
-Execute exactly the phase brief that `state.md`'s `## Next` points at: load its scope,
-research, propose, get approval, then build one deliverable at a time. Scope-controlled —
-the brief's `## Scope` is the boundary, and out-of-scope discoveries route to checkpoint
-rather than expanding the work.
+Execute exactly the phase brief that `state.md`'s `## Next` points at. `go` is a **thin
+executor**: it does not research or propose an approach — that was done and approved at
+**finalize** (`/scaffold-plan --final`). `go` computes the brief's state, and only a
+**final & fresh** brief runs. Scope-controlled — the brief's `## Scope` is the boundary,
+and out-of-scope discoveries route to checkpoint rather than expanding the work.
 
 **Precondition.** Read `.scaffold/state.md`. `## Next` must reference a phase brief at
 `.scaffold/milestones/NN-slug/phases/NN-slug.md`. If not, stop: "No active phase brief.
@@ -40,40 +41,48 @@ current phase brief. Read these in order:
 6. `.scaffold/knowledge/` — durable domain/behavioral rules relevant to the brief.
 7. `CLAUDE.md` — constraints and working norms.
 
-## Step 2: Determine starting point
+## Step 2: Check the brief is executable (deterministic)
+
+`go` runs only a **final & fresh** brief. Compute the state from the brief's `## Targets`
+section — this is a hash comparison, it judges nothing:
+
+1. **No `## Targets`** → **draft**. Stop:
+   > "This brief isn't finalized. Run `/scaffold-plan --final` to validate it against the
+   > current code — or just work freeform (status → work → checkpoint)."
+
+   Do **not** try to research or propose an approach yourself — a draft is `plan`'s to
+   finalize, and freeform is scaffold's existing wing-it path, not a `go` override.
+2. **`## Targets` present** → read its `_as of <sha>_` stamp and compare to HEAD:
+   - `git rev-parse "<sha>"` **≠** `git rev-parse HEAD` → **stale**. Stop:
+     > "Validated `as of <sha>`; code has moved. Re-finalize with `/scaffold-plan --final`."
+   - HEAD matches, but a target file is dirty (`git status --porcelain -- <target paths>`
+     is non-empty) → **stale** (the validation no longer describes what's on disk). Same
+     stop + re-finalize message.
+   - HEAD matches and no target is dirty → **final & fresh**. Proceed.
+
+(If the repo has no git, there is no sha to check — treat a brief with `## Targets` as
+fresh and note that staleness can't be verified without git.)
+
+## Step 3: Determine starting point
 
 **Check for already-completed work.** Read the `plan.md` checklist. If the phase this
 brief covers is already ticked (checkbox + date), say so and stop — nothing to execute.
 
 **The checkbox is not the only done-signal.** Only `checkpoint` ticks it, so a phase can
 be *done but not yet ticked* — e.g. a context crash between `go` and `checkpoint`. Before
-executing, check whether the brief's scope deliverables **already exist in the code** (you
-research the codebase in Step 3 regardless — check existence first). If they exist, do NOT
-rebuild: say so and route to `/scaffold-checkpoint` to record the completion. Only within a
-genuinely in-progress phase do you use Active focus to find where to pick up.
+executing, check whether the brief's scope deliverables **already exist in the code**
+(the `## Targets` files are where to look). If they exist, do NOT rebuild: say so and
+route to `/scaffold-checkpoint` to record the completion. Only within a genuinely
+in-progress phase do you use Active focus to find where to pick up.
 
 **Use Active focus for resume context** — it describes where the work currently sits; use
 it to understand where to resume, especially after a pause. **If the user says part of the
 scope is already done, skip it.**
 
-Present scope:
-> "Phase: [brief filename]. [N] scope items to execute [out of M — N already done]."
-
-## Step 3: Research and propose
-
-Research the codebase to understand how to implement the brief's scope — read relevant
-files, understand existing patterns, identify dependencies. Present your approach:
-
-> "Here's how I'll implement this:
->
-> **1. [scope item]** — [approach summary]
-> **2. [scope item]** — [approach summary]
->
-> Approve?"
-
-**STOP. Wait for user approval before executing.** If the user wants changes, incorporate
-and re-present. If they want to skip an item or change order, adjust. If the work needs
-re-scoping: "Run /scaffold-plan to re-scope this phase."
+Present scope and confirm the start (the approach was approved at finalize — you do **not**
+re-propose it):
+> "Phase: [brief filename], final & fresh. [N] scope items to execute [out of M — N
+> already done]. Starting now."
 
 ## Step 4: Execute
 
@@ -143,11 +152,12 @@ Don't start a fresh scope item late in a long session — checkpoint first.
 
 ## Boundaries
 
-Go does NOT: write scaffold truth/execution docs (`state.md`, `roadmap.md`,
-`architecture.md`, `project.md`, `knowledge/`, `decisions/`, the milestone `plan.md`,
-`CLAUDE.md` are all checkpoint's or plan's job); tick the `plan.md` phase checklist
-(checkpoint marks completion); propose or write ADRs (Adam-gated, routed through
-plan/checkpoint); expand scope (only the brief's scope items); or skip approach approval
-(always present and wait).
+Go does NOT: execute a draft or stale brief (only final & fresh — refuse and route to
+finalize/re-finalize); research or propose an approach (that is `plan`'s finalize pass —
+`go` executes the already-approved approach); write scaffold truth/execution docs
+(`state.md`, `roadmap.md`, `architecture.md`, `project.md`, `knowledge/`, `decisions/`,
+the milestone `plan.md`, `CLAUDE.md` are all checkpoint's or plan's job); tick the
+`plan.md` phase checklist (checkpoint marks completion); propose or write ADRs (Adam-gated,
+routed through plan/checkpoint); or expand scope (only the brief's scope items).
 
 Go MAY: write project files; write an opportunistic `investigations/YYYYMMDD-slug.md`.

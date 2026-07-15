@@ -226,7 +226,9 @@ re-enumerate them here; route them to audit.** Check only:
 4. **Duplication** — the same fact in two living docs; collapse to the single owner per
    the routing tiebreak.
 5. **Brief-vs-decision staleness** — any unexecuted brief premised on a changed or
-   un-ratified decision. Flag and route to `scaffold-plan`; do NOT rewrite a brief here.
+   un-ratified decision, **including a *finalized* brief whose `## Targets`/approach now
+   conflicts with a later decision** (the finalize→execute gap `go`'s sha check doesn't
+   cover). Flag and route to `scaffold-plan`; do NOT rewrite a brief here.
 6. **Active-cursor sanity** — `state.md`'s `## Next` points at a milestone + brief that
    exist; the named phase is consistent with `plan.md`'s checklist.
 7. **Stale dates** — any living doc whose `updated:` is over a week old while its content

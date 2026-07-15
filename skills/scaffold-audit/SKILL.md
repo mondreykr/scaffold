@@ -87,6 +87,13 @@ Verify the scaffold's claims against the actual code:
   site(s) it points to exist and still implement the invariant. Flag a pointer that no
   longer resolves, or a rule the code now violates (route to `checkpoint`). This is the
   payoff of the pointer form and the backstop for a thin milestone-close graduation.
+- **Finalized-brief `## Targets` are grounded** — for each brief carrying a `## Targets`
+  section, the named files/interfaces exist in the code and the `as of <sha>` stamp
+  resolves to a real commit (`git cat-file -e <sha>`). A `## Targets` with no sha, an
+  unresolvable sha, or a named file that doesn't exist is a finding — it means the
+  readiness signal is ungrounded (route to `plan` to re-finalize). This closes the
+  "unfalsifiable by construction" hole: the signal is only trustworthy because it's
+  auditable.
 - **Standing blockers are real** — each `state.md` Blocker is corroborated by the code /
   state, not stale or already resolved.
 - **Deferred / backlog items aren't already done** — this is the deliberate, expensive

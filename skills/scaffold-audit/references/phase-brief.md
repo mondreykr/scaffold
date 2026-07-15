@@ -39,21 +39,53 @@ Out-of-scope discoveries route to checkpoint, never silent expansion.]
 [How to build it.]
 
 ## Acceptance
-[How we know the phase is done.]
+[How we know the phase is done — an OBSERVABLE outcome the reader can verify
+without reading code (a behavior, an output, a visible state), never "tests pass".]
+
+## Targets   ← OPTIONAL; present only on a FINALIZED brief
+_as of <sha>_
+- `path/to/file` — [what this phase touches here]
+- `interface / surface` — [ditto]
 ```
+
+## Draft vs. final (the two brief states)
+
+A brief has two states, **derived from content with grounding evidence** — never a
+stored status enum (Principle 7). The `## Targets` section is the signal, and its
+`as of <sha>` stamp is the evidence that makes the signal auditable:
+
+- **no `## Targets`** → **draft** (code-blind; may be pre-written; not executable).
+- **`## Targets` present, `<sha>` is HEAD** → **final & fresh** (validated against
+  current code; `scaffold-go` may execute).
+- **`## Targets` present, `<sha>` is NOT HEAD** → **stale** (code moved since
+  validation; must be re-finalized before `go`).
+
+`## Targets` lists the files/interfaces the phase touches; `scaffold-plan` writes it
+during a **finalize** pass (`as of HEAD`) and `scaffold-go`'s deterministic `sha == HEAD?`
+check reads it. A brief with no `## Targets` is a valid draft — existing briefs are drafts,
+no conformance break.
 
 ## Rules
 
 - `## Scope` is load-bearing: `scaffold-go` executes exactly what it names. Keep it
   crisp.
 - `NN` is the roadmap ordinal and admits interstitials (`09.1`); never renumber.
+- **`## Targets` requires its `as of <sha>` stamp.** Bare section-presence is not a valid
+  signal — the sha is the grounding evidence (audit checks it resolves to a real commit)
+  *and* the staleness backstop (`go` compares it to HEAD). A `## Targets` without a sha is
+  malformed.
+- **Dirty working tree:** the `sha == HEAD?` check assumes committed state. If the tree
+  has uncommitted edits touching any `## Targets` file, treat the brief as **stale** — the
+  validation no longer describes what's on disk.
 - **Staleness:** a pre-written downstream brief can go stale when a later decision/plan
-  lands. `scaffold-plan` sweeps unexecuted briefs on a pivot; `scaffold-checkpoint`'s
-  coherence sweep also flags brief-vs-decision drift.
+  lands. `scaffold-plan` sweeps unexecuted briefs (drafts included) on a pivot;
+  `scaffold-checkpoint`'s coherence sweep also flags a *finalized* brief whose
+  targets/approach conflict with a later decision.
 - A brief is never authored on a not-yet-approved ADR (the ADR gate resolves first).
 
 ## Anti-patterns
 
 - A brief premised on an unratified decision.
+- A `## Targets` section with no `as of <sha>` stamp (unauditable, no staleness backstop).
 - Renumbering interstitials on migration.
 - Silent scope expansion during `go` instead of routing out-of-scope to checkpoint.

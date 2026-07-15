@@ -191,12 +191,36 @@ A few concepts span the execution docs and don't belong to any single contract:
   `milestones/NN-slug/phases/NN-slug.md`, written up front (predetermined) or
   just-in-time by `plan` (emergent), executed by `go`, and persisting as the record.
   There is no standalone `plans/` folder.
-- **Staleness obligation.** Because briefs *persist* instead of being thrown away, a
-  pre-written downstream brief can go stale when a later decision or plan change lands
-  (e.g. inserting a surgical Phase 9.1 stales the Phase 10 brief). Persistence buys
-  durability at this cost, accepted explicitly. **Owner:** `plan`, on a pivot, sweeps
-  all *unexecuted* briefs in the active milestone and flags/rewrites the stale ones;
-  `checkpoint`'s coherence sweep also flags brief-vs-decision drift.
+- **Draft vs. final — a brief has two states, derived from content + evidence (no
+  enum).** A **draft** is code-blind: high-level, may be pre-written, not executable. A
+  **final** brief has been validated against the code *as it is now* and carries a
+  `## Targets` section — the files/interfaces the phase touches — stamped `as of <sha>`.
+  The state is read off disk: no `## Targets` → draft; `## Targets` with the sha at HEAD →
+  final & fresh; `## Targets` with the sha behind HEAD (or a dirty target file) → stale.
+  This is scaffold's own idiom — a signal is *content + evidence*, like the phase checkbox
+  is *checkbox + date* — so it is auditable by construction (the sha must resolve to a real
+  commit and the named files must exist). **Finalizing is where the code-aware,
+  reasoning-heavy work lives** (`plan`'s finalize pass); `go` is then a thin executor
+  behind a deterministic `sha == HEAD?` gate. This split is what lets the reasoning step
+  and the execution step run on different models / clean contexts, with a reviewable seam
+  between them.
+- **`--draft` / `--final` is a user-intent shortcut, not a mode enum.** `plan` asks
+  "draft or finalize?" when the argument is absent; the flag only skips the ask. It is
+  **never stored** anywhere on disk — the brief's state is still derived from `## Targets`
+  + sha — so it does not reintroduce a driftable status flag. This is the one place
+  scaffold takes an argument, and it is justified precisely because it selects an intent
+  for *this* invocation rather than recording state.
+- **Staleness obligation.** Because briefs *persist* instead of being thrown away, they
+  can go stale two ways, and each has a defense:
+  - **Finalize→execute drift** — a brief finalized `as of X`, then code moves before `go`
+    runs (a `/clear`, a pause, a week-long gap — scaffold's whole reason to exist).
+    Defended by `go`'s **deterministic** `sha == HEAD?` check (it judges nothing — it
+    compares two hashes); mismatch → `go` refuses and routes to re-finalize.
+  - **Plan-set drift** — phases reordered/cut, or a brief premised on a since-superseded
+    decision. Defended by `plan`'s pivot sweep over all *unexecuted* briefs (**drafts
+    included** — a draft on a superseded ADR still breaks the ADR gate) and
+    `checkpoint`'s coherence sweep flagging a *finalized* brief vs a later decision.
+  Persistence buys durability at this cost, accepted explicitly.
 - **Milestone lifecycle.** Active = wherever `state.md` Next points (not folder
   order). On close, the folder rests in place (no archive move); durable rules graduate
   to `knowledge/` (reconciled, surfaced for Adam); `roadmap.md`'s milestone line flips
@@ -316,9 +340,16 @@ plan into the right docs, routing by the model above.
 
 It may: update `roadmap.md`, `state.md`, `architecture.md` (on a cross-cutting truth
 shift), `project.md`; **create a new milestone**; **author one or more phase briefs** +
-update the milestone `plan.md`; and set `state.md` Next. On a **pivot**, it sweeps
-unexecuted briefs for staleness.
+update the milestone `plan.md`; **finalize** a brief; and set `state.md` Next. On a
+**pivot**, it sweeps unexecuted briefs (drafts included) for staleness.
 
+- **Finalize pass.** `plan` turns a draft brief into a final one: it researches the
+  current code, writes `## Targets` (stamped `as of HEAD`), tightens Scope/Approach,
+  ensures `## Acceptance` is user-verifiable, and **presents the approach in plain terms
+  for the user to confirm in dialogue** (not "read the doc"). This is where the
+  code-aware, reasoning-heavy work lives — the step `go` no longer does. It reads code but
+  still writes only the brief (the "never code" boundary holds). Invocation is
+  ask-if-absent, `--draft`/`--final` as a shortcut.
 - **Ordering rule:** if a brief depends on a not-yet-approved ADR, `plan` resolves the
   ADR gate *first* — it never authors briefs premised on an unratified decision.
 - May **propose** an ADR — present the draft, **stop for Adam's approval.**
@@ -329,13 +360,22 @@ unexecuted briefs for staleness.
 
 ### `/scaffold-go`
 
-**Role:** Execute. Run the phase brief referenced by `state.md` Next.
+**Role:** Execute. A thin executor of the phase brief referenced by `state.md` Next.
 
 Writes project files and may write an `investigations/` record; **does NOT write
 scaffold truth or execution docs** — that is `checkpoint`'s job. Reads its brief from
-`milestones/NN/phases/` and executes exactly what its `## Scope` names. Presents its
-approach and waits for approval before executing; works one deliverable at a time;
-routes out-of-scope discoveries to checkpoint rather than expanding silently.
+`milestones/NN/phases/` and **computes its state** (draft / final&fresh / stale) from
+`## Targets` + the `sha == HEAD?` check:
+
+- **draft** (no `## Targets`) → stop: finalize it with `/scaffold-plan --final`, or work
+  freeform (status → work → checkpoint). `go` has no research/propose step of its own — a
+  draft is not for `go` to figure out.
+- **stale** (sha behind HEAD, or a dirty target) → stop: re-finalize with
+  `/scaffold-plan --final`.
+- **final & fresh** → execute exactly what `## Scope` names, one deliverable at a time.
+  The approach was already approved in plain terms at finalize, so `go` confirms the
+  start and works item-by-item — it does not re-propose. Out-of-scope discoveries route
+  to checkpoint rather than expanding silently.
 
 ---
 
@@ -481,7 +521,7 @@ coherent over time; that owner is marked **(primary)** below.
 | `milestones/NN-slug/` (container) | C (first) | R | **C** (new chunk) | — | × (close-in-place) | R | — | C (wrap existing roadmap) |
 | `…/plan.md` | C (seed) | R | **U** (+ groom/promote Deferred) | R | U (tick + groom Deferred) | R (flag stale Deferred) | U | C (from old roadmap body) |
 | `…/spec/` | — | R | — | R | — | R | **C** (absorb/pointer) | move or pointer |
-| `…/phases/NN-slug.md` | — | R | **C/U** + stale-sweep | **execute** | × (tick complete) | R | — | C (move old `plans/`, keep `09.1`) |
+| `…/phases/NN-slug.md` | — | R (state) | **C/U** + finalize + stale-sweep | **execute (final&fresh only)** | × (tick complete) | R (grade `## Targets`) | — | C (move old `plans/`, keep `09.1`) |
 
 `update` is omitted — it pulls skill files and touches no `.scaffold/` content. `audit`
 is read-only — it grades and reports across every artifact, never writes. The coherence
@@ -512,12 +552,19 @@ briefs, setting `state.md` Next. Then you work and save.
 ### Predetermined milestone (execute from briefs)
 
 ```
-status → go → checkpoint   (repeat per phase)
+status → plan --final → go → checkpoint   (repeat per phase)
 ```
 
-A spec has already been absorbed and phase briefs pre-written. `go` executes the brief
-that Next points at; `checkpoint` ticks the `plan.md` checklist and reconciles. Repeat
-until the milestone closes.
+A spec has already been absorbed and phase briefs pre-written **as drafts**. Each phase
+gets a **finalize** pass first — `plan --final` validates the draft against the code as it
+is now (writing `## Targets` + `as of HEAD`, confirming the approach in plain terms) — then
+`go` executes the final & fresh brief and `checkpoint` ticks the `plan.md` checklist and
+reconciles. Repeat until the milestone closes.
+
+**This is a real added step, called out honestly:** the old `status → go → checkpoint` loop
+gains `plan --final` per phase. That is the point of the redesign — validation happens
+*when it can be correct* (against current code), not when the brief was written ahead of
+it — but it is extra ceremony on a predetermined run, accepted deliberately.
 
 ### Periodic deep check
 
@@ -546,6 +593,7 @@ reality.
 | Document type | frontmatter `type:` (authoritative); filename/location as fallback |
 | Active milestone | `state.md` `## Next` names it (authority). Fallback hint only: highest `NN` folder, when Next is silent |
 | Active phase | `state.md` `## Next` names the phase brief |
+| Brief state | no `## Targets` → **draft**; `## Targets` + `as of <sha>` at HEAD → **final & fresh**; sha behind HEAD or a dirty target file → **stale**. `go` executes only final & fresh |
 | Phase done? | the milestone `plan.md` checklist entry is checked (with a date) |
 | Milestone ready to close? | `plan.md` fully checked AND its done-contract met (emergent: only when Adam says the chunk is done). The `roadmap.md` `[done]` flip is the *output* of closing, not a precondition |
 | Milestone mode | derived: has `spec/` + pre-written briefs → predetermined; else emergent |
@@ -605,9 +653,12 @@ Collaborate and build. Checkpoint reviews the conversation, captures decisions
 light structural + coherence sweep. Works.
 
 **A later phase insertion stales a downstream brief:**
-`plan`, on the pivot, sweeps unexecuted briefs in the active milestone against the
-change and flags/rewrites the stale one. If it slips through, the next `checkpoint`
-sweep catches the brief-vs-decision drift.
+`plan`, on the pivot, sweeps all unexecuted briefs (drafts included) in the active
+milestone against the change and flags/rewrites the stale one. That is the *plan-set*
+defense. Separately, a brief that was *finalized* and then left while code moved is
+caught deterministically at execution time by `go`'s `sha == HEAD?` check — it refuses
+and routes to re-finalize. `checkpoint`'s coherence sweep is the backstop for a finalized
+brief whose targets/approach conflict with a later decision.
 
 **A brief depends on a not-yet-approved decision:**
 `plan` resolves the ADR gate first — it presents the draft, stops for Adam's approval,

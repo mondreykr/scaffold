@@ -45,6 +45,26 @@ backlog idea → do the minimum (route to `roadmap.md` Backlog) and confirm, no 
 Anything that creates a milestone, authors briefs, shifts architecture truth, or touches a
 decision → proceed to Phase 2.
 
+## Draft or finalize (the `--draft` / `--final` argument)
+
+Authoring a phase brief has two modes, and a brief has two states derived from its content
+(never a stored enum):
+
+- **draft** — high-level, code-blind, may be written ahead of the code. Has **no**
+  `## Targets` section.
+- **final** — validated against the code *as it is now* and execution-ready. Carries a
+  `## Targets` section stamped `as of <sha>` (the finalize pass below writes it).
+
+**Which mode:** the default is to **ask** — "Draft this, or finalize it against the current
+code?". The argument **`--draft`** / **`--final`** is a shortcut that skips the ask; if it's
+absent, you ask. The ask may *name* the likely option ("a draft exists for phase 7 —
+finalize it?") but never decides for the user. The argument is a per-invocation intent
+shortcut, **never stored** — the brief's state stays derived from `## Targets` + sha.
+
+On **`--final`** (or the user choosing finalize), run the **Finalize pass** below instead of
+the ordinary author flow. Everything else (new milestone, backlog idea, truth shift, a
+fresh draft brief) runs the normal Phases 1–7.
+
 ## Phase 1: Triage (silent)
 
 Read, absorbing context (don't present yet):
@@ -177,8 +197,14 @@ that's a system-design question to raise with Adam, not a bucket to add mid-sess
   the controlling ADR by pointer — never copy their content here.]
 
   ## Acceptance
-  [Verifiable criteria — how `checkpoint` confirms the phase is done.]
+  [Verifiable criteria — an OBSERVABLE outcome the user can confirm without reading code
+  (a behavior, an output, a visible state), never "tests pass". How `checkpoint` confirms
+  the phase is done.]
   ```
+
+  A fresh brief authored this way is a **draft** — no `## Targets`. The `## Targets`
+  section (with `as of <sha>`) is added only by the **Finalize pass**, which validates the
+  brief against the current code. Don't write `## Targets` in a draft.
 
   For an investigation deliverable, note `Output: .scaffold/investigations/YYYYMMDD-slug.md`
   in its scope line.
@@ -211,14 +237,43 @@ that's a system-design question to raise with Adam, not a bucket to add mid-sess
     resuming (reseed the DB first) rides in `## Next`; a durable run/env condition goes to
     `architecture.md`; a blocker to `## Blockers`.
 
+## Finalize pass (`--final`)
+
+Turn a draft brief into an execution-ready **final** brief by validating it against the
+code as it is now. This is where the code-aware, reasoning-heavy work lives — the work
+`scaffold-go` no longer does. Run it on the brief `state.md`'s `## Next` points at (or the
+one the user names).
+
+1. **Research the current code.** Read the files and patterns the brief's `## Scope`
+   implies; identify the concrete files/interfaces the phase will touch and any
+   dependencies. (Reading code to author a better brief does **not** cross the "never write
+   code" boundary — you still write only the brief.)
+2. **Write `## Targets`.** Add the section to the brief, one entry per file/interface the
+   phase touches, and stamp it with the current commit — get it with `git rev-parse --short
+   HEAD` and write `_as of <sha>_` under the heading. This is the grounding evidence that
+   makes the brief auditable and gives `go` its staleness backstop.
+3. **Tighten Scope/Approach** against what the code actually is, and **ensure `##
+   Acceptance` is user-verifiable** — an observable outcome, not "tests pass".
+4. **Present the approach in plain terms and confirm in dialogue.** The user is an
+   architect who doesn't read the brief or the code — so surface the approach as a
+   plain-language conversation ("here's how I'll do it: …"), not "read this doc". **Wait for
+   his confirmation.** This is the approval seam; `go` executes afterward without
+   re-approving.
+5. On confirmation, write the brief and set `state.md`'s Active focus + `## Next` so a
+   resuming session knows the brief is final & fresh.
+
+**Boundary intact:** finalize *reads* code but writes only the brief. If finalize surfaces
+that the brief rests on an unratified decision, resolve the ADR gate (Phase 3) first.
+
 ## Phase 6: Pivot — stale-brief sweep
 
 **Run whenever the direction is a pivot** (a decision reversed, or phases
 reordered/replaced/inserted in the active milestone). Because briefs *persist*, a
 pre-written downstream brief can silently go stale when a later change lands.
 
-For **every unexecuted brief** in the active milestone (executed ones are history —
-leave them):
+For **every unexecuted brief** in the active milestone — **drafts included** (a draft
+premised on a since-superseded ADR still breaks the ADR gate); executed ones are history,
+leave them:
 1. Re-read it against the change just made.
 2. If its scope/approach/acceptance now conflicts, **flag and rewrite it in place** to
    match — or, if it no longer belongs, propose removing it and updating the `plan.md`

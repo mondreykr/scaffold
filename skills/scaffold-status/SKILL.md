@@ -69,6 +69,11 @@ State is derived from what the documents say, not from status keywords. Compute:
 
 - **Phase in flight?** The active `plan.md` has an unchecked phase and `## Next` points at
   its brief.
+- **Brief state?** For the active brief, read its `## Targets`: **none → draft** (finalize
+  before `go`); **present with `as of <sha>` at HEAD (no dirty target) → final & fresh**
+  (ready to `go`); **sha behind HEAD or a dirty target → stale** (re-finalize). This tells
+  a resuming session whether it can execute or must finalize first. (Cheap git check:
+  compare the stamped sha to `git rev-parse HEAD`.)
 - **Milestone complete?** Every phase in the active `plan.md` is checked. For a
   **predetermined** milestone (has `spec/` + pre-written briefs) this means it's at its
   done-contract → close + graduate (`/scaffold-checkpoint`) or start a new milestone
@@ -95,7 +100,8 @@ Keep it short — a briefing, not a report:
 
 1. **Project** — what this is, in one sentence (from `project.md`).
 2. **Milestone + phase** — which milestone is active (per `## Next`), which phase brief is
-   current, and how many phases in its `plan.md` are checked vs remaining.
+   current **and its state (draft / final & fresh / stale)**, and how many phases in its
+   `plan.md` are checked vs remaining.
 3. **Active focus** — the one-paragraph synopsis from `state.md`.
 4. **Open threads** — Blockers and Open Questions (skip if both "None."). Note the active
    milestone's `## Deferred` count if non-empty.
@@ -122,9 +128,14 @@ Keep it short — a briefing, not a report:
 
 Suggest, don't mandate. Surface multiple options if multiple signals apply.
 
-**Phase in flight:**
-> "Active: [milestone] / [phase brief] — [N] of [M] phases done. Run `/scaffold-go` to
-> execute this phase, or `/scaffold-plan` to recalibrate."
+**Phase in flight** — route on the brief's state:
+> - **final & fresh:** "Active: [milestone] / [phase brief] — final & fresh, [N] of [M]
+>   phases done. Run `/scaffold-go` to execute it, or `/scaffold-plan` to recalibrate."
+> - **draft:** "Active: [milestone] / [phase brief] — still a **draft**. Run
+>   `/scaffold-plan --final` to validate it against the current code before `go`, or work
+>   freeform."
+> - **stale:** "Active: [milestone] / [phase brief] — **stale** (validated `as of <sha>`,
+>   code has moved). Re-finalize with `/scaffold-plan --final` before `go`."
 
 **Milestone complete (all phases checked):**
 > "[Milestone] is fully checked. If this chunk is genuinely done, run

@@ -65,8 +65,8 @@ That's the whole system. The other skills are tools you reach for when you need 
 
 | Skill | What it's for | When to use it |
 |-------|--------------|----------------|
-| `/scaffold-plan` | "Help me figure out what's next, and write it down." Discuss direction, then persist it — update the roadmap, author phase briefs, set the active cursor. | When you need to recalibrate, scope new work, or author the next chunk. |
-| `/scaffold-go` | "Execute the active phase." Builds the phase brief that `state.md` Next points at. | When a brief is ready and you want scope-controlled execution. |
+| `/scaffold-plan` | "Help me figure out what's next, and write it down." Discuss direction, then persist it — update the roadmap, author phase briefs, set the active cursor. Also **finalizes** a brief (`--final`): validates it against current code and confirms the approach with you. | When you need to recalibrate, scope new work, author the next chunk, or finalize a brief before executing it. |
+| `/scaffold-go` | "Execute the active phase." Builds the phase brief that `state.md` Next points at. Runs only a **finalized, still-fresh** brief; refuses a draft or a stale one and routes you to finalize. | When a finalized brief is ready and you want scope-controlled execution. |
 | `/scaffold-integrate` | "Absorb this artifact." Ingest a spec or doc into the scaffold. | After producing a spec, or to bring an external/shared spec under a milestone. |
 | `/scaffold-audit` | "Check everything, hard." A deep, independent conformance + reality review. | Before a release, after a long gap, or after heavy hand-editing. |
 
@@ -75,10 +75,17 @@ These are independent tools. Use them in any combination:
 ```
 Freeform:        status → work → checkpoint
 Guided:          status → plan → work → checkpoint
-Predetermined:   status → go → checkpoint   (repeat per phase)
-With artifacts:  integrate → plan → go → checkpoint
+Predetermined:   status → plan --final → go → checkpoint   (repeat per phase)
+With artifacts:  integrate → plan → plan --final → go → checkpoint
 Deep check:      audit
 ```
+
+A phase brief has two states. A **draft** is high-level and code-blind (it can be written
+ahead). Before you execute it, `/scaffold-plan --final` **finalizes** it — validating it
+against the code as it is now, recording which files it touches, and confirming the
+approach with you in plain terms. `/scaffold-go` then executes only a finalized, still-fresh
+brief; if the code has moved since it was finalized, `go` stops and asks you to re-finalize.
+This is what lets the thinking step and the building step happen separately and safely.
 
 ### Quick fixes
 
@@ -98,8 +105,8 @@ Mark deliverables that require human action with `[USER]` in a phase brief or th
 |-------|-------------|----------------|
 | `/scaffold-setup` | Scaffolds the structure for a new project; on an existing codebase it automatically analyzes the code to seed the architecture doc. | Once per project |
 | `/scaffold-status` | Reads scaffold files, gives a session briefing with health checks. Read-only. | Every session start, or after `/clear` |
-| `/scaffold-plan` | Discusses direction and persists it — roadmap, phase briefs, milestone creation, active cursor. Proposes ADRs (you approve). | When you need to recalibrate or author the next chunk |
-| `/scaffold-go` | Executes the active phase brief. Writes code (and optional research records); never scaffold docs. | When a brief is ready and Next points at it |
+| `/scaffold-plan` | Discusses direction and persists it — roadmap, phase briefs, milestone creation, active cursor. Finalizes a brief against current code (`--final`). Proposes ADRs (you approve). | When you need to recalibrate, author the next chunk, or finalize a brief |
+| `/scaffold-go` | Executes the active phase brief (finalized & fresh only — refuses a draft or stale brief). Writes code (and optional research records); never scaffold docs. | When a finalized brief is ready and Next points at it |
 | `/scaffold-checkpoint` | Verifies work, updates scaffold docs, runs a light structural + coherence sweep, commits. Auto-detects a no-work run and just sweeps. | End of every session, or whenever you want to save |
 | `/scaffold-audit` | Deep, independent review — grades every doc against its format and checks the docs against the real code. Read-only; reports drift, changes nothing. | Before a release, after a long gap, or after heavy hand-editing |
 | `/scaffold-integrate` | Absorbs an artifact (spec, doc) into the scaffold — to a milestone's `spec/` (copy or pointer) or `knowledge/`. Pure ingest. | After producing a spec or major artifact |
@@ -163,7 +170,7 @@ All surfaces run on the new ledger; old code demolished.
 
 The `## Phases` checklist (checkbox + completion date) is the disk-derivable "is it done?" signal — there is no status enum. `checkpoint` ticks it. Phase numbers admit interstitials (`09.1` for a surgical phase inserted after a frozen plan); they are never renumbered.
 
-A phase brief (`phases/NN-slug.md`) carries one phase's Objective / Scope / Approach / Acceptance. Briefs are authored up front (predetermined milestone, from a spec) or just-in-time by `plan` (emergent milestone). `go` executes from a brief's `## Scope`.
+A phase brief (`phases/NN-slug.md`) carries one phase's Objective / Scope / Approach / Acceptance. Briefs are authored up front (predetermined milestone, from a spec) or just-in-time by `plan` (emergent milestone). A brief starts as a **draft**; `plan --final` finalizes it — adding a `## Targets` section (the files it touches, stamped `as of <sha>`) once it's validated against current code. `go` executes from a brief's `## Scope`, but only when the brief is finalized and the stamped commit is still HEAD.
 
 ## Integrating specs and other artifacts
 
