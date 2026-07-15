@@ -80,12 +80,21 @@ With artifacts:  integrate → plan → plan --final → go → checkpoint
 Deep check:      audit
 ```
 
-A phase plan has two states. A **draft** is high-level and code-blind (it can be written
-ahead). Before you execute it, `/scaffold-plan --final` **finalizes** it — validating it
-against the code as it is now, recording which files it touches, and confirming the
-approach with you in plain terms. `/scaffold-go` then executes only a finalized, still-fresh
-plan; if the code has moved since it was finalized, `go` stops and asks you to re-finalize.
-This is what lets the thinking step and the building step happen separately and safely.
+**Planning and building are two separate stages, with a validation step between them.** A
+plan can be correct when you write it but out of date by the time you build it — so scaffold
+re-checks at the last moment. A phase plan moves through three stages:
+
+1. **Draft** — `/scaffold-plan` writes the plan at a high level. It's *code-blind*, so you
+   can write it well ahead of the actual work.
+2. **Finalize** — `/scaffold-plan --final` validates that draft against the code *as it is
+   right now*, records which files the phase will touch, and confirms the approach with you
+   in plain terms. This is where the real thinking happens.
+3. **Execute** — `/scaffold-go` builds it, but *only* if the plan is finalized **and** the
+   code hasn't changed since. If it's still a draft, or the code moved after you finalized,
+   `go` stops and sends you back to re-finalize rather than building against a stale plan.
+
+That last check is the point: separating the stages lets the thinking and the building
+happen at different times — even days apart — without the plan quietly going out of date.
 
 ### Quick fixes
 
