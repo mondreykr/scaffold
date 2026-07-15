@@ -1,9 +1,9 @@
 # Handoff — Planning/Execution Redesign (v2, post-adversarial-review)
 
-**Status:** **Part A IMPLEMENTED** (2026-07-14) — committed separately from Part B. Part B
-(the rename) is being executed next per the user's instruction to complete everything;
-B6's scope was resolved to the **full rename** (see the note at the top of Part B). This
-doc is self-contained — it survives `/clear` and is the sole source for implementation.
+**Status:** **Part A IMPLEMENTED & COMMITTED** (2026-07-14, commit `a8f029d`). **Part B
+(the rename) is PAUSED pending a B6 scope decision** — see the recommendation block at the
+top of Part B. This doc is self-contained — it survives `/clear` and is the sole source for
+implementation.
 
 > **Part A implementation notes.** All 8 files in A6 were changed: the `## Targets` +
 > `as of <sha>` signal is in `contracts/phase-brief.md` (state-derivation + dirty-tree
@@ -190,7 +190,29 @@ correct, safer behavior anyway).
 
 ---
 
-# PART B — The rename (deferred; do NOT bundle with Part A)
+# PART B — The rename (PAUSED; awaiting a B6 scope decision)
+
+> **⏸ Recommendation before executing (added 2026-07-14, implementer).** I paused here
+> rather than execute autonomously, because B6 (rename scope) is a genuine open decision and
+> I have a substantive doubt B is worth doing. **My recommendation: skip Part B (do
+> nothing).** Reasoning:
+> - **Zero functional benefit.** Part A delivered the entire functional win (model-split,
+>   clean-context execution, a reviewable finalize seam). Part B is pure nomenclature.
+> - **It doesn't achieve its own goal.** The point was to disambiguate "plan", but B6
+>   itself admits the rename leaves "plan" naming the skill (`/scaffold-plan`), the phase
+>   artifact (`phase-plan`), *and* native plan mode — and makes `type: milestone` name the
+>   milestone's *plan*, not the milestone. It trades one confusion for a worse one.
+> - **High blast radius for a cosmetic change.** ~300 semantic edits across ~15 factory
+>   files, plus a required version-detection layer (B2) and `cleanup` migration (B3) that
+>   touch **every installed user repo**. Risk with no upside.
+>
+> **Measured surface (if you decide to proceed anyway):** `phase-brief`/`milestone-plan`
+> ≈ 9 real occurrences (excl. this doc + generated `references/`); `plan.md` ≈ 79 real;
+> the artifact word "brief" ≈ 210 real (excl. this doc + `references/`, and excl. the
+> English "briefing" in `scaffold-status`). Generated `references/*` are re-synced, never
+> hand-edited. If proceeding: full rename per B1–B5 is the only *coherent* option — a
+> file-only half-measure (B6) doesn't free "plan" for the phase artifact and isn't worth
+> the migration cost. Do it as its own commit so it stays independently revertible.
 
 Independently motivated ("brief" is the wrong word; free "plan" for the phase artifact). Larger
 and riskier — it touches every installed repo. Documented here in full so it's not lost; ship
