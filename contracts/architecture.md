@@ -1,5 +1,5 @@
 ---
-schema_version: 1
+schema_version: 2
 ---
 
 # Contract — `architecture.md`
@@ -17,7 +17,7 @@ schema_version: 1
 ```yaml
 ---
 type: architecture
-schema_version: 1
+schema_version: 2
 updated: YYYY-MM-DD
 ---
 ```

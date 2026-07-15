@@ -1,5 +1,5 @@
 ---
-schema_version: 1
+schema_version: 2
 ---
 
 # Contract — `CLAUDE.md` (user repo root)
@@ -31,7 +31,7 @@ frontmatter would be surprising noise. This is the only doc type exempt.
 | `/scaffold-setup` | Initialize — scaffold the structure for a new project |
 | `/scaffold-status` | Orient — read state, present options |
 | `/scaffold-plan` | Consult + author — discuss direction, persist into the right docs |
-| `/scaffold-go` | Execute — run the active phase brief |
+| `/scaffold-go` | Execute — run the active phase plan |
 | `/scaffold-checkpoint` | Save + reconcile — verify, update files, sweep, commit |
 | `/scaffold-audit` | Audit — deep conformance + reality check (on demand) |
 | `/scaffold-integrate` | Absorb — ingest an artifact (spec, research) into scaffold |

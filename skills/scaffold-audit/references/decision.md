@@ -1,5 +1,5 @@
 ---
-schema_version: 1
+schema_version: 2
 ---
 
 # Contract — `decisions/NNNN-slug.md` (ADR)
@@ -18,7 +18,7 @@ which survive). Referenced by `architecture.md` when architectural.
 ```yaml
 ---
 type: decision
-schema_version: 1
+schema_version: 2
 updated: YYYY-MM-DD
 ---
 ```

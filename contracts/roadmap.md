@@ -1,5 +1,5 @@
 ---
-schema_version: 1
+schema_version: 2
 ---
 
 # Contract — `roadmap.md`
@@ -19,7 +19,7 @@ line to `[done]` at close; removes a backlog item shipped that session),
 ```yaml
 ---
 type: roadmap
-schema_version: 1
+schema_version: 2
 updated: YYYY-MM-DD
 ---
 ```
@@ -44,18 +44,18 @@ updated: YYYY-MM-DD
   literal set is fixed so `scaffold-status` (reads) and `scaffold-checkpoint` (writes
   `[done]`) always agree.
 - Program altitude only: the phases *inside* a milestone live in that milestone's
-  `plan.md`, never here.
+  `milestone.md`, never here.
 - **Backlog membership — the one computable test.** Ask: *is this item tied to the
   active milestone — its scope, its code, or its goal?* **Not tied (or no milestone is
   active) → it's a backlog item** (it outlives any current milestone — typically a future
   feature/capability). **Tied → it is NOT a backlog item** → it routes to that milestone's
-  `plan.md` `## Deferred`. This tied-to-the-active-milestone test is the single
+  `milestone.md` `## Deferred`. This tied-to-the-active-milestone test is the single
   discriminator between `## Backlog` and `## Deferred`; "altitude" is not the rule. A bug
   in code this milestone built is *tied* (→ Deferred); a standalone future capability is
   *not tied* (→ Backlog).
 - **One line, hard.** Each item is a single terse line — a pointer/reminder, not a
   summary. No sub-bullets, no detail-bearing parentheticals, no multi-clause paragraphs.
-  If it needs more than a line, it's a phase brief or an investigation, not a backlog
+  If it needs more than a line, it's a phase plan or an investigation, not a backlog
   entry.
 - **`- [ ]`, never ticked.** Items are written as open checklist items and **leave by
   removal**, never by checking. An item is removed when it's promoted into a milestone/
@@ -64,8 +64,8 @@ updated: YYYY-MM-DD
 
 ## Anti-patterns
 
-- Per-phase build detail (belongs in the milestone `plan.md`).
-- Ground-level milestone debt — bugs, cleanups, residuals (belongs in `plan.md`
+- Per-phase build detail (belongs in the milestone's `milestone.md`).
+- Ground-level milestone debt — bugs, cleanups, residuals (belongs in `milestone.md`
   `## Deferred`).
 - A multi-line / paragraph backlog item (one line only).
 - A `someday / never` / rejected-idea entry (a rejected option is an ADR alternative or

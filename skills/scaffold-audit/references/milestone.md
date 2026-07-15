@@ -1,8 +1,8 @@
 ---
-schema_version: 1
+schema_version: 2
 ---
 
-# Contract — `milestones/NN-slug/plan.md`
+# Contract — `milestones/NN-slug/milestone.md`
 
 **Purpose.** One milestone's phase plan: the phase checklist (the disk-derivable
 "is it done?" signal), the objectives, the done-contract, and the deferred-work list
@@ -21,8 +21,8 @@ ones shipped), built from an old roadmap body by `scaffold-cleanup`. Read by
 
 ```yaml
 ---
-type: milestone-plan
-schema_version: 1
+type: milestone
+schema_version: 2
 updated: YYYY-MM-DD
 ---
 ```
@@ -62,13 +62,13 @@ reconciliation. One line each.]
   moot or owned elsewhere once this milestone closes): a bug, cleanup, debt, residual, or
   doc/spec-reconciliation task surfaced inside the milestone and not yet scheduled into a
   phase. **Not tied (or no milestone is active) → NOT here** → `roadmap.md` `## Backlog`.
-  Scheduled work is a phase brief, not a `## Deferred` line. A spec-reconciliation task
+  Scheduled work is a phase plan, not a `## Deferred` line. A spec-reconciliation task
   ("update SPEC §X to match the code") is tied work and lives here; if the milestone's
   spec maintains its own backlog you may route it there instead, but `## Deferred` is
   always a valid, computable home — never leave it homeless.
 - **One line each, `- [ ]`, never ticked.** Items leave by removal — promoted into a
   phase (by `scaffold-plan`) or shipped (by `scaffold-checkpoint`) — never checked
-  `- [x]`. Detail lives in git / the eventual brief, not in the line.
+  `- [x]`. Detail lives in git / the eventual plan, not in the line.
 - **Retires with the milestone.** At close, every remaining `## Deferred` item is
   resolved, promoted, or dropped — it never graveyards in a retired milestone.
   Accumulation of one-liners mid-milestone is tolerable; the discipline is one line per

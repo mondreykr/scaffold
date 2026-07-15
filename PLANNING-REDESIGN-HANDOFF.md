@@ -1,9 +1,38 @@
 # Handoff — Planning/Execution Redesign (v2, post-adversarial-review)
 
-**Status:** **Part A IMPLEMENTED & COMMITTED** (2026-07-14, commit `a8f029d`). **Part B
-(the rename) is PAUSED pending a B6 scope decision** — see the recommendation block at the
-top of Part B. This doc is self-contained — it survives `/clear` and is the sole source for
-implementation.
+**Status:** **BOTH PARTS DONE.** Part A — 2026-07-14, commit `a8f029d`. Part B (the full
+rename) — 2026-07-15, committed separately so it stays independently revertible. B6 was
+resolved to the **full rename** by the user (reasoning below). This doc is self-contained —
+it survives `/clear` and is the historical record of the effort.
+
+> **Part B resolution & notes.** The user chose the full rename after weighing the
+> recommendation to skip: the phase documents *are* plans that get executed, so "brief"
+> genuinely misdescribes them, and he doesn't use Claude Code's native plan mode — so the
+> "plan" overload the recommendation worried about isn't a real cost for him. Executed per
+> B1–B5:
+> - **Renames:** `type: phase-brief`→`phase-plan` (`contracts/phase-brief.md`→
+>   `phase-plan.md`); `type: milestone-plan`→`milestone` + file `plan.md`→`milestone.md`
+>   (`contracts/milestone-plan.md`→`milestone.md`); the artifact word "brief"→"plan"
+>   throughout (English "brief"/"briefing" preserved: `status`'s "Brief the session",
+>   `checkpoint`'s "Stay brief"/"[brief summary]", `knowledge.md`'s "stay brief").
+> - **One deliberate deviation from B1.** B1 said bump `schema_version` "on the changed
+>   contracts." I bumped **all** contracts + skill stamps `1`→`2` instead (a whole-format
+>   epoch). Reason: the skills state a *blanket* `schema_version` in their frontmatter
+>   rules/templates; a per-type mix would make those statements incoherent and detection
+>   fragile. Uniform `2` keeps every statement true and makes the v1 marker dead simple
+>   (any `schema_version: 1` = un-migrated). This matches how `cleanup` already treats the
+>   field (a repo-format epoch, re-stamped on migration).
+> - **B2 (version detection):** `scaffold-update` Step 3 gained pre-rename markers; a
+>   **Version guard** was added to `status`/`plan`/`go`/`checkpoint`/`integrate`; `audit`
+>   gained a third gate for an unknown/pre-rename `type` (report "unmigrated", don't
+>   force-grade).
+> - **B3 (migration):** `cleanup` gained a pre-rename playbook — rename files/types, bump
+>   schema, **migrate phase plans to *draft*** (never fabricate `## Targets`/sha), STOP on
+>   ambiguity.
+> - **B4:** stale `references/phase-brief.md` + `milestone-plan.md` deleted; re-synced;
+>   `sync-contracts.sh --check` passes. **B5 acceptance:** every remaining `brief`/
+>   `phase-brief`/`plan.md`/`milestone-plan`/`schema_version: 1` occurrence is intentional
+>   detection/guard/migration text (verified by grep). **B6:** full rename, as above.
 
 > **Part A implementation notes.** All 8 files in A6 were changed: the `## Targets` +
 > `as of <sha>` signal is in `contracts/phase-brief.md` (state-derivation + dirty-tree
@@ -190,12 +219,17 @@ correct, safer behavior anyway).
 
 ---
 
-# PART B — The rename (PAUSED; awaiting a B6 scope decision)
+# PART B — The rename (DONE 2026-07-15; full rename per B1–B5)
 
-> **⏸ Recommendation before executing (added 2026-07-14, implementer).** I paused here
-> rather than execute autonomously, because B6 (rename scope) is a genuine open decision and
-> I have a substantive doubt B is worth doing. **My recommendation: skip Part B (do
-> nothing).** Reasoning:
+> **✅ Resolved.** The recommendation below (to skip) was put to the user; he chose the
+> **full rename** with sound reasoning — see the "Part B resolution & notes" block at the
+> top of this doc. The record of the original recommendation is kept here for the audit
+> trail. **This section is history now, not a pending decision.**
+>
+> **⏸ Original recommendation (2026-07-14, implementer) — NOT taken.** I paused rather than
+> execute autonomously, because B6 (rename scope) was a genuine open decision and I had a
+> substantive doubt B was worth doing. My recommendation was: skip Part B (do nothing).
+> Reasoning:
 > - **Zero functional benefit.** Part A delivered the entire functional win (model-split,
 >   clean-context execution, a reviewable finalize seam). Part B is pure nomenclature.
 > - **It doesn't achieve its own goal.** The point was to disambiguate "plan", but B6

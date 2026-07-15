@@ -1,6 +1,6 @@
 ---
 name: scaffold-integrate
-description: Absorb an external artifact (a spec or design doc) into a scaffold project and route it to its one home — a milestone's spec/ (copy or pointer) or knowledge/ — then lift operational facts into the truth docs. Pure ingest; never authors plans, briefs, or ADRs, and never touches code. Use whenever the user wants to integrate, absorb, ingest, bring in, or pull in an external doc/spec — even if they only say "integrate this", "absorb that spec", or "add this doc to the scaffold". To migrate an old scaffold layout, use /scaffold-cleanup instead.
+description: Absorb an external artifact (a spec or design doc) into a scaffold project and route it to its one home — a milestone's spec/ (copy or pointer) or knowledge/ — then lift operational facts into the truth docs. Pure ingest; never authors plans, plans, or ADRs, and never touches code. Use whenever the user wants to integrate, absorb, ingest, bring in, or pull in an external doc/spec — even if they only say "integrate this", "absorb that spec", or "add this doc to the scaffold". To migrate an old scaffold layout, use /scaffold-cleanup instead.
 ---
 
 # scaffold-integrate
@@ -9,7 +9,7 @@ Pure ingest: absorb an external artifact, route it to its one home, and lift ope
 facts into the truth docs. Nothing more — authoring, reconciling, and migrating belong to
 other skills.
 
-**Boundary.** Integrate does NOT: author plans or phase briefs (`scaffold-plan`); run a
+**Boundary.** Integrate does NOT: author plans or phase plans (`scaffold-plan`); run a
 coherence sweep or write back build results (`scaffold-checkpoint`); migrate an old-format
 repo (`scaffold-cleanup`); create/supersede/prune a decision (`decisions/` is Adam-gated —
 surface a ruling and hand to `plan`/`checkpoint`, never write one here); or change code.
@@ -18,8 +18,13 @@ surface a ruling and hand to `plan`/`checkpoint`, never write one here); or chan
 `architecture.md`, `roadmap.md`, `state.md`) exist. If any is missing, stop: "Scaffold
 files missing or incomplete — run /scaffold-setup first."
 
+**Version guard.** If any `.scaffold/` doc carries `schema_version: 1`, a `type:
+milestone-plan` / `type: phase-brief`, or a milestone folder holds a `plan.md` (the current
+name is `milestone.md`), the repo predates the current format — stop: "Old scaffold format
+(pre-rename) — run /scaffold-cleanup to migrate first; the current skills will misread it."
+
 **Frontmatter.** Any `.scaffold/` doc you create or touch carries `type` /
-`schema_version: 1` / `updated:` (set to today). `CLAUDE.md` is exempt.
+`schema_version: 2` / `updated:` (set to today). `CLAUDE.md` is exempt.
 
 ---
 
@@ -80,7 +85,7 @@ doesn't exist yet). Then **copy vs. pointer** (ask if not obvious):
   ```markdown
   ---
   type: spec-pointer
-  schema_version: 1
+  schema_version: 2
   updated: [today]
   ---
 
@@ -126,13 +131,13 @@ Beyond its primary home, lift operational facts — and only these:
 - **A scope-boundary the artifact makes explicit** → `project.md`, as **plain truth** in
   `## Scope` or `## Not building` — **never a checkbox** (checkboxes are a `project.md`
   anti-pattern). A *verifiable invariant* the artifact states routes to where it's tested
-  (the milestone done-contract, a brief's acceptance, or a `knowledge/` invariants doc),
+  (the milestone done-contract, a plan's acceptance, or a `knowledge/` invariants doc),
   not a truth doc. Only what the artifact states plainly — don't invent.
 - **A new milestone or backlog one-liner it implies** → flag for `roadmap.md`, but
   **propose, don't author** — milestone creation + phase planning are `plan`'s job.
 
-Do **not** extract decisions into `decisions/` (Adam-gated — hand off) or author briefs /
-a `plan.md` (`plan`). Present the extraction set before writing, and **STOP for
+Do **not** extract decisions into `decisions/` (Adam-gated — hand off) or author plans /
+a `milestone.md` (`plan`). Present the extraction set before writing, and **STOP for
 confirmation** if there's anything beyond the primary placement:
 
 > "Extracting into truth docs:

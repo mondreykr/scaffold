@@ -21,8 +21,8 @@ maintain a small set of living docs in a user's repo so work survives across ses
 
 **The essence — hold this while editing anything here.** The product is a *deterministic
 state machine, and its data is the document structure itself.* Skills compute state by
-reading sections off disk (`## Next` = what's active, the `plan.md` checkbox = what's
-done, a brief's `## Scope` = what to build). The whole thing works only because **every
+reading sections off disk (`## Next` = what's active, the `milestone.md` checkbox = what's
+done, a plan's `## Scope` = what to build). The whole thing works only because **every
 piece of information has exactly one *computable* home.** The corollary is a hard
 guardrail on every change you make: **never add an open-ended or catch-all section.** A
 soft bucket is a non-deterministic home — ambiguous data piles up there, the docs bloat,

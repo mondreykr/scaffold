@@ -20,7 +20,7 @@ context intact.
 
 **Scaffold runs like code.** It is a deterministic state machine whose *data is the
 document structure itself*: skills compute what's active, what's done, and what to do
-next by reading sections off disk (`## Next`, the `plan.md` checkbox, a brief's
+next by reading sections off disk (`## Next`, the `milestone.md` checkbox, a plan's
 `## Scope`). That is the load-bearing invariant behind every principle below, and it has
 one sharp consequence — **every piece of information must have exactly one *computable*
 home, so a catch-all or open-ended section is forbidden.** A soft bucket is a
@@ -88,9 +88,9 @@ and retire with their milestone.
 | Active state | Where we are now / next / blockers / open questions | `.scaffold/state.md` | living (churns) |
 | Decisions | Load-bearing *why* + rejected alternatives (ADRs) | `.scaffold/decisions/NNNN-slug.md` | frozen; **Adam-gated** |
 | Research | Investigations / analyses produced while working | `.scaffold/investigations/YYYYMMDD-slug.md` | frozen |
-| Milestone plan | The phases + objectives + acceptance + deferred work for one chunk | `.scaffold/milestones/NN-slug/plan.md` | temporal |
+| Milestone plan | The phases + objectives + acceptance + deferred work for one chunk | `.scaffold/milestones/NN-slug/milestone.md` | temporal |
 | Milestone contract | The spec, if the chunk needed heavy scoping | `.scaffold/milestones/NN-slug/spec/` | temporal |
-| Phase brief | Atomic execution unit: one phase's scope/approach/acceptance | `.scaffold/milestones/NN-slug/phases/NN-slug.md` | temporal |
+| Phase plan | Atomic execution unit: one phase's scope/approach/acceptance | `.scaffold/milestones/NN-slug/phases/NN-slug.md` | temporal |
 
 The model has three bands: **living truth** (overwritten in place, always current),
 **history** (frozen, written once), and **execution** (temporal, retires with its
@@ -119,10 +119,10 @@ CLAUDE.md                         orientation + instructions + pointer into .sca
   # ── EXECUTION (temporal; retires with its milestone) ──
   milestones/
     NN-slug/
-      plan.md                     this milestone's phase plan + objectives + acceptance + deferred work
+      milestone.md                     this milestone's phase plan + objectives + acceptance + deferred work
       spec/                       OPTIONAL — the contract, if heavy scoping was needed
       phases/
-        NN-slug.md                phase briefs
+        NN-slug.md                phase plans
 
 docs/                             code-adjacent reference assets ONLY (e.g. design-system bundle)
 ```
@@ -174,9 +174,9 @@ a point-in-time capture (investigations). A new doc type picks its scheme by thi
 | `knowledge` | living | `.scaffold/knowledge/*.md` | `contracts/knowledge.md` |
 | `decision` | history | `.scaffold/decisions/NNNN-slug.md` | `contracts/decision.md` |
 | `investigation` | history | `.scaffold/investigations/YYYYMMDD-slug.md` | `contracts/investigation.md` |
-| `milestone-plan` | execution | `.scaffold/milestones/NN-slug/plan.md` | `contracts/milestone-plan.md` |
+| `milestone` | execution | `.scaffold/milestones/NN-slug/milestone.md` | `contracts/milestone.md` |
 | `spec-pointer` | execution | `.scaffold/milestones/NN-slug/spec/` | `contracts/spec-pointer.md` |
-| `phase-brief` | execution | `.scaffold/milestones/NN-slug/phases/NN-slug.md` | `contracts/phase-brief.md` |
+| `phase-plan` | execution | `.scaffold/milestones/NN-slug/phases/NN-slug.md` | `contracts/phase-plan.md` |
 
 ### Execution model (cross-cutting)
 
@@ -185,15 +185,15 @@ A few concepts span the execution docs and don't belong to any single contract:
 - **The mode question — dissolved (no flag).** Emergent vs predetermined is not a
   setting; it's an emergent property of how much was pre-written, derivable from disk:
   a **predetermined** milestone has a `spec/` (or pointer) and pre-written phase
-  briefs; an **emergent** milestone has no spec and briefs written just-in-time. Same
+  plans; an **emergent** milestone has no spec and plans written just-in-time. Same
   structure either way.
-- **One artifact type — the phase brief.** A brief lives at
+- **One artifact type — the phase plan.** A plan lives at
   `milestones/NN-slug/phases/NN-slug.md`, written up front (predetermined) or
   just-in-time by `plan` (emergent), executed by `go`, and persisting as the record.
   There is no standalone `plans/` folder.
-- **Draft vs. final — a brief has two states, derived from content + evidence (no
+- **Draft vs. final — a plan has two states, derived from content + evidence (no
   enum).** A **draft** is code-blind: high-level, may be pre-written, not executable. A
-  **final** brief has been validated against the code *as it is now* and carries a
+  **final** plan has been validated against the code *as it is now* and carries a
   `## Targets` section — the files/interfaces the phase touches — stamped `as of <sha>`.
   The state is read off disk: no `## Targets` → draft; `## Targets` with the sha at HEAD →
   final & fresh; `## Targets` with the sha behind HEAD (or a dirty target file) → stale.
@@ -206,34 +206,34 @@ A few concepts span the execution docs and don't belong to any single contract:
   between them.
 - **`--draft` / `--final` is a user-intent shortcut, not a mode enum.** `plan` asks
   "draft or finalize?" when the argument is absent; the flag only skips the ask. It is
-  **never stored** anywhere on disk — the brief's state is still derived from `## Targets`
+  **never stored** anywhere on disk — the plan's state is still derived from `## Targets`
   + sha — so it does not reintroduce a driftable status flag. This is the one place
   scaffold takes an argument, and it is justified precisely because it selects an intent
   for *this* invocation rather than recording state.
-- **Staleness obligation.** Because briefs *persist* instead of being thrown away, they
+- **Staleness obligation.** Because plans *persist* instead of being thrown away, they
   can go stale two ways, and each has a defense:
-  - **Finalize→execute drift** — a brief finalized `as of X`, then code moves before `go`
+  - **Finalize→execute drift** — a plan finalized `as of X`, then code moves before `go`
     runs (a `/clear`, a pause, a week-long gap — scaffold's whole reason to exist).
     Defended by `go`'s **deterministic** `sha == HEAD?` check (it judges nothing — it
     compares two hashes); mismatch → `go` refuses and routes to re-finalize.
-  - **Plan-set drift** — phases reordered/cut, or a brief premised on a since-superseded
-    decision. Defended by `plan`'s pivot sweep over all *unexecuted* briefs (**drafts
+  - **Plan-set drift** — phases reordered/cut, or a plan premised on a since-superseded
+    decision. Defended by `plan`'s pivot sweep over all *unexecuted* plans (**drafts
     included** — a draft on a superseded ADR still breaks the ADR gate) and
-    `checkpoint`'s coherence sweep flagging a *finalized* brief vs a later decision.
+    `checkpoint`'s coherence sweep flagging a *finalized* plan vs a later decision.
   Persistence buys durability at this cost, accepted explicitly.
 - **Milestone lifecycle.** Active = wherever `state.md` Next points (not folder
   order). On close, the folder rests in place (no archive move); durable rules graduate
   to `knowledge/` (reconciled, surfaced for Adam); `roadmap.md`'s milestone line flips
   to `[done]`. Any remaining `## Deferred` items are resolved, promoted, or dropped at
   close — they retire with the milestone, never silently graveyarded.
-- **Deferred work (`plan.md` `## Deferred`).** Work *tied to* a milestone — surfaced
+- **Deferred work (`milestone.md` `## Deferred`).** Work *tied to* a milestone — surfaced
   inside it, in its scope or code, but not scheduled into a phase: a bug, a cleanup,
   deferred debt, a review residual. **The Backlog↔Deferred discriminator is one computable
   test — "is it tied to the active milestone?"** Tied → here (it's moot or owned elsewhere
   once the milestone closes); not tied, or no milestone is active → `roadmap.md`
   `## Backlog` (it outlives any current milestone). It is groomed **continuously, not only
   at close** (close is too rare to be the drain — milestones can run a long time): `plan`
-  promotes an item into a phase brief (and removes the line) or leaves it; `checkpoint`
+  promotes an item into a phase plan (and removes the line) or leaves it; `checkpoint`
   removes items shipped that session **and, on its always-on sweep, surfaces a nudge to run
   `/scaffold-audit` once the list grows large or hasn't been groomed in a while**; `audit`'s
   reality pass does the expensive "already built / no longer applies" determination and
@@ -248,7 +248,7 @@ Deterministic. Resolve by the two laws when in doubt.
 | The thing | Home |
 |-----------|------|
 | Future work NOT tied to the active milestone (a feature/capability that outlives it; or anything surfaced while no milestone is active) | `roadmap.md` → `## Backlog` |
-| Deferred work tied to the active milestone (a bug, cleanup, debt, residual in its scope/code) | that milestone's `plan.md` → `## Deferred` |
+| Deferred work tied to the active milestone (a bug, cleanup, debt, residual in its scope/code) | that milestone's `milestone.md` → `## Deferred` |
 | A significant, durable choice + its why | `decisions/NNNN-slug.md` (+ reference it from `architecture.md` if architectural) |
 | Research / analysis output | `investigations/YYYYMMDD-slug.md` |
 | Current technical truth (how it's built, incl. durable run/env) | `architecture.md` |
@@ -308,8 +308,8 @@ flags. Instead, two tiers:
 
 Creates the living-truth docs (`project`, `architecture`, `roadmap`, `state`), empty
 `knowledge/`, `decisions/`, `investigations/`, and `milestones/` with an initial
-`01-<slug>/` (emergent default: `plan.md` seeded with a single Phase 1, no spec, no
-pre-written briefs). The seed slug is rename-cheap (`01-main`); because the slug is a
+`01-<slug>/` (emergent default: `milestone.md` seeded with a single Phase 1, no spec, no
+pre-written plans). The seed slug is rename-cheap (`01-main`); because the slug is a
 sticky namespace, setup documents the rename procedure. Writes `CLAUDE.md` per the
 `claude-md` contract (orientation + pointer; nothing that belongs in `architecture.md`).
 **Stamps frontmatter** on every doc it creates. On an **existing codebase**, setup
@@ -325,7 +325,7 @@ pure-ingest and never writes decisions.
 
 **Role:** Orient. Read state, present options. Read-only — writes nothing.
 
-Reads the truth docs + the active milestone's `plan.md` + the phase brief that
+Reads the truth docs + the active milestone's `milestone.md` + the phase plan that
 `state.md` Next points at. Derives all signals from disk; **active is per `state.md`
 Next, not folder order.** Surfaces investigation filenames (cheap, no read) so a
 resuming session sees them. Ends with options, not directives.
@@ -339,19 +339,19 @@ old `scope`). The preceding conversation needs no skill; `plan` *persists* the a
 plan into the right docs, routing by the model above.
 
 It may: update `roadmap.md`, `state.md`, `architecture.md` (on a cross-cutting truth
-shift), `project.md`; **create a new milestone**; **author one or more phase briefs** +
-update the milestone `plan.md`; **finalize** a brief; and set `state.md` Next. On a
-**pivot**, it sweeps unexecuted briefs (drafts included) for staleness.
+shift), `project.md`; **create a new milestone**; **author one or more phase plans** +
+update the milestone's `milestone.md`; **finalize** a plan; and set `state.md` Next. On a
+**pivot**, it sweeps unexecuted plans (drafts included) for staleness.
 
-- **Finalize pass.** `plan` turns a draft brief into a final one: it researches the
+- **Finalize pass.** `plan` turns a draft plan into a final one: it researches the
   current code, writes `## Targets` (stamped `as of HEAD`), tightens Scope/Approach,
   ensures `## Acceptance` is user-verifiable, and **presents the approach in plain terms
   for the user to confirm in dialogue** (not "read the doc"). This is where the
   code-aware, reasoning-heavy work lives — the step `go` no longer does. It reads code but
-  still writes only the brief (the "never code" boundary holds). Invocation is
+  still writes only the plan (the "never code" boundary holds). Invocation is
   ask-if-absent, `--draft`/`--final` as a shortcut.
-- **Ordering rule:** if a brief depends on a not-yet-approved ADR, `plan` resolves the
-  ADR gate *first* — it never authors briefs premised on an unratified decision.
+- **Ordering rule:** if a plan depends on a not-yet-approved ADR, `plan` resolves the
+  ADR gate *first* — it never authors plans premised on an unratified decision.
 - May **propose** an ADR — present the draft, **stop for Adam's approval.**
 - **Announces its intended write-set before writing.**
 - **Boundary:** scaffold docs only, never code.
@@ -360,10 +360,10 @@ update the milestone `plan.md`; **finalize** a brief; and set `state.md` Next. O
 
 ### `/scaffold-go`
 
-**Role:** Execute. A thin executor of the phase brief referenced by `state.md` Next.
+**Role:** Execute. A thin executor of the phase plan referenced by `state.md` Next.
 
 Writes project files and may write an `investigations/` record; **does NOT write
-scaffold truth or execution docs** — that is `checkpoint`'s job. Reads its brief from
+scaffold truth or execution docs** — that is `checkpoint`'s job. Reads its plan from
 `milestones/NN/phases/` and **computes its state** (draft / final&fresh / stale) from
 `## Targets` + the `sha == HEAD?` check:
 
@@ -383,7 +383,7 @@ scaffold truth or execution docs** — that is `checkpoint`'s job. Reads its bri
 
 **Role:** Save and reconcile. Verify work, update files, run the sweep, commit.
 
-Updates the truth docs + the active milestone's `plan.md` (tick the phase checklist +
+Updates the truth docs + the active milestone's `milestone.md` (tick the phase checklist +
 date) + `state.md` + `knowledge/` (when behavior changed).
 
 - **Always runs a light, inline structural + coherence sweep** over *all* living docs
@@ -393,7 +393,7 @@ date) + `state.md` + `knowledge/` (when behavior changed).
     `project.md` checkbox (Law 2). The deep per-contract rule grading is deferred to audit
     (the sole grader).
   - *Coherence* — cross-reference integrity (architecture ↔ decisions), Law-1/Law-2
-    violations, duplication, brief-vs-decision staleness, `## Next` resolves, stale
+    violations, duplication, plan-vs-decision staleness, `## Next` resolves, stale
     dates.
 - **Auto-detects "no work to save → just sweep"** — run it after hand-edits or to
   tidy. (This replaces the old standalone reconcile pass; there is no flag.)
@@ -441,7 +441,7 @@ go through the owning skill (audit never edits).
 Absorbs a spec or doc: if it scopes a milestone → that milestone's `spec/` (the
 artifact itself or a pointer); if it is cross-cutting durable knowledge → `knowledge/`.
 Extracts operational info into the truth docs. Does not execute work, author phase
-briefs, or modify project files.
+plans, or modify project files.
 
 ---
 
@@ -468,9 +468,9 @@ repo) → **propose the full plan** → **reference sweep before any move** → 
 inventory found → **execute in one pass** → **verify against the target**.
 
 The mapping playbook (applied only to patterns the inventory actually turns up): splits an
-old per-phase `roadmap.md` by altitude (build plan → `milestones/NN-*/plan.md` with the
+old per-phase `roadmap.md` by altitude (build plan → `milestones/NN-*/milestone.md` with the
 checkbox+date checklist preserved; `## Backlog` + a fresh `## Milestones` index stay at
-program altitude; a `phase-00` "plan authored" entry folds into `plan.md`, not a brief);
+program altitude; a `phase-00` "plan authored" entry folds into `milestone.md`, not a plan);
 moves `plans/phase-*` into `phases/` **preserving interstitials (`09.1`) — never renumber**;
 stands up `architecture.md` from `CLAUDE.md`/decisions + run/env (architecture-vs-knowledge
 tiebreak); **curates decisions — does not split them** (a monolithic `decisions.md` → an
@@ -519,7 +519,7 @@ coherent over time; that owner is marked **(primary)** below.
 | `decisions/NNNN-slug.md` | C (dir) | R (on ref) | **propose→gate** | — | **propose→gate** | R | — | migrate (Adam gates survivors) |
 | `investigations/YYYYMMDD-slug.md` | C (dir) | R (lists) | R | C (opportunistic) | R | R | — | — |
 | `milestones/NN-slug/` (container) | C (first) | R | **C** (new chunk) | — | × (close-in-place) | R | — | C (wrap existing roadmap) |
-| `…/plan.md` | C (seed) | R | **U** (+ groom/promote Deferred) | R | U (tick + groom Deferred) | R (flag stale Deferred) | U | C (from old roadmap body) |
+| `…/milestone.md` | C (seed) | R | **U** (+ groom/promote Deferred) | R | U (tick + groom Deferred) | R (flag stale Deferred) | U | C (from old roadmap body) |
 | `…/spec/` | — | R | — | R | — | R | **C** (absorb/pointer) | move or pointer |
 | `…/phases/NN-slug.md` | — | R (state) | **C/U** + finalize + stale-sweep | **execute (final&fresh only)** | × (tick complete) | R (grade `## Targets`) | — | C (move old `plans/`, keep `09.1`) |
 
@@ -547,23 +547,23 @@ status → plan → work with Claude → checkpoint
 ```
 
 Plan figures out what to do and persists it — updating the roadmap, authoring phase
-briefs, setting `state.md` Next. Then you work and save.
+plans, setting `state.md` Next. Then you work and save.
 
-### Predetermined milestone (execute from briefs)
+### Predetermined milestone (execute from plans)
 
 ```
 status → plan --final → go → checkpoint   (repeat per phase)
 ```
 
-A spec has already been absorbed and phase briefs pre-written **as drafts**. Each phase
+A spec has already been absorbed and phase plans pre-written **as drafts**. Each phase
 gets a **finalize** pass first — `plan --final` validates the draft against the code as it
 is now (writing `## Targets` + `as of HEAD`, confirming the approach in plain terms) — then
-`go` executes the final & fresh brief and `checkpoint` ticks the `plan.md` checklist and
+`go` executes the final & fresh plan and `checkpoint` ticks the `milestone.md` checklist and
 reconciles. Repeat until the milestone closes.
 
 **This is a real added step, called out honestly:** the old `status → go → checkpoint` loop
 gains `plan --final` per phase. That is the point of the redesign — validation happens
-*when it can be correct* (against current code), not when the brief was written ahead of
+*when it can be correct* (against current code), not when the plan was written ahead of
 it — but it is extra ceremony on a predetermined run, accepted deliberately.
 
 ### Periodic deep check
@@ -579,7 +579,7 @@ back through the owning skill.
 ### Mix and match
 
 Skills can be invoked at any point. Run `plan` deep into a session to recalibrate. Run
-`go` whenever a brief is ready and Next points at it. Run `checkpoint` whenever you want
+`go` whenever a plan is ready and Next points at it. Run `checkpoint` whenever you want
 to save.
 
 ## State Determination
@@ -592,13 +592,13 @@ reality.
 |--------|-----------|
 | Document type | frontmatter `type:` (authoritative); filename/location as fallback |
 | Active milestone | `state.md` `## Next` names it (authority). Fallback hint only: highest `NN` folder, when Next is silent |
-| Active phase | `state.md` `## Next` names the phase brief |
-| Brief state | no `## Targets` → **draft**; `## Targets` + `as of <sha>` at HEAD → **final & fresh**; sha behind HEAD or a dirty target file → **stale**. `go` executes only final & fresh |
-| Phase done? | the milestone `plan.md` checklist entry is checked (with a date) |
-| Milestone ready to close? | `plan.md` fully checked AND its done-contract met (emergent: only when Adam says the chunk is done). The `roadmap.md` `[done]` flip is the *output* of closing, not a precondition |
-| Milestone mode | derived: has `spec/` + pre-written briefs → predetermined; else emergent |
+| Active phase | `state.md` `## Next` names the phase plan |
+| Plan state | no `## Targets` → **draft**; `## Targets` + `as of <sha>` at HEAD → **final & fresh**; sha behind HEAD or a dirty target file → **stale**. `go` executes only final & fresh |
+| Phase done? | the milestone's `milestone.md` checklist entry is checked (with a date) |
+| Milestone ready to close? | `milestone.md` fully checked AND its done-contract met (emergent: only when Adam says the chunk is done). The `roadmap.md` `[done]` flip is the *output* of closing, not a precondition |
+| Milestone mode | derived: has `spec/` + pre-written plans → predetermined; else emergent |
 | Blocked | `state.md` `## Blockers` has content other than "None." |
-| Deferred work parked | the active milestone's `plan.md` `## Deferred` is non-empty |
+| Deferred work parked | the active milestone's `milestone.md` `## Deferred` is non-empty |
 
 Signals are not mutually exclusive — a session can be blocked AND have an active phase.
 `status` surfaces all that apply. No status keyword is stored anywhere; every signal is
@@ -652,17 +652,17 @@ Collaborate and build. Checkpoint reviews the conversation, captures decisions
 (proposing ADRs through the gate), updates the roadmap and state, and runs its
 light structural + coherence sweep. Works.
 
-**A later phase insertion stales a downstream brief:**
-`plan`, on the pivot, sweeps all unexecuted briefs (drafts included) in the active
+**A later phase insertion stales a downstream plan:**
+`plan`, on the pivot, sweeps all unexecuted plans (drafts included) in the active
 milestone against the change and flags/rewrites the stale one. That is the *plan-set*
-defense. Separately, a brief that was *finalized* and then left while code moved is
+defense. Separately, a plan that was *finalized* and then left while code moved is
 caught deterministically at execution time by `go`'s `sha == HEAD?` check — it refuses
 and routes to re-finalize. `checkpoint`'s coherence sweep is the backstop for a finalized
-brief whose targets/approach conflict with a later decision.
+plan whose targets/approach conflict with a later decision.
 
-**A brief depends on a not-yet-approved decision:**
+**A plan depends on a not-yet-approved decision:**
 `plan` resolves the ADR gate first — it presents the draft, stops for Adam's approval,
-and only then authors the brief premised on it. It never writes a brief on an
+and only then authors the plan premised on it. It never writes a plan on an
 unratified decision.
 
 **A later-numbered milestone is pre-created while an earlier one runs:**
@@ -680,7 +680,7 @@ maintained in place until the milestone closes; its internals are never cracked 
 absorbed.
 
 **Context crash mid-execution:**
-`state.md` Next still points at the milestone + phase brief; the brief persists on disk.
+`state.md` Next still points at the milestone + phase plan; the plan persists on disk.
 `status` detects the active phase and resumes.
 
 **Requirements discovered mid-session:**

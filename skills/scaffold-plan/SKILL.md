@@ -1,6 +1,6 @@
 ---
 name: scaffold-plan
-description: Persist an agreed direction into the scaffold docs — the single authoring skill. Routes each thing to its one home: a backlog idea to roadmap, a new chunk to a milestone + plan.md, how-to-build-it to phase briefs, a cross-cutting truth shift to architecture.md, and always updates state.md's Next cursor. Proposes ADRs (Adam-gated) and sweeps stale briefs on a pivot. Use whenever the user wants to plan, scope, decide what to build next, add a milestone or phase, capture a decision or requirement, or write down a direction you've agreed on — even if they only say "plan this", "let's scope it", or "write that down". Writes scaffold docs only, never code.
+description: Persist an agreed direction into the scaffold docs — the single authoring skill. Routes each thing to its one home: a backlog idea to roadmap, a new chunk to a milestone + milestone.md, how-to-build-it to phase plans, a cross-cutting truth shift to architecture.md, and always updates state.md's Next cursor. Proposes ADRs (Adam-gated) and sweeps stale plans on a pivot. Use whenever the user wants to plan, scope, decide what to build next, add a milestone or phase, capture a decision or requirement, or write down a direction you've agreed on — even if they only say "plan this", "let's scope it", or "write that down". Writes scaffold docs only, never code.
 ---
 
 # scaffold-plan
@@ -18,8 +18,13 @@ without Adam's explicit approval.
 `architecture.md`, `roadmap.md`, `state.md`) exist. If any is missing, stop: "Scaffold
 files missing or incomplete — run /scaffold-setup first."
 
+**Version guard.** If any `.scaffold/` doc carries `schema_version: 1`, a `type:
+milestone-plan` / `type: phase-brief`, or a milestone folder holds a `plan.md` (the current
+name is `milestone.md`), the repo predates the current format — stop: "Old scaffold format
+(pre-rename) — run /scaffold-cleanup to migrate first; the current skills will misread it."
+
 **Frontmatter.** Every `.scaffold/` doc you create or touch carries `type` /
-`schema_version: 1` / `updated:`; set `updated:` to today on every file you write.
+`schema_version: 2` / `updated:`; set `updated:` to today on every file you write.
 `CLAUDE.md` is exempt.
 
 ---
@@ -31,10 +36,10 @@ Read `state.md` and `roadmap.md` first.
 - **Blockers present** (`## Blockers` ≠ "None."): "State shows blockers: [reason].
   Resolved? If yes, we plan forward; if not, let's address the blocker first." Wait.
 - **Executed-but-unrecorded work** — `go` ran in *this* conversation but no `checkpoint`
-  followed (the brief's `plan.md` box is still unchecked). This is a *conversation-context*
+  followed (the plan's `milestone.md` box is still unchecked). This is a *conversation-context*
   signal, not a disk fact (on a cold resume the unchecked box can't distinguish "done but
   unrecorded" from "not started"). When this session knows work was done: "There's
-  executed-but-unrecorded work on [brief]. Run /scaffold-checkpoint first to record it,
+  executed-but-unrecorded work on [plan]. Run /scaffold-checkpoint first to record it,
   then re-plan." Stop — don't proceed.
 
 ## Inline description
@@ -42,12 +47,12 @@ Read `state.md` and `roadmap.md` first.
 If the user invoked with a description (e.g. "plan add an export endpoint"), treat it as
 the agreed direction: run Phase 1 (triage) silently, then assess weight. A one-line
 backlog idea → do the minimum (route to `roadmap.md` Backlog) and confirm, no full flow.
-Anything that creates a milestone, authors briefs, shifts architecture truth, or touches a
+Anything that creates a milestone, authors plans, shifts architecture truth, or touches a
 decision → proceed to Phase 2.
 
 ## Draft or finalize (the `--draft` / `--final` argument)
 
-Authoring a phase brief has two modes, and a brief has two states derived from its content
+Authoring a phase plan has two modes, and a plan has two states derived from its content
 (never a stored enum):
 
 - **draft** — high-level, code-blind, may be written ahead of the code. Has **no**
@@ -59,11 +64,11 @@ Authoring a phase brief has two modes, and a brief has two states derived from i
 code?". The argument **`--draft`** / **`--final`** is a shortcut that skips the ask; if it's
 absent, you ask. The ask may *name* the likely option ("a draft exists for phase 7 —
 finalize it?") but never decides for the user. The argument is a per-invocation intent
-shortcut, **never stored** — the brief's state stays derived from `## Targets` + sha.
+shortcut, **never stored** — the plan's state stays derived from `## Targets` + sha.
 
 On **`--final`** (or the user choosing finalize), run the **Finalize pass** below instead of
 the ordinary author flow. Everything else (new milestone, backlog idea, truth shift, a
-fresh draft brief) runs the normal Phases 1–7.
+fresh draft plan) runs the normal Phases 1–7.
 
 ## Phase 1: Triage (silent)
 
@@ -76,17 +81,17 @@ Read, absorbing context (don't present yet):
 5. `CLAUDE.md` — orientation, constraints
 
 Then the **active milestone** (per `state.md` Next — *not* folder order; highest `NN` is
-only a fallback when Next is silent): its `plan.md` (checklist, objectives,
-done-contract, `## Deferred` list); the phase brief Next points at, if any; its `spec/` if present (follow a
+only a fallback when Next is silent): its `milestone.md` (checklist, objectives,
+done-contract, `## Deferred` list); the phase plan Next points at, if any; its `spec/` if present (follow a
 pointer to an external/shared spec; don't crack open its internals); and any
 `knowledge/` doc relevant to the direction. Scan `decisions/` and `investigations/` by
 filename; read any directly relevant.
 
 Assess internally: where does the direction land (backlog idea / new milestone /
-new-or-changed briefs / a requirement / an architecture-truth shift / a decision)? **Is
+new-or-changed plans / a requirement / an architecture-truth shift / a decision)? **Is
 it a pivot** (reverses a prior decision, or reorders/replaces phases in the active
-milestone)? — if so, downstream unexecuted briefs may now be stale. **Does any intended
-brief depend on a not-yet-approved decision?** — if so, the ADR gate resolves first.
+milestone)? — if so, downstream unexecuted plans may now be stale. **Does any intended
+plan depend on a not-yet-approved decision?** — if so, the ADR gate resolves first.
 
 ## Phase 2: Confirm direction (interactive — WAIT)
 
@@ -98,7 +103,7 @@ and re-confirm before authoring.
 
 ## Phase 3: Resolve the decision gate FIRST
 
-**Ordering rule (hard):** never author a brief premised on an unratified decision. If the
+**Ordering rule (hard):** never author a plan premised on an unratified decision. If the
 direction rests on a significant, durable, cross-cutting choice (tenancy, auth, a
 foundational pivot) not yet in `decisions/`, resolve it before authoring anything that
 depends on it.
@@ -132,9 +137,9 @@ Before writing anything, state exactly what you'll touch and how:
 
 > "Here's what I'll write:
 > - `roadmap.md` — [add backlog line / update milestone index entry]
-> - `milestones/02-slug/` — **new milestone**, `plan.md` seeded
-> - `milestones/NN-slug/phases/07-slug.md` — **new phase brief**
-> - `milestones/NN-slug/plan.md` — add Phase 07 to the checklist
+> - `milestones/02-slug/` — **new milestone**, `milestone.md` seeded
+> - `milestones/NN-slug/phases/07-slug.md` — **new phase plan**
+> - `milestones/NN-slug/milestone.md` — add Phase 07 to the checklist
 > - `architecture.md` — [truth shift, if any]
 > - `project.md` — [scope/identity change, if any]
 > - `state.md` — Active focus + set Next
@@ -153,32 +158,32 @@ that's a system-design question to raise with Adam, not a bucket to add mid-sess
 - **The Backlog↔Deferred test (one computable rule):** *is this tied to the active
   milestone — its scope, its code, or its goal?* **Not tied (or no milestone is active) →
   `roadmap.md` `## Backlog`** (it outlives any current milestone — typically a future
-  feature/capability). **Tied → the active milestone's `plan.md` `## Deferred`** (it's moot
+  feature/capability). **Tied → the active milestone's `milestone.md` `## Deferred`** (it's moot
   or owned elsewhere once the milestone closes — typically a bug, cleanup, debt, residual,
   or doc/spec-reconciliation surfaced inside the work). "Altitude" is not the rule; tied-ness
   is. Either way: one terse `- [ ]` line, never ticked — an item leaves by removal when
   promoted or shipped.
 - **Grooming Deferred + Backlog (when the direction touches them).** You own *promotion*:
-  pull a `## Deferred` or `## Backlog` item into a phase brief (authoring it per below) and
+  pull a `## Deferred` or `## Backlog` item into a phase plan (authoring it per below) and
   **remove the promoted line in the same write**, or leave the item if Adam decides not to
   schedule it yet. Don't delete an item as "done" on your own judgment — shipped-removal is
   `checkpoint`'s (it has the diff) and stale-detection is `audit`'s (it checks the code).
 - **A new milestone** → create `.scaffold/milestones/NN-slug/` (`NN` = milestone counter;
-  slug is a sticky namespace — choose deliberately). Seed `plan.md` (frontmatter
-  `type: milestone-plan`; `# Milestone NN — <slug>`; `## Objectives`; `## Phases`
+  slug is a sticky namespace — choose deliberately). Seed `milestone.md` (frontmatter
+  `type: milestone`; `# Milestone NN — <slug>`; `## Objectives`; `## Phases`
   checklist with checkbox + completion-date slot; `## Done-contract`). Add the milestone
   to `roadmap.md`'s `## Milestones` (`[planned]`/`[active]` token + one-liner + folder
   pointer). If it warrants heavy scoping, create `spec/` — the spec itself or a pointer
   file to one living elsewhere; never crack open a pointer'd spec's internals.
-- **One or more phase briefs** → `.scaffold/milestones/NN-slug/phases/NN-slug.md`, and add
-  each phase to that milestone's `plan.md` checklist. Phase numbers reset per milestone;
+- **One or more phase plans** → `.scaffold/milestones/NN-slug/phases/NN-slug.md`, and add
+  each phase to that milestone's `milestone.md` checklist. Phase numbers reset per milestone;
   the slug namespaces them. **Interstitials allowed** (`09.1` for a surgical phase
-  inserted after a frozen plan) — preserve them, never renumber siblings. Brief shape:
+  inserted after a frozen plan) — preserve them, never renumber siblings. Plan shape:
 
   ```markdown
   ---
-  type: phase-brief
-  schema_version: 1
+  type: phase-plan
+  schema_version: 2
   updated: [today]
   ---
 
@@ -202,15 +207,15 @@ that's a system-design question to raise with Adam, not a bucket to add mid-sess
   the phase is done.]
   ```
 
-  A fresh brief authored this way is a **draft** — no `## Targets`. The `## Targets`
+  A fresh plan authored this way is a **draft** — no `## Targets`. The `## Targets`
   section (with `as of <sha>`) is added only by the **Finalize pass**, which validates the
-  brief against the current code. Don't write `## Targets` in a draft.
+  plan against the current code. Don't write `## Targets` in a draft.
 
   For an investigation deliverable, note `Output: .scaffold/investigations/YYYYMMDD-slug.md`
   in its scope line.
 - **A requirement / product constraint** → `project.md`, as **plain truth** (in `## Scope`
   or `## Not building`) — **never a checkbox** (checkboxes are a `project.md` anti-pattern).
-  A *verifiable invariant* routes instead to where it's tested: a phase brief's
+  A *verifiable invariant* routes instead to where it's tested: a phase plan's
   `## Acceptance`, a milestone done-contract, the `spec/`, or a `knowledge/` invariants
   doc — not a truth doc.
 - **A cross-cutting technical-truth shift** → `architecture.md`, in place, **only** when
@@ -228,7 +233,7 @@ that's a system-design question to raise with Adam, not a bucket to add mid-sess
 - **Where we are now** → always update `state.md`:
   - **Active focus** — one paragraph reflecting the new plan. ELI5: plain words, short
     sentences, no jargon, no officialese.
-  - **Next** — set the active cursor: the milestone + the phase brief to execute next
+  - **Next** — set the active cursor: the milestone + the phase plan to execute next
     (by path), e.g. "Execute `milestones/01-rebuild/phases/07-slug.md` — say 'go ahead'
     or run /scaffold-go." **This is the authority for what's active.**
   - **Blockers / Open Questions** — update only if the discussion resolved or surfaced
@@ -239,56 +244,56 @@ that's a system-design question to raise with Adam, not a bucket to add mid-sess
 
 ## Finalize pass (`--final`)
 
-Turn a draft brief into an execution-ready **final** brief by validating it against the
+Turn a draft plan into an execution-ready **final** plan by validating it against the
 code as it is now. This is where the code-aware, reasoning-heavy work lives — the work
-`scaffold-go` no longer does. Run it on the brief `state.md`'s `## Next` points at (or the
+`scaffold-go` no longer does. Run it on the plan `state.md`'s `## Next` points at (or the
 one the user names).
 
-1. **Research the current code.** Read the files and patterns the brief's `## Scope`
+1. **Research the current code.** Read the files and patterns the plan's `## Scope`
    implies; identify the concrete files/interfaces the phase will touch and any
-   dependencies. (Reading code to author a better brief does **not** cross the "never write
-   code" boundary — you still write only the brief.)
-2. **Write `## Targets`.** Add the section to the brief, one entry per file/interface the
+   dependencies. (Reading code to author a better plan does **not** cross the "never write
+   code" boundary — you still write only the plan.)
+2. **Write `## Targets`.** Add the section to the plan, one entry per file/interface the
    phase touches, and stamp it with the current commit — get it with `git rev-parse --short
    HEAD` and write `_as of <sha>_` under the heading. This is the grounding evidence that
-   makes the brief auditable and gives `go` its staleness backstop.
+   makes the plan auditable and gives `go` its staleness backstop.
 3. **Tighten Scope/Approach** against what the code actually is, and **ensure `##
    Acceptance` is user-verifiable** — an observable outcome, not "tests pass".
 4. **Present the approach in plain terms and confirm in dialogue.** The user is an
-   architect who doesn't read the brief or the code — so surface the approach as a
+   architect who doesn't read the plan or the code — so surface the approach as a
    plain-language conversation ("here's how I'll do it: …"), not "read this doc". **Wait for
    his confirmation.** This is the approval seam; `go` executes afterward without
    re-approving.
-5. On confirmation, write the brief and set `state.md`'s Active focus + `## Next` so a
-   resuming session knows the brief is final & fresh.
+5. On confirmation, write the plan and set `state.md`'s Active focus + `## Next` so a
+   resuming session knows the plan is final & fresh.
 
-**Boundary intact:** finalize *reads* code but writes only the brief. If finalize surfaces
-that the brief rests on an unratified decision, resolve the ADR gate (Phase 3) first.
+**Boundary intact:** finalize *reads* code but writes only the plan. If finalize surfaces
+that the plan rests on an unratified decision, resolve the ADR gate (Phase 3) first.
 
-## Phase 6: Pivot — stale-brief sweep
+## Phase 6: Pivot — stale-plan sweep
 
 **Run whenever the direction is a pivot** (a decision reversed, or phases
-reordered/replaced/inserted in the active milestone). Because briefs *persist*, a
-pre-written downstream brief can silently go stale when a later change lands.
+reordered/replaced/inserted in the active milestone). Because plans *persist*, a
+pre-written downstream plan can silently go stale when a later change lands.
 
-For **every unexecuted brief** in the active milestone — **drafts included** (a draft
+For **every unexecuted plan** in the active milestone — **drafts included** (a draft
 premised on a since-superseded ADR still breaks the ADR gate); executed ones are history,
 leave them:
 1. Re-read it against the change just made.
 2. If its scope/approach/acceptance now conflicts, **flag and rewrite it in place** to
-   match — or, if it no longer belongs, propose removing it and updating the `plan.md`
+   match — or, if it no longer belongs, propose removing it and updating the `milestone.md`
    checklist.
-3. Report each brief as `OK / rewritten / removed` in the summary.
+3. Report each plan as `OK / rewritten / removed` in the summary.
 
 This is `plan`'s half of the staleness obligation; `checkpoint`'s coherence sweep is the
-backstop that also catches brief-vs-decision drift.
+backstop that also catches plan-vs-decision drift.
 
 ## Phase 7: Summary + route
 
-Report per file: roadmap / milestone-index changes; milestone created (if any); briefs
+Report per file: roadmap / milestone-index changes; milestone created (if any); plans
 authored or rewritten (+ checklist updates); architecture / project / knowledge changes;
 decision proposed and its status (proposed / approved+written / declined); state updates
-(Active focus + the new Next cursor); stale-brief sweep results (if a pivot). Then:
+(Active focus + the new Next cursor); stale-plan sweep results (if a pivot). Then:
 
 > "[Summary]. Ready to build — say 'go ahead' or run /scaffold-go. Or keep planning."
 
@@ -310,6 +315,6 @@ decision proposed and its status (proposed / approved+written / declined); state
 
 Plan does NOT: write code or modify project files (`scaffold-go`); write to `decisions/`
 without Adam's explicit approval (propose only — the log is Adam-gated); own the coherence
-sweep / write-back of build results (`scaffold-checkpoint`); author briefs premised on an
+sweep / write-back of build results (`scaffold-checkpoint`); author plans premised on an
 unratified decision (resolve the gate first); or skip the write-set announcement (Adam
 sees the shape before it lands).

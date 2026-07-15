@@ -11,7 +11,7 @@ Initialize Scaffold: a small set of living markdown docs in `.scaffold/` plus a
 from birth — correct sections, correct frontmatter.
 
 **Boundary.** Setup creates the scaffold structure and commits it. It does not author
-phase briefs (that's `scaffold-plan`), execute work (`scaffold-go`), or curate decisions
+phase plans (that's `scaffold-plan`), execute work (`scaffold-go`), or curate decisions
 into ADRs (`scaffold-integrate`/`scaffold-cleanup` own the ADR-promotion gate).
 
 ---
@@ -85,16 +85,16 @@ CLAUDE.md
   investigations/   (empty)
   milestones/
     01-<slug>/
-      plan.md
+      milestone.md
       phases/       (empty)
 ```
 
 **The seed milestone slug.** Default `01-main`. The slug is a **sticky namespace** —
-`state.md` Next, `roadmap.md`, and briefs reference it by path. Pick something
+`state.md` Next, `roadmap.md`, and plans reference it by path. Pick something
 rename-cheap now; if the user already knows the first chunk, ask for a slug and use
 `01-<that>`. Rename procedure is in Step 5.
 
-**Frontmatter (every `.scaffold/` doc).** YAML frontmatter `type` / `schema_version: 1`
+**Frontmatter (every `.scaffold/` doc).** YAML frontmatter `type` / `schema_version: 2`
 / `updated: <today>` on every doc below. `CLAUDE.md` is the one exception — a Claude Code
 special file, no frontmatter. For existing projects, fill templates from Step 2 findings
 (after confirmation); for new projects, use the placeholder prose as-is.
@@ -110,7 +110,7 @@ special file, no frontmatter. For existing projects, fill templates from Step 2 
 | `/scaffold-setup` | Initialize — scaffold the structure for a new project |
 | `/scaffold-status` | Orient — read state, present options |
 | `/scaffold-plan` | Consult + author — discuss direction, persist into the right docs |
-| `/scaffold-go` | Execute — run the active phase brief |
+| `/scaffold-go` | Execute — run the active phase plan |
 | `/scaffold-checkpoint` | Save + reconcile — verify, update files, sweep, commit |
 | `/scaffold-audit` | Audit — deep conformance + reality check (on demand) |
 | `/scaffold-integrate` | Absorb — ingest an artifact (spec, research) into scaffold |
@@ -145,7 +145,7 @@ Tech stack, data access, and run/env do **not** go here — that's `architecture
 ```markdown
 ---
 type: project
-schema_version: 1
+schema_version: 2
 updated: [today]
 ---
 
@@ -176,7 +176,7 @@ Always created (one of the four mandatory truth docs), even when sparse.
 ```markdown
 ---
 type: architecture
-schema_version: 1
+schema_version: 2
 updated: [today]
 ---
 
@@ -204,7 +204,7 @@ updated: [today]
 [How to run the app locally + durable run/env facts.]
 ```
 
-Cover the sections that apply; small projects keep them brief until architecture exceeds
+Cover the sections that apply; small projects keep them plan until architecture exceeds
 a screen. As architectural ADRs get approved later, each truth statement references the
 ADR that established it (`[[NNNN-…]]`) — those inline references *are* the decision index;
 there is no separate index file. **Tiebreak vs `knowledge/`:** a fact that changes when
@@ -216,7 +216,7 @@ you *re-platform* (business rule unchanged) → here; a fact that changes only w
 ```markdown
 ---
 type: roadmap
-schema_version: 1
+schema_version: 2
 updated: [today]
 ---
 
@@ -230,18 +230,18 @@ updated: [today]
 ```
 
 Program altitude only. The status token is exactly one of `[done] | [active] |
-[planned]`. The phases *inside* a milestone live in its `plan.md`, never here. `## Backlog`
+[planned]`. The phases *inside* a milestone live in its `milestone.md`, never here. `## Backlog`
 holds future work **not tied to the active milestone** (typically features), one `- [ ]`
 line each (never ticked — an item leaves by removal when promoted into a milestone or
 shipped); work **tied to** an active milestone (a bug/cleanup/residual in its code) goes to
-that milestone's `plan.md` `## Deferred`, not here. The test is tied-ness, not altitude.
+that milestone's `milestone.md` `## Deferred`, not here. The test is tied-ness, not altitude.
 
 ### .scaffold/state.md — where we are NOW (living, churns)
 
 ```markdown
 ---
 type: state
-schema_version: 1
+schema_version: 2
 updated: [today]
 ---
 
@@ -253,7 +253,7 @@ no status-report officialese. No bullets, code blocks, or quoted prompts.]
 
 ## Next
 Milestone `01-<slug>`. [The concrete action when you resume. Names the active milestone
-and the current phase brief by path once one exists.]
+and the current phase plan by path once one exists.]
 
 ## Blockers
 None.
@@ -269,15 +269,15 @@ state routes to its real home: a precondition on resuming (reseed the DB first) 
 `## Next`; a durable run/env condition goes to `architecture.md`; a blocker to
 `## Blockers`.
 
-### .scaffold/milestones/01-<slug>/plan.md — the first milestone's phase plan (temporal)
+### .scaffold/milestones/01-<slug>/milestone.md — the first milestone's phase plan (temporal)
 
-Seed it with a single Phase 1 (the **emergent default** — no spec, no pre-written briefs;
-briefs get authored just-in-time by `/scaffold-plan` as work is discovered):
+Seed it with a single Phase 1 (the **emergent default** — no spec, no pre-written plans;
+plans get authored just-in-time by `/scaffold-plan` as work is discovered):
 
 ```markdown
 ---
-type: milestone-plan
-schema_version: 1
+type: milestone
+schema_version: 2
 updated: [today]
 ---
 
@@ -298,9 +298,9 @@ disk-derivable "is it done?" signal — `checkpoint` ticks it. Keep annotations 
 date, not prose) so it stays a bounded checklist, never an append-log. An optional
 `## Deferred` section (ground-level work surfaced inside the milestone but not yet
 scheduled — bugs, cleanups, debt) is added by `plan`/`checkpoint` when there's something to
-park; the seed omits it while empty. No `spec/` and no `phases/*.md` brief yet — those
+park; the seed omits it while empty. No `spec/` and no `phases/*.md` plan yet — those
 appear only if the work warrants heavy scoping (via `/scaffold-integrate` or
-`/scaffold-plan`) or once `plan` authors the first brief.
+`/scaffold-plan`) or once `plan` authors the first plan.
 
 ## Step 4: Existing-codebase deep analysis (automatic — no flag)
 
@@ -317,7 +317,7 @@ tools, CI assumptions, env requirements). Feed findings back:
 ## Step 5: Renaming the seed milestone (the slug is a sticky namespace)
 
 The slug is in the folder path and referenced from `state.md` Next, `roadmap.md`, and any
-briefs. To rename `01-main` → `01-<newslug>` (do it early, before briefs accrue):
+plans. To rename `01-main` → `01-<newslug>` (do it early, before plans accrue):
 
 1. `git mv .scaffold/milestones/01-main .scaffold/milestones/01-<newslug>`
 2. Update the milestone line in `roadmap.md`.
@@ -337,7 +337,7 @@ briefs. To rename `01-main` → `01-<newslug>` (do it early, before briefs accru
 
 ## Boundaries
 
-Setup does NOT: author phase briefs or set up a full milestone plan beyond the seed
+Setup does NOT: author phase plans or set up a full milestone plan beyond the seed
 (`scaffold-plan`); execute any work or write project code (`scaffold-go`); curate a
 legacy `DECISIONS.md` into ADRs (that's `cleanup`'s migration job, or surface via `plan`
 for an Adam-gated proposal); or overwrite an existing scaffold (fully

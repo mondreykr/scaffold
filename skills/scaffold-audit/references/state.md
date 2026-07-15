@@ -1,5 +1,5 @@
 ---
-schema_version: 1
+schema_version: 2
 ---
 
 # Contract — `state.md`
@@ -19,7 +19,7 @@ On the target `.scaffold/state.md`:
 ```yaml
 ---
 type: state
-schema_version: 1
+schema_version: 2
 updated: YYYY-MM-DD
 ---
 ```
@@ -37,7 +37,7 @@ section** (see the transient-state rule below).
 No bullets, no code blocks, no quoted prompts.]
 
 ## Next
-[The concrete resume action — milestone + phase brief by path. 1–2 sentences
+[The concrete resume action — milestone + phase plan by path. 1–2 sentences
 or short bullets. Carries any precondition on resuming (e.g. "reseed the dev DB
 first").]
 
@@ -50,7 +50,7 @@ None.
 
 ## Rules
 
-- `## Next` is the single authority for what's active (milestone + phase brief) —
+- `## Next` is the single authority for what's active (milestone + phase plan) —
   never folder order, never a status enum.
 - `Blockers` and `Open Questions` are always present; literal `None.` when empty
   (confirms the writer checked).
@@ -74,7 +74,7 @@ None.
 - Durable truth, deferred work, or a to-do list parked in any section — **including
   disguised as prose inside `## Active focus`** (the one free-text section; "we still
   need to reconcile X" is a deferred item, not a status). Route it: durable run/env →
-  `architecture.md`; deferred work → the milestone `plan.md` `## Deferred` or `roadmap.md`
+  `architecture.md`; deferred work → the milestone's `milestone.md` `## Deferred` or `roadmap.md`
   `## Backlog`; an undecided question → `## Open Questions`.
 - Append-log / dated history accreting in any section (Law 1 violation).
 - Bullets, code blocks, or quoted prompts in `Active focus`.

@@ -1,5 +1,5 @@
 ---
-schema_version: 1
+schema_version: 2
 ---
 
 # Contract — `milestones/NN-slug/spec/`
@@ -20,7 +20,7 @@ Pointer-file form only:
 ```yaml
 ---
 type: spec-pointer
-schema_version: 1
+schema_version: 2
 updated: YYYY-MM-DD
 ---
 ```

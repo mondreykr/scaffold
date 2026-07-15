@@ -30,16 +30,21 @@ findings here. Each agent is told it is grading, not fixing, and grades against 
 
 List every doc in scope: `CLAUDE.md`, the four `.scaffold/` truth docs, all of
 `knowledge/`, `decisions/`, `investigations/`, and every `milestones/NN-slug/`
-(`plan.md`, `spec/`, `phases/*`). Read each doc's frontmatter `type:` — that is
+(`milestone.md`, `spec/`, `phases/*`). Read each doc's frontmatter `type:` — that is
 authoritative and selects which conformance rules apply (filename/location is only a
 fallback). Ignore `.gitkeep` placeholders.
 
-**Two gates before grading.** (1) If the tree *wholesale* lacks `type`/`schema_version`
+**Three gates before grading.** (1) If the tree *wholesale* lacks `type`/`schema_version`
 frontmatter (a pre-current-format / un-migrated layout), stop and report: "This scaffold
 predates the current format — run /scaffold-cleanup to migrate, then re-audit," rather
 than flooding per-doc 'missing frontmatter' findings. (2) A *missing* mandatory truth doc
 (`project` / `architecture` / `roadmap` / `state`) is itself a conformance finding — the
-four are always present in a current scaffold.
+four are always present in a current scaffold. (3) **Unknown / pre-rename `type`** — a doc
+whose frontmatter `type` matches **no** bundled contract (e.g. `milestone-plan` or
+`phase-brief`, the pre-rename names, or any `schema_version: 1`) is an **un-migrated** doc,
+not a malformed one. Do **not** force-grade it against a same-shaped contract or guess its
+type from filename; report it as "unmigrated — run /scaffold-cleanup" and move on. (Current
+type names are `milestone` and `phase-plan`.)
 
 ## Step 2: Conformance pass (runs FIRST — gates the rest)
 
@@ -77,7 +82,7 @@ keeps its own authoring convention) is marked n-a, not force-graded.
 
 Verify the scaffold's claims against the actual code:
 
-- **Ticked phases really built** — for each `[x]` phase in an active/closed `plan.md`,
+- **Ticked phases really built** — for each `[x]` phase in an active/closed `milestone.md`,
   the deliverables exist in the code.
 - **Architecture matches the real stack** — `architecture.md`'s Stack / Data access /
   Deployment reflect the manifests and code, not an aspiration.
@@ -87,7 +92,7 @@ Verify the scaffold's claims against the actual code:
   site(s) it points to exist and still implement the invariant. Flag a pointer that no
   longer resolves, or a rule the code now violates (route to `checkpoint`). This is the
   payoff of the pointer form and the backstop for a thin milestone-close graduation.
-- **Finalized-brief `## Targets` are grounded** — for each brief carrying a `## Targets`
+- **Finalized-plan `## Targets` are grounded** — for each plan carrying a `## Targets`
   section, the named files/interfaces exist in the code and the `as of <sha>` stamp
   resolves to a real commit (`git cat-file -e <sha>`). A `## Targets` with no sha, an
   unresolvable sha, or a named file that doesn't exist is a finding — it means the
@@ -97,7 +102,7 @@ Verify the scaffold's claims against the actual code:
 - **Standing blockers are real** — each `state.md` Blocker is corroborated by the code /
   state, not stale or already resolved.
 - **Deferred / backlog items aren't already done** — this is the deliberate, expensive
-  check the lighter skills can't do: for each `plan.md` `## Deferred` and `roadmap.md`
+  check the lighter skills can't do: for each `milestone.md` `## Deferred` and `roadmap.md`
   `## Backlog` item, verify against the actual code whether it's already built or no longer
   applies. Flag every item that looks shipped or stale for removal (route to
   `checkpoint`/`plan`) — audit reports, never deletes. This is the housekeeping pass that
@@ -106,7 +111,7 @@ Verify the scaffold's claims against the actual code:
   don't yet reflect (a checkpoint may be overdue).
 
 **The gate (hard):** if a doc is malformed enough that its state can't be read reliably
-(e.g. `## Next` doesn't resolve, a `plan.md` checklist is unparseable), report the reality
+(e.g. `## Next` doesn't resolve, a `milestone.md` checklist is unparseable), report the reality
 of that area as **unreliable — fix conformance first**, rather than guessing. Don't infer
 through a broken doc.
 
@@ -128,7 +133,7 @@ and **which skill owns the fix**:
 
 - format / section / frontmatter drift → `scaffold-checkpoint` (sweep) or
   `scaffold-cleanup` (structural)
-- a truth/identity/brief change → `scaffold-plan`
+- a truth/identity/plan change → `scaffold-plan`
 - a stranded rule / milestone-close graduation → `scaffold-checkpoint`
 - an absorbed-artifact issue → `scaffold-integrate`
 - an ADR that should change → propose via `scaffold-plan`/`scaffold-checkpoint`

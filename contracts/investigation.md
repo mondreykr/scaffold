@@ -1,5 +1,5 @@
 ---
-schema_version: 1
+schema_version: 2
 ---
 
 # Contract — `investigations/YYYYMMDD-slug.md`
@@ -17,7 +17,7 @@ record). Read by `scaffold-status` (lists filenames) and `scaffold-plan`.
 ```yaml
 ---
 type: investigation
-schema_version: 1
+schema_version: 2
 updated: YYYY-MM-DD
 ---
 ```

@@ -1,5 +1,5 @@
 ---
-schema_version: 1
+schema_version: 2
 ---
 
 # Contract — `knowledge/*.md`
@@ -22,7 +22,7 @@ against the code (read-only). Read by `scaffold-go`.
 ```yaml
 ---
 type: knowledge
-schema_version: 1
+schema_version: 2
 updated: YYYY-MM-DD
 ---
 ```

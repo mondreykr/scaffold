@@ -46,13 +46,22 @@ If the user declines, warn that stale command files may shadow the skills.
 ## Step 3: Detect an old `.scaffold/` layout + direct to cleanup
 
 New skills against an **old layout** is the most dangerous window — the skills expect the
-current structure and will misread a pre-restructure one. Check the project for markers: a
-single `.scaffold/decisions.md` (file, not a `decisions/` folder), a `.scaffold/plans/`
-directory, a per-phase build plan inside `roadmap.md`, a missing `.scaffold/architecture.md`,
-or `.scaffold/` docs lacking `type`/`schema_version` frontmatter.
+current structure and will misread a pre-restructure one. Check the project for markers.
 
-If any marker is present, emit a hard directive (do not soften):
-> "⚠ This project is on the OLD scaffold layout, but the skills were just updated. Run
+**Pre-restructure layout** (the milestone migration): a single `.scaffold/decisions.md`
+(file, not a `decisions/` folder), a `.scaffold/plans/` directory, a per-phase build plan
+inside `roadmap.md`, a missing `.scaffold/architecture.md`, or `.scaffold/` docs lacking
+`type`/`schema_version` frontmatter.
+
+**Pre-rename layout (`schema_version: 1`)** — the brief→plan / plan.md→milestone.md rename.
+Markers, any one of which means the repo predates it and every current skill will misread
+it: any `.scaffold/` doc carrying **`schema_version: 1`**, a frontmatter **`type:
+milestone-plan`** or **`type: phase-brief`**, or a milestone folder holding a **`plan.md`**
+(the current name is `milestone.md`). Without this check, `update` would report a v1 repo
+as "already current" — the exact silent misread this step exists to prevent.
+
+If any marker (either layout) is present, emit a hard directive (do not soften):
+> "⚠ This project is on an OLD scaffold layout, but the skills were just updated. Run
 > /scaffold-cleanup NOW — before any other scaffold skill (status / plan / go /
 > checkpoint). They expect the current layout and will misread the old one."
 

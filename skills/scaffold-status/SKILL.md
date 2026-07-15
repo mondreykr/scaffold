@@ -14,6 +14,11 @@ disk, surface open threads and history, and end with options — not directives.
 four. If any is missing, stop: "Scaffold files missing or incomplete — run
 /scaffold-setup first (or /scaffold-cleanup if this is an older layout)."
 
+**Version guard.** If any `.scaffold/` doc carries `schema_version: 1`, a `type:
+milestone-plan` / `type: phase-brief`, or a milestone folder holds a `plan.md` (the current
+name is `milestone.md`), the repo predates the current format — stop and route to
+/scaffold-cleanup; don't orient off a v1 layout the current skills will misread.
+
 **Boundary.** Read-only. Status presents and orients; it writes nothing, decides
 nothing, runs nothing. It tells you what's available.
 
@@ -30,23 +35,23 @@ Read these in order — always-current truth, never a log:
 5. `.scaffold/roadmap.md`
 
 A doc's `type` is its frontmatter `type:` (authoritative); filename/location is only a
-fallback. Do **not** read `decisions/` files unless `state.md`, `roadmap.md`, or a brief
+fallback. Do **not** read `decisions/` files unless `state.md`, `roadmap.md`, or a plan
 points at a specific ADR whose *why* you need. Do **not** read `knowledge/` files in
 full — list them (Step 3).
 
 ## Step 2: Locate the active milestone + phase
 
 **`state.md`'s `## Next` is the single authority for what's active** — both the milestone
-and the current phase brief. Folder order is NOT the authority.
+and the current phase plan. Folder order is NOT the authority.
 
-1. Read `## Next`. It points at the active milestone and phase brief (e.g.
+1. Read `## Next`. It points at the active milestone and phase plan (e.g.
    `milestones/01-rebuild/phases/09-categories.md`).
-2. Read that milestone's `plan.md` and the phase brief `## Next` names.
+2. Read that milestone's `milestone.md` and the phase plan `## Next` names.
 3. **Fallback only if `## Next` is silent or stale:** the highest-`NN` milestone folder
    is a *hint*, not the authority — a later-numbered milestone can be pre-created while an
    earlier one still runs. If you fall back, say so, and flag that `## Next` should be set.
 
-**Phase done-ness is read from the `plan.md` checklist** — each phase is a checkbox; a
+**Phase done-ness is read from the `milestone.md` checklist** — each phase is a checkbox; a
 checked box (with a date) means done. No status enum; count checked vs unchecked to see
 how far the milestone has progressed.
 
@@ -59,7 +64,7 @@ how far the milestone has progressed.
 - **`investigations/`** — if it has files, list the filenames so a resuming session knows
   what research exists. **Do not read them** — listing is enough.
 - **`decisions/`** — list `NNNN-slug.md` filenames only if `state.md`, `roadmap.md`, or
-  the active brief points at one whose context matters.
+  the active plan points at one whose context matters.
 
 Ignore `.gitkeep` placeholders in any directory — they are not content.
 
@@ -67,22 +72,22 @@ Ignore `.gitkeep` placeholders in any directory — they are not content.
 
 State is derived from what the documents say, not from status keywords. Compute:
 
-- **Phase in flight?** The active `plan.md` has an unchecked phase and `## Next` points at
-  its brief.
-- **Brief state?** For the active brief, read its `## Targets`: **none → draft** (finalize
+- **Phase in flight?** The active `milestone.md` has an unchecked phase and `## Next` points at
+  its plan.
+- **Plan state?** For the active plan, read its `## Targets`: **none → draft** (finalize
   before `go`); **present with `as of <sha>` at HEAD (no dirty target) → final & fresh**
   (ready to `go`); **sha behind HEAD or a dirty target → stale** (re-finalize). This tells
   a resuming session whether it can execute or must finalize first. (Cheap git check:
   compare the stamped sha to `git rev-parse HEAD`.)
-- **Milestone complete?** Every phase in the active `plan.md` is checked. For a
-  **predetermined** milestone (has `spec/` + pre-written briefs) this means it's at its
+- **Milestone complete?** Every phase in the active `milestone.md` is checked. For a
+  **predetermined** milestone (has `spec/` + pre-written plans) this means it's at its
   done-contract → close + graduate (`/scaffold-checkpoint`) or start a new milestone
   (`/scaffold-plan`). For an **emergent** milestone (no spec), all-phases-checked is the
   *normal* steady state between `plan` calls, **not** a close signal — the next move is
   author the next phase (`/scaffold-plan`); close only if the chunk is genuinely done.
 - **Blocked?** `state.md`'s `## Blockers` has content other than "None."
 - **Open questions?** `state.md`'s `## Open Questions` has content other than "None."
-- **Deferred work parked?** The active milestone's `plan.md` has a non-empty `## Deferred`
+- **Deferred work parked?** The active milestone's `milestone.md` has a non-empty `## Deferred`
   list — surface the count; these are known items not yet scheduled. If it has grown large
   (rule of thumb: >~12 items), nudge: "`## Deferred` is at N items — consider
   `/scaffold-audit` to groom it (the deep already-built/stale check), then `/scaffold-plan`
@@ -99,9 +104,9 @@ apply. They drive routing in Step 6.
 Keep it short — a briefing, not a report:
 
 1. **Project** — what this is, in one sentence (from `project.md`).
-2. **Milestone + phase** — which milestone is active (per `## Next`), which phase brief is
+2. **Milestone + phase** — which milestone is active (per `## Next`), which phase plan is
    current **and its state (draft / final & fresh / stale)**, and how many phases in its
-   `plan.md` are checked vs remaining.
+   `milestone.md` are checked vs remaining.
 3. **Active focus** — the one-paragraph synopsis from `state.md`.
 4. **Open threads** — Blockers and Open Questions (skip if both "None."). Note the active
    milestone's `## Deferred` count if non-empty.
@@ -109,17 +114,17 @@ Keep it short — a briefing, not a report:
 6. **Investigations** — `investigations/` filenames (Step 3). Skip if empty.
 7. **Next action** — route per Step 6.
 8. **Health check** — flag contradictions across docs:
-   - `## Next` points at a phase brief or milestone folder that doesn't exist.
+   - `## Next` points at a phase plan or milestone folder that doesn't exist.
    - `## Next` is silent while a milestone has unchecked phases (active cursor lost).
-   - A `plan.md` phase is checked but `roadmap.md` still shows the milestone planned, or
+   - A `milestone.md` phase is checked but `roadmap.md` still shows the milestone planned, or
      every phase is checked but the roadmap line isn't flipped to done.
    - `project.md` scope boundaries contradict what the roadmap/active milestone builds.
    - An `architecture.md` statement references a decision (`decisions/NNNN-…`) that's
      missing.
    - If consistent, say so.
 
-   (Brief-vs-decision staleness is NOT checked here — `status` deliberately doesn't read
-   `decisions/` or downstream briefs. That detection is `checkpoint`'s coherence sweep and
+   (Plan-vs-decision staleness is NOT checked here — `status` deliberately doesn't read
+   `decisions/` or downstream plans. That detection is `checkpoint`'s coherence sweep and
    `plan`'s pivot sweep.)
 9. **Staleness** — if any living-truth doc's frontmatter `updated:` date is more than 7
    days old while its content has clearly moved on, flag it.
@@ -128,13 +133,13 @@ Keep it short — a briefing, not a report:
 
 Suggest, don't mandate. Surface multiple options if multiple signals apply.
 
-**Phase in flight** — route on the brief's state:
-> - **final & fresh:** "Active: [milestone] / [phase brief] — final & fresh, [N] of [M]
+**Phase in flight** — route on the plan's state:
+> - **final & fresh:** "Active: [milestone] / [phase plan] — final & fresh, [N] of [M]
 >   phases done. Run `/scaffold-go` to execute it, or `/scaffold-plan` to recalibrate."
-> - **draft:** "Active: [milestone] / [phase brief] — still a **draft**. Run
+> - **draft:** "Active: [milestone] / [phase plan] — still a **draft**. Run
 >   `/scaffold-plan --final` to validate it against the current code before `go`, or work
 >   freeform."
-> - **stale:** "Active: [milestone] / [phase brief] — **stale** (validated `as of <sha>`,
+> - **stale:** "Active: [milestone] / [phase plan] — **stale** (validated `as of <sha>`,
 >   code has moved). Re-finalize with `/scaffold-plan --final` before `go`."
 
 **Milestone complete (all phases checked):**

@@ -51,7 +51,7 @@ CLAUDE.md                     Skill Reference table + Core Principle + About + H
   decisions/NNNN-slug.md      ADRs (history; 4-digit)
   investigations/YYYYMMDD-slug.md   research (history; date, no dashes)
   milestones/NN-slug/
-    plan.md                   ## Objectives / ## Phases (checkbox+date) / ## Done-contract / optional ## Deferred
+    milestone.md                   ## Objectives / ## Phases (checkbox+date) / ## Done-contract / optional ## Deferred
     spec/                     OPTIONAL — copy or pointer
     phases/NN-slug.md         one phase each (interstitials like 09.1 preserved)
 ```
@@ -60,11 +60,14 @@ The invariants that define **done**:
 
 - The four living-truth docs exist and are conformant; `knowledge/` exists.
 - `decisions/` and `investigations/` are **folders** with conformant names.
-- Each chunk of work is a `milestones/NN-slug/` container (`plan.md` + `phases/`, optional `spec/`).
+- Each chunk of work is a `milestones/NN-slug/` container (`milestone.md` + `phases/`, optional `spec/`).
 - **None of the legacy shapes remain:** no single `decisions.md`, no standalone `plans/`,
   no per-phase build plan inside `roadmap.md`, no `## Notes` in `state.md`, no catch-all
   section anywhere, no `project.md` checkbox.
-- Every `.scaffold/` doc carries `type` / `schema_version` / `updated` frontmatter.
+- **No pre-rename names remain:** no milestone `plan.md` (it's `milestone.md`), no
+  `type: milestone-plan` (it's `milestone`), no `type: phase-brief` (it's `phase-plan`).
+- Every `.scaffold/` doc carries `type` / `schema_version: 2` / `updated` frontmatter (a
+  `schema_version: 1` doc is pre-rename and not yet migrated).
 - No pointer dangles.
 
 ## Step 1: Inventory — read everything, assume nothing
@@ -87,7 +90,7 @@ format label:
 
 > "Inventoried the scaffold. Current state:
 > - `roadmap.md` — holds a per-phase build plan (target: program-altitude index + Backlog)
-> - `plans/` — N phase briefs (incl. interstitials 06.1, 09.1)
+> - `plans/` — N phase plans (incl. interstitials 06.1, 09.1)
 > - `decisions.md` — single file, N entries (target: curated `decisions/` folder)
 > - `architecture.md` — absent (target: stood up from CLAUDE.md/decisions/run-env)
 > - no `milestones/` container; docs lack frontmatter
@@ -115,7 +118,7 @@ buckets. This triage is what makes cleanup safe on an unknown repo:
   against an assumption the inventory didn't confirm.**
 
 **Idempotency.** Any invariant already satisfied is left untouched — cleanup migrates the
-gap. A doc already stamped and conformant is skipped, not rewritten; a brief already at its
+gap. A doc already stamped and conformant is skipped, not rewritten; a plan already at its
 target path is not moved again.
 
 ## Step 3: Propose the plan (consult, gate the judgment calls)
@@ -128,7 +131,7 @@ until Step 6. The judgment calls to confirm (only those the inventory actually s
    old layout already tracked multiple distinct chunks, propose one container each,
    preserving their order.** The slug is a **sticky namespace** — get it right now.
 2. **Which doc is the milestone plan** — confirm the old `roadmap.md` build-plan body is
-   the source for `plan.md`.
+   the source for `milestone.md`.
 3. **Which legacy decisions become ADRs** (Step 5 curation) — flag that most retire to git.
 4. **The spec, if any** — if a spec scoped this work and lives elsewhere, confirm it stays
    in place and you write a **pointer**, not a copy.
@@ -138,9 +141,9 @@ until Step 6. The judgment calls to confirm (only those the inventory actually s
 Map every pointer first, so nothing dangles. Grep `.scaffold/` and `CLAUDE.md` for
 references that break on move/rename:
 
-- `state.md` `## Next` → the brief/plan path it points at
+- `state.md` `## Next` → the plan/plan path it points at
 - `roadmap.md` → any `plans/phase-*` references
-- phase briefs → cross-links to siblings, to `decisions.md`, to investigations
+- phase plans → cross-links to siblings, to `decisions.md`, to investigations
 - `CLAUDE.md` → any `plans/`, `decisions.md`, or `docs/` pointer to scaffold content
 - knowledge docs → references to decisions by old path
 
@@ -157,17 +160,17 @@ the STOP bucket, not here.
 
 The old `roadmap.md` mixes a **program index** and a **per-phase build plan** — split them.
 
-**Build-plan body → `milestones/NN-slug/plan.md`:** preserve the **checkbox + completion-
+**Build-plan body → `milestones/NN-slug/milestone.md`:** preserve the **checkbox + completion-
 date checklist exactly** (the disk-derivable done-signal, not a forbidden enum — don't
 reformat dates into prose); carry over the objective and the done-contract; keep
 annotations terse. A `phase-00`-style "master build plan / plan authored" entry is **not**
-a phase brief — it collapses *into* `plan.md` as the plan's own preamble, never into
+a phase plan — it collapses *into* `milestone.md` as the plan's own preamble, never into
 `phases/00-*.md`. Target shape (stamp frontmatter):
 
 ```markdown
 ---
-type: milestone-plan
-schema_version: 1
+type: milestone
+schema_version: 2
 updated: [today]
 ---
 
@@ -194,7 +197,7 @@ it to program altitude; author a `## Milestones` index, one line per milestone w
 tied-to-the-active-milestone test** (where most legacy bloat hides): work **not tied** to
 the active milestone (a standalone future feature) stays in `## Backlog` as one terse
 `- [ ]` line; work **tied** to it (a bug, cleanup, debt, residual in its code) moves to
-that milestone's `plan.md` `## Deferred`. Make each surviving line **one line** — compress a
+that milestone's `milestone.md` `## Deferred`. Make each surviving line **one line** — compress a
 multi-line paragraph to a pointer (detail stays in git). Drop `someday / never` entries.
 **Rewrite any backlog line the migration makes stale** (e.g. a "multi-user/tenancy" line
 should point at the relevant ADR + a future milestone number, not imply debt the current
@@ -204,7 +207,7 @@ shape (stamp frontmatter):
 ```markdown
 ---
 type: roadmap
-schema_version: 1
+schema_version: 2
 updated: [today]
 ---
 
@@ -217,7 +220,7 @@ updated: [today]
 - [ ] [program-altitude future feature, one line each]
 ```
 
-### Phase briefs → the milestone (if a `plans/` folder exists)
+### Phase plans → the milestone (if a `plans/` folder exists)
 
 Move every `.scaffold/plans/phase-*.md` into `milestones/NN-slug/phases/`:
 
@@ -225,16 +228,41 @@ Move every `.scaffold/plans/phase-*.md` into `milestones/NN-slug/phases/`:
   `phases/09.1-currency-model.md`. `NN` is the roadmap ordinal; `09.1` is a surgical
   insertion that must keep its place.
 - Strip the `phase-` prefix (new convention is `phases/NN-slug.md`); keep number + slug.
-- `phase-00` does **not** move here — it folded into `plan.md` above.
-- **Stamp `type: phase-brief` frontmatter** and, where the old brief used `## Goal`, rename
+- `phase-00` does **not** move here — it folded into `milestone.md` above.
+- **Stamp `type: phase-plan` frontmatter** and, where the old plan used `## Goal`, rename
   to `## Objective` (current shape: `# Phase NN — <slug>` / Objective / Scope / Approach /
   Acceptance).
 - `git mv` where git is present; repoint every reference from the Step 4 sweep.
 
-If a pre-written *downstream* brief has been **staled** by a later change (e.g. a Phase 10
-brief written before a Phase 9.1 insertion), don't fix it here — just **flag it**:
+If a pre-written *downstream* plan has been **staled** by a later change (e.g. a Phase 10
+plan written before a Phase 9.1 insertion), don't fix it here — just **flag it**:
 > "Note: `phases/10-*.md` predates the 09.1 insertion and may be stale. Migration keeps it
-> as-is; run /scaffold-plan to re-sweep downstream briefs."
+> as-is; run /scaffold-plan to re-sweep downstream plans."
+
+### Pre-rename migration — `brief`→`plan`, `plan.md`→`milestone.md` (if a v1 repo)
+
+Independent of the pre-restructure move above: a repo that already has `milestones/NN-slug/`
+but predates the rename (a `plan.md` file, `type: milestone-plan` / `type: phase-brief`, or
+`schema_version: 1`) migrates in place. This applies even to an otherwise-current repo — it
+is the sole thing cleanup does when only the rename is behind.
+
+- **Each milestone file:** `git mv .scaffold/milestones/NN-slug/plan.md
+  .../milestone.md`; rewrite its frontmatter `type: milestone-plan` → `type: milestone`.
+  Content is unchanged (Objectives / Phases / Done-contract / optional Deferred).
+- **Each phase plan** (`phases/*.md`): rewrite `type: phase-brief` → `type: phase-plan`.
+  **Do not fabricate a `## Targets`/`as of <sha>` — cleanup cannot judge "validated against
+  current code", and inventing one would forge the readiness signal.** A plan with no
+  `## Targets` stays a **draft** (correct — it gets a real `/scaffold-plan --final` pass
+  before its next `go`). A plan that already carries `## Targets` keeps it, but **flag** it:
+  after migration HEAD has moved, so `go` will read it **stale** and route to re-finalize —
+  that is the safe outcome, not a bug.
+- **Bump `schema_version: 1` → `2`** on **every** `.scaffold/` doc (the format epoch;
+  uniform, so a lingering `1` is the un-migrated marker).
+- **Repoint references** (Step 4 sweep): any `plan.md` path (in `state.md` `## Next`,
+  `CLAUDE.md`, cross-links) becomes `milestone.md`. Phase-plan file paths are unchanged
+  (they always lived at `phases/NN-slug.md`), so `## Next`'s phase pointer needs no move.
+- **Ambiguous** (e.g. both a `plan.md` and a `milestone.md` present, or a mixed
+  `schema_version`) → **STOP and surface**, per cleanup's core rule — never guess.
 
 ### Stand up `architecture.md` (if absent or thin)
 
@@ -248,7 +276,7 @@ frontmatter; current section set):
 ```markdown
 ---
 type: architecture
-schema_version: 1
+schema_version: 2
 updated: [today]
 ---
 
@@ -280,7 +308,7 @@ embed it verbatim (the same 9 rows `setup` writes):
 | `/scaffold-setup` | Initialize — scaffold the structure for a new project |
 | `/scaffold-status` | Orient — read state, present options |
 | `/scaffold-plan` | Consult + author — discuss direction, persist into the right docs |
-| `/scaffold-go` | Execute — run the active phase brief |
+| `/scaffold-go` | Execute — run the active phase plan |
 | `/scaffold-checkpoint` | Save + reconcile — verify, update files, sweep, commit |
 | `/scaffold-audit` | Audit — deep conformance + reality check (on demand) |
 | `/scaffold-integrate` | Absorb — ingest an artifact (spec, research) into scaffold |
@@ -335,7 +363,7 @@ Stamp `type: state`. Repoint `## Next` to the new path per the rename map. Ensur
 the four sections exist in order (Active focus / Next / Blockers / Open Questions), with
 literal `None.` where Blockers/Open Questions are empty. **There is no `## Notes` section** —
 if the old `state.md` carried one, **drain it**: durable run/env facts → `architecture.md`;
-a deferred work item → the milestone's `plan.md` `## Deferred`; a resume precondition →
+a deferred work item → the milestone's `milestone.md` `## Deferred`; a resume precondition →
 folded into `## Next`; a blocker → `## Blockers`. Surface each re-home. Stamp `type:
 project` on `project.md` and `type: knowledge` on any `knowledge/*.md`.
 
@@ -347,8 +375,8 @@ deletions (`decisions.md`, the now-empty `plans/`):
 ```
 ## Migration plan
 **Milestone(s):** milestones/NN-slug/ (created)
-  plan.md   ← roadmap build-plan body (checklist preserved)
-  phases/   ← N briefs moved from plans/ (interstitials preserved)
+  milestone.md   ← roadmap build-plan body (checklist preserved)
+  phases/   ← N plans moved from plans/ (interstitials preserved)
   spec/     ← pointer to [path] (if any)
 **roadmap.md** → program altitude (Milestones index + Backlog); frontmatter stamped
 **architecture.md** → NEW (from CLAUDE.md stack + decisions + run/env)
@@ -358,14 +386,14 @@ deletions (`decisions.md`, the now-empty `plans/`):
 **CLAUDE.md** → stack removed (→ architecture.md); Skill Reference table updated
 **Reference sweep:** N pointers repointed, 0 dangling
 **Already-conformant (left untouched):** [anything the gap-diagnosis skipped]
-**Staleness flags:** [downstream briefs to re-sweep with /scaffold-plan, if any]
+**Staleness flags:** [downstream plans to re-sweep with /scaffold-plan, if any]
 ```
 
 **STOP. Wait for explicit approval before writing anything.** Incorporate any modifications
 and re-present. On approval, apply in one pass:
 
-1. Create `milestones/NN-slug/{plan.md, phases/}` and the `spec/` pointer if applicable.
-2. `git mv` the briefs and renamed investigations (preserve history).
+1. Create `milestones/NN-slug/{milestone.md, phases/}` and the `spec/` pointer if applicable.
+2. `git mv` the plans and renamed investigations (preserve history).
 3. Write `architecture.md`; write approved `decisions/NNNN-slug.md` ADRs.
 4. Rewrite `roadmap.md`; update `state.md`, `project.md`, `CLAUDE.md`; stamp all
    frontmatter.
@@ -400,7 +428,7 @@ independent deep conformance + reality pass — the right move after a migration
 Cleanup does NOT: modify project code (migrates scaffold files only); promote an ADR
 without approval (`decisions/` is hard-gated); renumber phases or interstitials (`09.1`
 stays `09.1`); crack open a grandfathered spec's internals (points/updates paths only); fix
-stale downstream briefs (flags them — `plan`/`checkpoint` own re-sweeping); grade docs
+stale downstream plans (flags them — `plan`/`checkpoint` own re-sweeping); grade docs
 rule-by-rule against the contracts (that's `audit`'s sole job — cleanup's self-check is
 structural only); populate `knowledge/` (durable rules graduate at milestone close via
 `checkpoint`, or via `integrate`); or guess on an ambiguous/partial/contradictory state

@@ -1,8 +1,8 @@
 ---
-schema_version: 1
+schema_version: 2
 ---
 
-# Contract — `milestones/NN-slug/phases/NN-slug.md` (phase brief)
+# Contract — `milestones/NN-slug/phases/NN-slug.md` (phase plan)
 
 **Purpose.** The atomic execution unit: one phase's scope, approach, and acceptance.
 Authored by `scaffold-plan`, executed by `scaffold-go`, persists as the record.
@@ -17,8 +17,8 @@ Authored by `scaffold-plan`, executed by `scaffold-go`, persists as the record.
 
 ```yaml
 ---
-type: phase-brief
-schema_version: 1
+type: phase-plan
+schema_version: 2
 updated: YYYY-MM-DD
 ---
 ```
@@ -42,15 +42,15 @@ Out-of-scope discoveries route to checkpoint, never silent expansion.]
 [How we know the phase is done — an OBSERVABLE outcome the reader can verify
 without reading code (a behavior, an output, a visible state), never "tests pass".]
 
-## Targets   ← OPTIONAL; present only on a FINALIZED brief
+## Targets   ← OPTIONAL; present only on a FINALIZED plan
 _as of <sha>_
 - `path/to/file` — [what this phase touches here]
 - `interface / surface` — [ditto]
 ```
 
-## Draft vs. final (the two brief states)
+## Draft vs. final (the two plan states)
 
-A brief has two states, **derived from content with grounding evidence** — never a
+A plan has two states, **derived from content with grounding evidence** — never a
 stored status enum (Principle 7). The `## Targets` section is the signal, and its
 `as of <sha>` stamp is the evidence that makes the signal auditable:
 
@@ -62,7 +62,7 @@ stored status enum (Principle 7). The `## Targets` section is the signal, and it
 
 `## Targets` lists the files/interfaces the phase touches; `scaffold-plan` writes it
 during a **finalize** pass (`as of HEAD`) and `scaffold-go`'s deterministic `sha == HEAD?`
-check reads it. A brief with no `## Targets` is a valid draft — existing briefs are drafts,
+check reads it. A plan with no `## Targets` is a valid draft — existing plans are drafts,
 no conformance break.
 
 ## Rules
@@ -75,17 +75,17 @@ no conformance break.
   *and* the staleness backstop (`go` compares it to HEAD). A `## Targets` without a sha is
   malformed.
 - **Dirty working tree:** the `sha == HEAD?` check assumes committed state. If the tree
-  has uncommitted edits touching any `## Targets` file, treat the brief as **stale** — the
+  has uncommitted edits touching any `## Targets` file, treat the plan as **stale** — the
   validation no longer describes what's on disk.
-- **Staleness:** a pre-written downstream brief can go stale when a later decision/plan
-  lands. `scaffold-plan` sweeps unexecuted briefs (drafts included) on a pivot;
-  `scaffold-checkpoint`'s coherence sweep also flags a *finalized* brief whose
+- **Staleness:** a pre-written downstream plan can go stale when a later decision/plan
+  lands. `scaffold-plan` sweeps unexecuted plans (drafts included) on a pivot;
+  `scaffold-checkpoint`'s coherence sweep also flags a *finalized* plan whose
   targets/approach conflict with a later decision.
-- A brief is never authored on a not-yet-approved ADR (the ADR gate resolves first).
+- A plan is never authored on a not-yet-approved ADR (the ADR gate resolves first).
 
 ## Anti-patterns
 
-- A brief premised on an unratified decision.
+- A plan premised on an unratified decision.
 - A `## Targets` section with no `as of <sha>` stamp (unauditable, no staleness backstop).
 - Renumbering interstitials on migration.
 - Silent scope expansion during `go` instead of routing out-of-scope to checkpoint.
