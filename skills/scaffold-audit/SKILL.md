@@ -39,9 +39,10 @@ frontmatter (a pre-current-format / un-migrated layout), stop and report: "This 
 predates the current format — run /scaffold-cleanup to migrate, then re-audit," rather
 than flooding per-doc 'missing frontmatter' findings. (2) A *missing* mandatory truth doc
 (`project` / `architecture` / `roadmap` / `state`) is itself a conformance finding — the
-four are always present in a current scaffold. (3) **Unknown / pre-rename `type`** — a doc
-whose frontmatter `type` matches **no** bundled contract (e.g. `milestone-plan` or
-`phase-brief`, the pre-rename names, or any `schema_version: 1`) is an **un-migrated** doc,
+four are always present in a current scaffold. (3) **Unknown / pre-rename doc** — a doc
+whose frontmatter `type` matches **no** bundled contract (e.g. `milestone-plan` /
+`phase-brief`, the pre-rename names), **or** any doc still carrying `schema_version: 1`
+(a partial-migration marker, even when its `type` is current), is an **un-migrated** doc,
 not a malformed one. Do **not** force-grade it against a same-shaped contract or guess its
 type from filename; report it as "unmigrated — run /scaffold-cleanup" and move on. (Current
 type names are `milestone` and `phase-plan`.)

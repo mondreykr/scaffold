@@ -151,7 +151,7 @@ Two altitudes, two documents:
 
 The milestone status token is exactly one of `[done] | [active] | [planned]`.
 
-- **`milestones/NN-slug/milestone.md`** is the phase plan for *one* milestone — the phases inside it. It retires when the milestone closes.
+- **`milestones/NN-slug/milestone.md`** is the plan for *one* milestone — the phases inside it, plus its objectives and done-contract. It retires when the milestone closes.
 
 ```markdown
 # Milestone 01 — rebuild

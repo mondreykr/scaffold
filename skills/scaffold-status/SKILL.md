@@ -16,8 +16,8 @@ four. If any is missing, stop: "Scaffold files missing or incomplete — run
 
 **Version guard.** If any `.scaffold/` doc carries `schema_version: 1`, a `type:
 milestone-plan` / `type: phase-brief`, or a milestone folder holds a `plan.md` (the current
-name is `milestone.md`), the repo predates the current format — stop and route to
-/scaffold-cleanup; don't orient off a v1 layout the current skills will misread.
+name is `milestone.md`), the repo predates the current format — stop: "Old scaffold format
+(pre-rename) — run /scaffold-cleanup to migrate first; the current skills will misread it."
 
 **Boundary.** Read-only. Status presents and orients; it writes nothing, decides
 nothing, runs nothing. It tells you what's available.

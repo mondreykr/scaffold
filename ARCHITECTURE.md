@@ -119,7 +119,7 @@ CLAUDE.md                         orientation + instructions + pointer into .sca
   # ── EXECUTION (temporal; retires with its milestone) ──
   milestones/
     NN-slug/
-      milestone.md                     this milestone's phase plan + objectives + acceptance + deferred work
+      milestone.md                     this milestone's phases + objectives + acceptance + deferred work
       spec/                       OPTIONAL — the contract, if heavy scoping was needed
       phases/
         NN-slug.md                phase plans
